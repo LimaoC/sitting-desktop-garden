@@ -10,6 +10,8 @@ from mediapipe.tasks.python.components.containers import landmark as landmark_mo
 from typing import List
 
 PoseLandmark = mp.solutions.pose.PoseLandmark
+PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
+NormalizedLandmark = landmark_module.NormalizedLandmark
 
 
 def posture_angle(x1, y1, x2, y2) -> np.float_:
@@ -19,11 +21,11 @@ def posture_angle(x1, y1, x2, y2) -> np.float_:
 
     P3 is a point on the vertical axis of P1, and is the "ideal" location of P2.
 
-    For a neck inclination calculation, take P2 to be the eye location and P1 to be the
-    shoulder location and pivot point.
+    For a neck inclination calculation, take P1 to be the shoulder location and pivot
+    point, and P2 to be the eye location.
 
-    For a torso inclination calculation, take P2 to be the hip location and P1 to be
-    the hip location and pivot point.
+    For a torso inclination calculation, take P1 to be the hip location and pivot
+    point, and P2 to be the hip location.
     """
     theta = np.arccos(y1 * (y1 - y2) / (y1 * np.linalg.norm((x2 - x1, y2 - y1))))
     return (180 / np.pi) * theta
@@ -31,47 +33,43 @@ def posture_angle(x1, y1, x2, y2) -> np.float_:
 
 def classify(
     output_image: mp.Image,
-    pose_landmark_result: mp.tasks.vision.PoseLandmarkerResult,
+    pose_landmark_result: PoseLandmarkerResult,
 ):
-    landmarks: List[List[landmark_module.NormalizedLandmark]] = (
-        pose_landmark_result.pose_landmarks
-    )
+    landmarks: List[List[NormalizedLandmark]] = pose_landmark_result.pose_landmarks
+    width, height = output_image.width, output_image.height
 
     # TODO: investigate case when more than one pose is detected in image
     assert len(landmarks) == 1
     landmarks = landmarks[0]
 
     # Calculate landmark coordinates
-    image_dims = np.array([output_image.width, output_image.height])
-
     # Left shoulder
-    l_shoulder_x = landmarks[PoseLandmark.LEFT_SHOULDER].x
-    l_shoulder_y = landmarks[PoseLandmark.LEFT_SHOULDER].y
-    l_shoulder = np.array([l_shoulder_x, l_shoulder_y]) * image_dims
+    l_shoulder_x = landmarks[PoseLandmark.LEFT_SHOULDER].x * width
+    l_shoulder_y = landmarks[PoseLandmark.LEFT_SHOULDER].y * height
     # Right shoulder
-    r_shoulder_x = landmarks[PoseLandmark.RIGHT_SHOULDER].x
-    r_shoulder_y = landmarks[PoseLandmark.RIGHT_SHOULDER].y
-    r_shoulder = np.array([r_shoulder_x, r_shoulder_y]) * image_dims
+    r_shoulder_x = landmarks[PoseLandmark.RIGHT_SHOULDER].x * width
+    r_shoulder_y = landmarks[PoseLandmark.RIGHT_SHOULDER].y * height
     # Left ear
-    # l_ear_x = landmarks[PoseLandmark.LEFT_EAR].x
-    # l_ear_y = landmarks[PoseLandmark.LEFT_EAR].y
-    # l_ear = np.array(landmarks[PoseLandmark.LEFT_EAR]) * image_dims
+    l_ear_x = landmarks[PoseLandmark.LEFT_EAR].x * width
+    l_ear_y = landmarks[PoseLandmark.LEFT_EAR].y * height
     # Right ear
-    # r_ear_x = landmarks[PoseLandmark.RIGHT_EAR].x
-    # r_ear_y = landmarks[PoseLandmark.RIGHT_EAR].y
-    # r_ear = np.array(landmarks[PoseLandmark.RIGHT_EAR]) * image_dims
+    r_ear_x = landmarks[PoseLandmark.RIGHT_EAR].x * width
+    r_ear_y = landmarks[PoseLandmark.RIGHT_EAR].y * height
     # Left hip
-    l_hip_x = landmarks[PoseLandmark.LEFT_HIP].x
-    l_hip_y = landmarks[PoseLandmark.LEFT_HIP].y
-    l_hip = np.array([l_hip_x, l_hip_y]) * image_dims
+    l_hip_x = landmarks[PoseLandmark.LEFT_HIP].x * width
+    l_hip_y = landmarks[PoseLandmark.LEFT_HIP].y * height
     # Right hip
-    # r_hip_x = landmarks[PoseLandmark.RIGHT_HIP].x
-    # r_hip_y = landmarks[PoseLandmark.RIGHT_HIP].y
-    # r_hip = np.array([r_hip_x, r_hip_y]) * image_dims
+    r_hip_x = landmarks[PoseLandmark.RIGHT_HIP].x * width
+    r_hip_y = landmarks[PoseLandmark.RIGHT_HIP].y * height
 
-    # shoulder_distance = np.linalg.norm(l_shoulder - r_shoulder)
-    neck_inclination = posture_angle(l_shoulder, r_shoulder)
-    torso_inclination = posture_angle(l_hip, l_shoulder)
+    # Calculate neck & torso inclinations on left and right side and take their average
+    l_neck_inclination = posture_angle(l_shoulder_x, l_shoulder_y, l_ear_x, l_ear_y)
+    r_neck_inclination = posture_angle(r_shoulder_x, r_shoulder_y, r_ear_x, r_ear_y)
+    l_torso_inclination = posture_angle(l_hip_x, l_hip_y, l_shoulder_x, l_shoulder_y)
+    r_torso_inclination = posture_angle(r_hip_x, r_hip_y, r_shoulder_x, r_shoulder_y)
+
+    neck_inclination = (l_neck_inclination + r_neck_inclination) / 2
+    torso_inclination = (l_torso_inclination + r_torso_inclination) / 2
 
     if neck_inclination < 40 and torso_inclination < 10:
         print("Good")
