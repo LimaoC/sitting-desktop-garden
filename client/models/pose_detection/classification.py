@@ -47,7 +47,8 @@ def posture_classify(
     width, height = output_image.width, output_image.height
 
     # TODO: investigate case when more than one pose is detected in image
-    assert len(landmarks) == 1
+    if len(landmarks) == 0:
+        return False
     landmarks = landmarks[0]
 
     # Calculate landmark coordinates
