@@ -11,6 +11,9 @@ PoseLandmark = mp.solutions.pose.PoseLandmark
 PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
 NormalizedLandmark = landmark_module.NormalizedLandmark
 
+NECK_ANGLE_THRESHOLD = 40
+TORSO_ANGLE_THRESHOLD = 10
+
 
 def posture_angle(x1, y1, x2, y2) -> np.float64:
     """
@@ -30,10 +33,14 @@ def posture_angle(x1, y1, x2, y2) -> np.float64:
 
 
 def posture_classify(
-    output_image: mp.Image,
-    pose_landmark_result: PoseLandmarkerResult,
-):
+    output_image: mp.Image, pose_landmark_result: PoseLandmarkerResult
+) -> bool:
     """
+    Returns whether the pose in the image has good (True) or bad (False) posture.
+
+    Note: The camera should be aligned to capture the person's side view; the output
+    may not be accurate otherwise. See `is_camera_aligned()`.
+
     REF: https://learnopencv.com/building-a-body-posture-analysis-system-using-mediapipe
     """
     landmarks: List[List[NormalizedLandmark]] = pose_landmark_result.pose_landmarks
@@ -72,7 +79,7 @@ def posture_classify(
     neck_inclination = (l_neck_inclination + r_neck_inclination) / 2
     torso_inclination = (l_torso_inclination + r_torso_inclination) / 2
 
-    if neck_inclination < 40 and torso_inclination < 10:
-        print("Good")
-    else:
-        print("Bad")
+    return (
+        neck_inclination < NECK_ANGLE_THRESHOLD
+        and torso_inclination < TORSO_ANGLE_THRESHOLD
+    )
