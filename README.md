@@ -1,7 +1,9 @@
 # Sitting Desktop Garden
 
 ## Installation
-We use [Poetry](https://python-poetry.org/) for dependency management. Once you have Poetry installed, you can install the dependencies (and the `sitting-desktop-garden` package) required with
+**Important**: Make sure you have Python 3.10+ installed.
+
+We use [Poetry](https://python-poetry.org/) for dependency management. The installation instructions can be found [here](https://python-poetry.org/docs/).  Once you have Poetry installed, you can install the project dependencies (and the `sitting-desktop-garden` package) with
 
 ```bash
 poetry install
@@ -19,7 +21,7 @@ to run a single command within the environment (e.g. `poetry run python script.p
 poetry shell
 ```
 
-to drop yourself in a nested shell which has the environment active.
+to drop yourself in a nested shell which has the environment activated.
 
 You can check that the `sitting-desktop-garden` package has been installed correctly with this command:
 
