@@ -53,6 +53,35 @@ poetry install --without dev
 
 To see a list of installed packages, use `poetry show`, or `poetry show --tree` for a graphical view. You can also see a list of non-dev dependencies with `poetry show --only main` or `poetry show --without dev`.
 
+## Testing
+
+We use [pytest](https://docs.pytest.org/en/stable/index.html) for testing. Tests are stored in `tests/`, and the tests for each file are prefixed with `test_`.
+
+To run all tests, use
+
+```bash
+poetry run pytest
+```
+
+To run a specific test, say `test_dummy.py`, use
+```bash
+poetry run pytest tests/test_dummy.py
+```
+
+## Code Styling
+
+We use [black](https://black.readthedocs.io/en/stable/) for automated code formatting. To run Black, run this command from the root of the repo:
+
+```bash
+poetry run black client
+```
+
+To style individual files, you can use
+
+```bash
+poetry run black client/models/pose_detection/classification.py
+```
+
 ## Downloading ML Models
 From top-level directory.
 ```bash
