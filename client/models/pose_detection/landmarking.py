@@ -6,7 +6,7 @@ from typing import Optional
 import numpy as np
 import mediapipe as mp
 
-from mediapipe.tasks.python.vision import PoseLandmarkerResult
+from mediapipe.tasks.python.vision.pose_landmarker import PoseLandmarkerResult
 from mediapipe.framework.formats import landmark_pb2
 from models.pose_detection.classification import posture_classify
 from models.pose_detection.camera import is_camera_aligned
