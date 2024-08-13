@@ -15,6 +15,7 @@ mediapipe = "^0.10.14"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
 black = "^24.8.0"
+ipykernel = "6.29.5"
 
 
 [build-system]
