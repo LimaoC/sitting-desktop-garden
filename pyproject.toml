@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "sitting-desktop-garden"
+version = "0.1.0"
+description = ""
+authors = ["Limao Chang <80520563+LimaoC@users.noreply.github.com>", "Mitchell Clark", "Gabriel Field", "Iain Jensen", "David Ramsay", "Ben Varley"]
+readme = "README.md"
+packages = [
+    { include = "models", from = "client" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+mediapipe = "^0.10.14"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
