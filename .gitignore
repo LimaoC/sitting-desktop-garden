@@ -1,4 +1,4 @@
-data/
+client/models/resources
 __pycache__/
 *.task
 *.egg-info
