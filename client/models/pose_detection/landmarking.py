@@ -8,7 +8,8 @@ import mediapipe as mp
 
 from mediapipe.tasks.python.vision import PoseLandmarkerResult
 from mediapipe.framework.formats import landmark_pb2
-from pose_detection.classification import posture_classify
+from models.pose_detection.classification import posture_classify
+from models.pose_detection.camera import is_camera_aligned
 
 
 @dataclass
@@ -34,7 +35,6 @@ def draw_landmarks_on_image(
     pose_landmarks_list = detection_result.pose_landmarks
     annotated_image = np.copy(bgr_image)
 
-    # Loop through the detected poses to visualize.
     for pose_landmarks in pose_landmarks_list:
         # Define proto
         pose_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
@@ -74,5 +74,6 @@ def display_landmarking(
     print(
         f"Timestamp: {timestamp}\n"
         f"Pose landmarker result: {result}\n"
+        f"Camera alignment: {is_camera_aligned(result)}\n"
         f"Good posture: {posture_classify(result)}"
     )
