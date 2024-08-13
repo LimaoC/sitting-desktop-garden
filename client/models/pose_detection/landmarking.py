@@ -1,4 +1,4 @@
-"Pose landmarking"
+"""Pose landmarking"""
 
 from dataclasses import dataclass
 from typing import Optional
