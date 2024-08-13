@@ -2,14 +2,11 @@
 Posture classification
 """
 
-import mediapipe as mp
-from mediapipe.tasks.python.components.containers import landmark as landmark_module
 import numpy as np
-from typing import List
 
-PoseLandmark = mp.solutions.pose.PoseLandmark
-PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
-Landmark = landmark_module.Landmark
+from mediapipe.tasks.python.components.containers.landmark import Landmark
+from mediapipe.tasks.python.vision.pose_landmarker import PoseLandmarkerResult
+from mediapipe.python.solutions.pose import PoseLandmark
 
 NECK_ANGLE_THRESHOLD = 40
 TORSO_ANGLE_THRESHOLD = 10
@@ -35,7 +32,7 @@ def posture_angle(p1: Landmark, p2: Landmark) -> np.float64:
     return (180 / np.pi) * theta
 
 
-def posture_classify(pose_landmark_result: PoseLandmarkerResult) -> bool:
+def posture_classify(pose_landmark_result: PoseLandmarkerResult) -> np.bool_:
     """
     Returns whether the pose in the image has good (True) or bad (False) posture.
 
@@ -44,11 +41,11 @@ def posture_classify(pose_landmark_result: PoseLandmarkerResult) -> bool:
 
     REF: https://learnopencv.com/building-a-body-posture-analysis-system-using-mediapipe
     """
-    landmarks: List[List[Landmark]] = pose_landmark_result.pose_world_landmarks
+    landmarks: list[list[Landmark]] = pose_landmark_result.pose_world_landmarks
 
     # TODO: investigate case when more than one pose is detected in image
     if len(landmarks) == 0:
-        return False
+        return np.bool_(False)
     landmarks = landmarks[0]
 
     # Get landmarks

@@ -2,25 +2,22 @@
 Camera utilities for posture detection
 """
 
-import mediapipe as mp
-from mediapipe.tasks.python.components.containers import landmark as landmark_module
 import numpy as np
-from typing import List
 
-PoseLandmark = mp.solutions.pose.PoseLandmark
-PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
-Landmark = landmark_module.Landmark
+from mediapipe.tasks.python.components.containers.landmark import Landmark
+from mediapipe.python.solutions.pose import PoseLandmark
+from mediapipe.tasks.python.vision.pose_landmarker import PoseLandmarkerResult
 
 
-def is_camera_aligned(pose_landmark_result: PoseLandmarkerResult) -> bool:
+def is_camera_aligned(pose_landmark_result: PoseLandmarkerResult) -> np.bool_:
     """
     Returns whether the camera is aligned to capture the person's side view.
     """
-    landmarks: List[List[Landmark]] = pose_landmark_result.pose_world_landmarks
+    landmarks: list[list[Landmark]] = pose_landmark_result.pose_world_landmarks
 
     # TODO: investigate case when more than one pose is detected in image
     if len(landmarks) == 0:
-        return False
+        return np.bool_(False)
     landmarks = landmarks[0]
 
     # Get landmarks
