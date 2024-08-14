@@ -1,4 +1,6 @@
-client/models/resources
+client/data/resources/*
+client/models/resources/*
+!client/data/resources/database.dbml
 __pycache__/
 *.task
 *.egg-info
