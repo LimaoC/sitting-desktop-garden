@@ -1,12 +1,12 @@
 """Routines that can be integrated into main control flow."""
 
 import sqlite3
+from typing import Any
 from importlib import resources
 from pydbml import PyDBML
 
-DATABASE_NAME = "database.db"
 DATABASE_DEFINTION = resources.files("data.resources").joinpath("database.dbml")
-DATABASE_RESOURCE = resources.files("data.resources").joinpath(DATABASE_NAME)
+DATABASE_RESOURCE = resources.files("data.resources").joinpath("database.db")
 
 
 def init_database() -> None:
@@ -28,7 +28,13 @@ def init_database() -> None:
         connection.commit()
 
 
-def get_schema_info():
+def get_schema_info() -> list[list[tuple[Any]]]:
+    """Column information on all tables in database.
+
+    Returns:
+        (list[list[tuple[Any]]]): Outer list contains table information, inner list contains column
+            information tuples.
+    """
     with resources.as_file(DATABASE_RESOURCE) as database_file:
         connection = sqlite3.connect(database_file)
 
