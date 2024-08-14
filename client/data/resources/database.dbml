@@ -7,8 +7,12 @@ Table user {
 }
 
 Table posture {
+    id INTEGER [primary key, unique, increment]
     user_id INTEGER [ref: > user.id]
-    prop_good REAL 
+    
+    // Proportion of time that posture is good within period 
+    prop_good REAL
+
     period_start DATETIME
     period_end DATETIME
 }
