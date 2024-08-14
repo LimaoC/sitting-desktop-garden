@@ -1,11 +1,11 @@
-"""Routines that can be integrated into main control flow."""
+"""Data routines that can be integrated into main control flow."""
 
 import sqlite3
 from typing import Any
 from importlib import resources
 from pydbml import PyDBML
 
-DATABASE_DEFINTION = resources.files("data.resources").joinpath("database.dbml")
+DATABASE_DEFINITION = resources.files("data.resources").joinpath("database.dbml")
 DATABASE_RESOURCE = resources.files("data.resources").joinpath("database.db")
 
 
@@ -16,7 +16,7 @@ def init_database() -> None:
         if database_file.is_file():
             return
 
-        parsed = PyDBML(DATABASE_DEFINTION)
+        parsed = PyDBML(DATABASE_DEFINITION)
         init_script = parsed.sql
 
         connection = sqlite3.connect(database_file)
