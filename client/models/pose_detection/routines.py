@@ -1,11 +1,17 @@
 """Routines that can be integrated into a main control flow."""
 
 from importlib import resources
+from typing import Callable, Mapping
 
 import cv2
 import mediapipe as mp
+from mediapipe.framework import calculator_pb2
+from mediapipe.python._framework_bindings.packet import Packet
 from mediapipe.tasks.python.core.base_options import BaseOptions
 from mediapipe.tasks.python.vision import RunningMode
+from mediapipe.tasks.python.vision.core.vision_task_running_mode import (
+    VisionTaskRunningMode,
+)
 from mediapipe.tasks.python.vision.pose_landmarker import (
     PoseLandmarker,
     PoseLandmarkerOptions,
@@ -21,12 +27,17 @@ POSE_LANDMARKER_FILE = resources.files("models.resources").joinpath(
 class DebugPostureTracker(PoseLandmarker):
     """Handles routines for a Debugging Posture Tracker"""
 
-    def __init__(self, graph_config, running_mode, packet_callback) -> None:
+    def __init__(
+        self,
+        graph_config: calculator_pb2.CalculatorGraphConfig,
+        running_mode: VisionTaskRunningMode,
+        packet_callback: Callable[[Mapping[str, Packet]], None],
+    ) -> None:
         super().__init__(graph_config, running_mode, packet_callback)
         self.annotated_image = AnnotatedImage()
         self.video_capture = cv2.VideoCapture(0)
 
-    def track_posture(self):
+    def track_posture(self) -> None:
         """Get frame from video capture device and process with pose model, then posture algorithm.
         Print debugging info and display landmark annotated frame.
         """
