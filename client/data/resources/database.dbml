@@ -1,0 +1,14 @@
+Project sitting_desktop_garden {
+    database_type: "SQLite"
+} 
+
+Table user {
+    id INTEGER [primary key, unique, increment]
+}
+
+Table posture {
+    user_id INTEGER [ref: > user.id]
+    prop_good REAL 
+    period_start DATETIME
+    period_end DATETIME
+}
