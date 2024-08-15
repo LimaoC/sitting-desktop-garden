@@ -1095,6 +1095,23 @@ files = [
 ptyprocess = ">=0.5"
 
 [[package]]
+name = "piicodev"
+version = "1.10.0"
+description = "Drivers for the PiicoDev ecosystem of sensors and modules"
+optional = false
+python-versions = "*"
+files = [
+    {file = "piicodev-1.10.0-py3-none-any.whl", hash = "sha256:6a4f04563eb913cbced1356e85d40d18073cad4d28f3166fad9bbdfc63593062"},
+    {file = "piicodev-1.10.0.tar.gz", hash = "sha256:2d778f93a5946adf29821385708598557917cf778e3da53277c685a3baca79fa"},
+]
+
+[package.dependencies]
+smbus2 = ">=0.4.1"
+
+[package.extras]
+dev = ["pytest (>=3.7)"]
+
+[[package]]
 name = "pillow"
 version = "10.4.0"
 description = "Python Imaging Library (Fork)"
@@ -1583,6 +1600,22 @@ files = [
 ]
 
 [[package]]
+name = "smbus2"
+version = "0.4.3"
+description = "smbus2 is a drop-in replacement for smbus-cffi/smbus-python in pure Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "smbus2-0.4.3-py2.py3-none-any.whl", hash = "sha256:a2fc29cfda4081ead2ed61ef2c4fc041d71dd40a8d917e85216f44786fca2d1d"},
+    {file = "smbus2-0.4.3.tar.gz", hash = "sha256:36f2288a8e1a363cb7a7b2244ec98d880eb5a728a2494ac9c71e9de7bf6a803a"},
+]
+
+[package.extras]
+docs = ["sphinx (>=1.5.3)"]
+qa = ["flake8"]
+test = ["mock", "nose"]
+
+[[package]]
 name = "sounddevice"
 version = "0.5.0"
 description = "Play and Record Sound with Python"
@@ -1692,4 +1725,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "e31187868fc273276424e2adaf6f71163f28a8f5f9124e7631a081b0bd64f8ad"
+content-hash = "71fd4da1b7ef69ea01fa4d4710d77d9ff48d3f3de88533b778ff0c42862674a1"
