@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [
     { include = "models", from = "client" },
     { include = "drivers", from = "client" },
-    { inclue = "proof_of_concept", from = "client" }
+    { include = "proof_of_concept", from = "client" }
 ]
 
 [tool.poetry.dependencies]
