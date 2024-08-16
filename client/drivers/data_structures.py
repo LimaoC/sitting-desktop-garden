@@ -60,10 +60,11 @@ class ControlledData:
         self._last_plant_time    = datetime.now()
         self._last_sniff_time    = datetime.now()
 
-    @staticmethod
-    def make_empty(user_id : str) -> "ControlledData":
+    @classmethod
+    def make_empty(cls, user_id : str) -> "ControlledData":
         """
         Construct a non-failed object of this class, with a provided user ID and empty posture data.
+        
         Returns: 
             (ControlledData): An object of this class that is not failed, with legal user ID and empty posture data.
         """
@@ -77,10 +78,11 @@ class ControlledData:
         return_me._last_sniff_time    = datetime.now()
         return return_me
 
-    @staticmethod
-    def make_failed() -> "ControlledData":
+    @classmethod
+    def make_failed(cls) -> "ControlledData":
         """
         Construct a failed object of this class.
+        
         Returns:
             (ControlledData): An object of this class that is failed.
         """
