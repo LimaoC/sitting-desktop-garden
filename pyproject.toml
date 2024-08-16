@@ -17,6 +17,7 @@ pydbml = "1.1.1"
 pytest = "^8.3.2"
 black = "^24.8.0"
 ipykernel = "6.29.5"
+sphinx = "^8.0.2"
 
 
 [build-system]
