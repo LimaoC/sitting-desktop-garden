@@ -1,0 +1,45 @@
+models.pose\_detection package
+==============================
+
+Submodules
+----------
+
+models.pose\_detection.camera module
+------------------------------------
+
+.. automodule:: models.pose_detection.camera
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+models.pose\_detection.classification module
+--------------------------------------------
+
+.. automodule:: models.pose_detection.classification
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+models.pose\_detection.landmarking module
+-----------------------------------------
+
+.. automodule:: models.pose_detection.landmarking
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+models.pose\_detection.routines module
+--------------------------------------
+
+.. automodule:: models.pose_detection.routines
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: models.pose_detection
+   :members:
+   :undoc-members:
+   :show-inheritance:
