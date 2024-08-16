@@ -89,7 +89,7 @@ poetry run black client/models/pose_detection/classification.py
 To build the docs locally, run from the root of the repo:
 
 ```bash
-cd docs && make html
+cd docs && poetry run make html
 ```
 
 ## Downloading ML Models
