@@ -1,7 +1,10 @@
 """
-Data structures for use on the RPi Client.
-@file data_structures.py
-@author Gabriel Field
+Brief:
+    Data structures for use on the RPi Client.
+File:
+    sitting-desktop-garden/client/drivers/data_structures.py
+Author:
+    Gabriel Field (47484306)
 """
 
 ## SECTION: Imports
@@ -61,7 +64,8 @@ class ControlledData:
     def make_empty(user_id : str) -> "ControlledData":
         """
         Construct a non-failed object of this class, with a provided user ID and empty posture data.
-        @returns ControlledData An object of this class that is not failed, with legal user ID and empty posture data.
+        Returns: 
+            (ControlledData): An object of this class that is not failed, with legal user ID and empty posture data.
         """
         return_me = ControlledData()
         return_me._failed             = False
@@ -77,7 +81,8 @@ class ControlledData:
     def make_failed() -> "ControlledData":
         """
         Construct a failed object of this class.
-        @returns ControlledData An object of this class that is failed.
+        Returns:
+            (ControlledData): An object of this class that is failed.
         """
         return_me = ControlledData()
         return_me._failed             = True
@@ -93,19 +98,22 @@ class ControlledData:
 
     def is_failed(self) -> bool:
         """
-        @returns bool True iff this ControlledData is failed.
+        Returns:
+            (bool): True iff this ControlledData is failed.
         """
         return self._failed
     
     def get_user_id(self) -> str:
         """
-        @returns str The user id of this ControlledData.
+        Returns:
+            (str): The user id of this ControlledData.
         """
         return self._user_id
 
     def get_posture_data(self) -> "POSTURE_DATA": # TODO: Refine type signature
         """
-        @returns POSTURE_DATA The posture data stored in this ControlledData
+        Returns:
+            (POSTURE_DATA): The posture data stored in this ControlledData
         """
         return self._posture_data
 
@@ -113,7 +121,8 @@ class ControlledData:
     
     def get_cushion_posture_data(self) -> "CUSHION_POSTURE_DATA": # TODO: Decide what this type looks like
         """
-        @returns posture data necessary for cushion feedback.
+        Returns:
+            (CUSHION_POSTURE_DATA): Posture data necessary for cushion feedback.
         TODO: Implement this.
         """
         # DEBUG:
@@ -123,7 +132,8 @@ class ControlledData:
 
     def get_plant_posture_data(self) -> "PLANT_POSTURE_DATA": # TODO: Decide what this type looks like
         """
-        @returns posture data necessary for plant feedback.
+        Returns:
+            (PLANT_POSTURE_DATA) Posture data necessary for plant feedback.
         TODO: Implement this.
         """
         # DEBUG:
@@ -133,7 +143,8 @@ class ControlledData:
     
     def get_sniff_posture_data(self) -> "SNIFF_POSTURE_DATA": # TODO: Decide what this type looks like
         """
-        @returns posture data necessary for scent feedback.
+        Returns:
+            (SNIFF_POSTURE_DATA): Posture data necessary for scent feedback.
         TODO: Implement this.
         """
         # DEBUG:

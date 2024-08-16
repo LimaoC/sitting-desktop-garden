@@ -1,7 +1,10 @@
 """
-Entry point for the Sitting Desktop Garden Raspberry Pi Pot Client.
-@file sitting-desktop-garden/client/drivers/main.py
-@author Gabriel Field (47484306)
+Brief:
+    Entry point for the Sitting Desktop Garden Raspberry Pi Pot Client.
+File:
+    sitting-desktop-garden/client/drivers/main.py
+Author:
+    Gabriel Field (47484306)
 """
 
 ## SECTION: Imports
@@ -13,6 +16,9 @@ from data_structures import ControlledData
 ## SECTION: main()
 
 def main():
+    """
+    Entry point for the control program.
+    """
     # DEBUG:
     print("<!> main()")
     # :DEBUG
@@ -34,6 +40,7 @@ def main():
 def initialise_hardware():
     """
     Set up hardware for use throughout the project.
+
     TODO: Actually write this function. Currently does nothing.
     """
     # DEBUG:
@@ -47,7 +54,10 @@ def initialise_hardware():
 def wait_for_login_attempt() -> bool:
     """
     Waits until the user attempts to log in.
-    @returns True when the user attempts to log in.
+
+    Returns:
+        (bool): True when the user attempts to log in.
+    
     TODO: Actually write this function. Currently prints a debug message and instantly returns.
     """
     # DEBUG:
@@ -59,9 +69,12 @@ def wait_for_login_attempt() -> bool:
 def attempt_login() -> ControlledData:
     """
     Attempts to log in.
-    @returns ControlledData, which is:
-        FAILED                 if the login is unsuccessful
-        EMPTY (but not failed) if the login is successful
+
+    Returns:
+        (ControlledData): which is:
+            FAILED                 if the login is unsuccessful
+            EMPTY (but not failed) if the login is successful
+
     TODO: Actually write this function. Currently prints a debug message.
     """
     # DEBUG:
@@ -82,10 +95,12 @@ def attempt_login() -> ControlledData:
 def do_everything(uqcs : ControlledData) -> None:
     """
     Main control flow once a user is logged in.
-    @param uqcs : ControlledData
-        Data encapsulating the current state of the program.
-    @requires ! uqcs.is_failed()
-    @returns None
+
+    Args:
+        (uqcs : ControlledData): Data encapsulating the current state of the program.
+    Requires:
+        ! uqcs.is_failed()
+    
     TODO: Actually implement this
     """
     # DEBUG:
@@ -103,11 +118,17 @@ def update_display_screen(uqcs : ControlledData) -> bool:
     """
     Update the display screen with whatever needs to be on there.
     TODO: Determine what needs to be on there.
-    @param uqcs : ControlledData
-        Data encapsulating the current state of the program.
-    @returns True, always. If you get a False return value, then something has gone VERY wrong.
-    @requires ! uqcs.is_failed()
-    @ensures  ! uqcs.is_failed()
+
+    Args: 
+        (uqcs : ControlledData):
+            Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! uqcs.is_failed()
+    Ensures:
+        ! uqcs.is_failed()
+    
     TODO: Implement this method. Currently prints a debug statement.
     """
     # DEBUG:
@@ -118,11 +139,16 @@ def update_display_screen(uqcs : ControlledData) -> bool:
 def handle_posture_monitoring(uqcs : ControlledData) -> bool:
     """
     Take a snapshot monitoring the user, and update the given ControlledData if necessary.
-    @param uqcs : ControlledData
-        Data encapsulating the current state of the program.
-    @returns True, always. If you get a False return value, then something has gone VERY wrong.
-    @requires ! uqcs.is_failed()
-    @ensures  ! uqcs.is_failed()
+
+    Args:
+        (uqcs : ControlledData): Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! uqcs.is_failed()
+    Ensures:
+        ! uqcs.is_failed()
+    
     TODO: Implement this method. Currently prints a debug statement.
     """
     # DEBUG:
@@ -134,11 +160,16 @@ def handle_posture_monitoring(uqcs : ControlledData) -> bool:
 def handle_feedback(uqcs : ControlledData) -> bool:
     """
     Provide feedback to the user if necessary.
-    @param uqcs : ControlledData
-        Data encapsulating the current state of the program.
-    @returns True, always. If you get a False return value, then something has gone VERY wrong.
-    @requires ! uqcs.is_failed()
-    @ensures  ! uqcs.is_failed()
+    
+    Args:
+        (uqcs : ControlledData): Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! uqcs.is_failed()
+    Ensures:
+        ! uqcs.is_failed()
+    
     TODO: Implement this method. Currently prints a debug statement.
     """
     # DEBUG:
