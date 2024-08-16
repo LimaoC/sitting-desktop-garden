@@ -84,6 +84,14 @@ To style individual files, you can use
 poetry run black client/models/pose_detection/classification.py
 ```
 
+## Documentation
+
+To build the docs locally, run from the root of the repo:
+
+```bash
+cd docs && make html
+```
+
 ## Downloading ML Models
 From top-level directory.
 ```bash
