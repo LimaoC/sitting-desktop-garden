@@ -4,13 +4,13 @@ Data structures for use on the RPi Client.
 @author Gabriel Field
 """
 
-# SECTION: Imports
+## SECTION: Imports
 
 from datetime import datetime
 
 
 
-# SECTION: Constants
+## SECTION: Constants
 
 EMPTY_USER_ID = ""
 EMPTY_POSTURE_DATA = None # TODO: Refine to a legal term, once the type is figured out

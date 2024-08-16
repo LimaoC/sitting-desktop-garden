@@ -4,7 +4,11 @@ Entry point for the Sitting Desktop Garden Raspberry Pi Pot Client.
 @author Gabriel Field (47484306)
 """
 
+## SECTION: Imports
+
 from data_structures import ControlledData
+
+
 
 ## SECTION: main()
 
