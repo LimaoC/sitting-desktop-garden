@@ -24,7 +24,9 @@ EMPTY_POSTURE_DATA = None # TODO: Refine to a legal term, once the type is figur
 
 class ControlledData:
     """
-    Data for passing around in client/drivers/main.big_chungus()
+    Data for passing around in client/drivers/main.do_everything().
+
+    There should only ever be one object of this class at a time.
 
     Member fields:
         self._failed : bool                           
