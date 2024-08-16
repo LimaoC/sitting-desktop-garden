@@ -4,7 +4,10 @@ Data structures for use on the RPi Client.
 @author Gabriel Field
 """
 
+# SECTION: Imports
+
 from datetime import datetime
+
 
 
 # SECTION: Constants
