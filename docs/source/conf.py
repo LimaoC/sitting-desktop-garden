@@ -33,6 +33,8 @@ exclude_patterns = []
 apidoc_module_dir = "../../client"
 apidoc_output_dir = "api"
 
+napoleon_google_docstring = True
+napoleon_numpy_docstring = False
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
