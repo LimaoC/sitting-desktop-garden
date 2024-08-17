@@ -1393,6 +1393,20 @@ files = [
 ptyprocess = ">=0.5"
 
 [[package]]
+name = "piccolo-theme"
+version = "0.23.0"
+description = "A modern Sphinx theme."
+optional = false
+python-versions = ">=3.6.0"
+files = [
+    {file = "piccolo_theme-0.23.0-py3-none-any.whl", hash = "sha256:26ade303009a78c3f0c3e2430ac71931c07fa49fd9097daa9d1c8e9b7135652a"},
+    {file = "piccolo_theme-0.23.0.tar.gz", hash = "sha256:8e59ca64adb0b8433e9fedd8e7d53af8bc90251054c10027d0d6ab00694d771d"},
+]
+
+[package.dependencies]
+sphinx = "*"
+
+[[package]]
 name = "pillow"
 version = "10.4.0"
 description = "Python Imaging Library (Fork)"
@@ -2446,4 +2460,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "115b3d4a7f807f46e1a74bb0fa105dc098e75824afef2d3b806d4cd8824e7327"
+content-hash = "be247fa6a9ec7f288b99b35862a9d5c37ad319302068d16ef81fa63ca9cfd589"
