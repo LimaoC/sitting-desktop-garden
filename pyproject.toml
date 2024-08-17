@@ -18,6 +18,8 @@ pytest = "^8.3.2"
 black = "^24.8.0"
 ipykernel = "6.29.5"
 sphinx = "^8.0.2"
+sphinx-autobuild = "^2024.4.16"
+sphinxcontrib-apidoc = "^0.5.0"
 
 
 [build-system]
