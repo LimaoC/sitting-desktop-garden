@@ -5,7 +5,7 @@ WARN="[\033[1;33mWARN\033[0m]"
 INFO="[\033[1;32mINFO\033[0m]"
 ERROR="[\033[1;31mERROR\033[0m]"
 
-PATHFILE='deploypaths.txt'
+PATHFILE=$1
 TEMPDIRPATH='package_temp'
 
 [ -d $TEMPDIRPATH ]
@@ -57,7 +57,7 @@ if ! tar cf $TARNAME -C $TEMPDIRPATH "./build"; then
 	exit 1
 fi
 
-SSHTARGET=$1
+SSHTARGET=$2
 # Check if we can find target
 if ! nc -z $SSHTARGET 22 2>/dev/null; then
 	echo -e "$ERROR Host unreachable";
@@ -72,6 +72,7 @@ if ! scp -q $TARNAME $SSHTARGET:~/; then
        exit 1
 fi
 
+echo -e "$INFO Extracting Build - the password may be needed again"
 if ! ssh $SSHTARGET "tar xf $TARNAME; rm $TARNAME"; then
 	echo -e "$ERROR Remote extraction failed"
 	cleanup

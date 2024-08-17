@@ -70,6 +70,21 @@ To run a specific test, say `test_dummy.py`, use
 poetry run pytest tests/test_dummy.py
 ```
 
+## Deployment
+To deploy a build to the Raspberry Pi use the `deploy.sh` script. This script will create a tarball of file listed in a text file, transfer it to
+a specified hostname and untar it there.
+
+To use the script execute it in the project's root directory with,
+```bash
+./deploy.sh [pathfile] [username]@[hostname]
+```
+For example, to deploy the files listed in `deploypaths.txt` to `testpi` (using username raspberry) the command would be
+```bash
+./deploy.sh deploypaths.txt raspberry@testpi
+```
+The pathname file should contain a path to a file or directory on each line. If a directory is listed `deploy.sh` will copy the entire contents over.
+You can use the `#` character at the start of a line to leave comments.
+
 ## Code Styling
 
 We use [black](https://black.readthedocs.io/en/stable/) for automated code formatting. To run Black, run this command from the root of the repo:
