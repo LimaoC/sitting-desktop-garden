@@ -17,4 +17,4 @@ Contents
 
 .. toctree::
 
-   generated/modules
+   api/modules
