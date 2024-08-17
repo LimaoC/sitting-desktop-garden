@@ -38,8 +38,9 @@ class DebugPostureTracker(PoseLandmarker):
         self.video_capture = cv2.VideoCapture(0)
 
     def track_posture(self) -> None:
-        """Get frame from video capture device and process with pose model, then posture algorithm.
-        Print debugging info and display landmark annotated frame.
+        """
+        Get frame from video capture device and process with pose model, then posture
+        algorithm. Print debugging info and display landmark annotated frame.
         """
         success, frame = self.video_capture.read()
         if not success:
@@ -60,9 +61,11 @@ class DebugPostureTracker(PoseLandmarker):
 
 
 def create_debug_posture_tracker() -> DebugPostureTracker:
-    """Handles config of livestreamed input and model loading.
+    """
+    Handles config of livestreamed input and model loading.
+
     Returns:
-        (DebugPostureTracker): Tracker object which acts as context manager.
+        Tracker object which acts as context manager.
     """
     annotated_image = AnnotatedImage()
     options = PoseLandmarkerOptions(

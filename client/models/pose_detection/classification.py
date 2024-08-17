@@ -21,10 +21,15 @@ def posture_angle(p1: Landmark, p2: Landmark) -> np.float64:
     The y coordinate of P3 is irrelevant but for simplicity we set it to zero.
 
     For a neck inclination calculation, take P1 to be the shoulder location and pivot
-    point, and P2 to be the ear location.
+    point, and P2 to be the ear location. For a torso inclination calculation, take P1
+    to be the hip location and pivot point, and P2 to be the hip location.
 
-    For a torso inclination calculation, take P1 to be the hip location and pivot
-    point, and P2 to be the hip location.
+    Parameters:
+        p1: Landmark for P1 as described above
+        p2: Landmark for P2 as described above
+
+    Returns:
+        Angle (in degrees) between P2 and P3
     """
     x1, y1 = p1.x, p1.y
     x2, y2 = p2.x, p2.y
@@ -34,12 +39,16 @@ def posture_angle(p1: Landmark, p2: Landmark) -> np.float64:
 
 def posture_classify(pose_landmark_result: PoseLandmarkerResult) -> np.bool_:
     """
-    Returns whether the pose in the image has good (True) or bad (False) posture.
+    Returns whether the pose in the image has good or bad posture.
 
     Note: The camera should be aligned to capture the person's side view; the output
     may not be accurate otherwise. See `is_camera_aligned()`.
 
     REF: https://learnopencv.com/building-a-body-posture-analysis-system-using-mediapipe
+
+    Parameters:
+        pose_landmarker_result: Landmarker result as returned by a
+          mediapipe.tasks.vision.PoseLandmarker
     """
     landmarks: list[list[Landmark]] = pose_landmark_result.pose_world_landmarks
 
