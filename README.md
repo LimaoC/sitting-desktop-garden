@@ -86,15 +86,13 @@ poetry run black client/models/pose_detection/classification.py
 
 ## Documentation
 
-To build the docs locally, run from the root of the repo:
-
+We use [Sphinx](https://www.sphinx-doc.org/) for documentation. To view the documentation locally, run the following command:
 ```bash
-poetry run sphinx-apidoc -f -o docs/source/generated client &&
-cd docs &&
-poetry run make html
+make docs-live
 ```
+This spins up a local server which serves the documentation pages, and also hot-reloads and auto-rebuilds whenever code changes are made.
 
-The documentation is generated automatically from the source code, so it isn't stored in the repo (hence why we need to run `sphinx-apidoc`).
+You can build the documentation (without spinning up a server) with `make docs`, and clean the documentation output with `make docs-clean`.
 
 ## Downloading ML Models
 From top-level directory.
