@@ -13,6 +13,9 @@ Table posture {
     // Proportion of time that posture is good within period 
     prop_good REAL
 
+    // Proportion of time the user is in the frame
+    prop_in_frame REAL
+
     period_start DATETIME
     period_end DATETIME
 }
