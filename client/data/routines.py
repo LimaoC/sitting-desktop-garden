@@ -85,6 +85,7 @@ def get_users(num: int = 10) -> list[User]:
     """
     Args:
         num: Number of user to retrieve
+        
     Returns:
         num users from the database.
     """
@@ -98,6 +99,7 @@ def get_postures(num: int = 10) -> list[Posture]:
     """
     Args:
         num: Number of posture records to retrieve
+        
     Returns:
         num posture records from the database.
     """
