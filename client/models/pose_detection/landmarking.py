@@ -14,9 +14,10 @@ from models.pose_detection.camera import is_camera_aligned
 
 @dataclass
 class AnnotatedImage:
-    """
-    Represents mutable annoted image through data attribute. Can be used to set
-    annotated image within a callback asynchronously without raising an error.
+    """Represents mutable annotated image through data attribute.
+
+    Can be used to set annotated image within a callback asynchronously without raising
+    an error.
     """
 
     data: Optional[np.ndarray] = None
@@ -62,6 +63,7 @@ def display_landmarking(
     annotated_image: AnnotatedImage,
 ) -> None:
     """Mutates annotated image to contain visualization of detected landmarks.
+
     Also prints debugging info to the standard output.
 
     Args:
