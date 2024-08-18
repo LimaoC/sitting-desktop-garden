@@ -39,6 +39,8 @@ def main():
     button1110 = PiicoDev_Switch(id = [1, 1, 1, 0])
     two_chungi(button0000, button1110)
 
+    print("==== TEST: COMPLETE! ====")
+
 
 
 ## TEST: One-button
