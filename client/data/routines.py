@@ -1,11 +1,9 @@
 """Data routines that can be integrated into main control flow."""
 
 import sqlite3
-import dataclasses
 
 from datetime import datetime
-from dataclasses import dataclass
-from typing import Any
+from typing import Any, NamedTuple
 from importlib import resources
 
 from pydbml import PyDBML
@@ -15,8 +13,7 @@ DATABASE_DEFINITION = RESOURCES.joinpath("database.dbml")
 DATABASE_RESOURCE = RESOURCES.joinpath("database.db")
 
 
-@dataclass
-class Posture:
+class Posture(NamedTuple):
     """Represents a posture record in the SQLite database"""
 
     user_id: int
@@ -59,7 +56,7 @@ def create_user() -> int:
     return user_id
 
 
-def save_posture(posture: Posture) -> None:
+def save_posture(posture: Posture | tuple) -> None:
     """Stores the posture record in the database.
 
     Args:
@@ -70,7 +67,7 @@ def save_posture(posture: Posture) -> None:
         cursor.execute(
             "INSERT INTO posture (user_id, prop_good, prop_in_frame, period_start, period_end) "
             "VALUES (?, ?, ?, ?, ?);",
-            dataclasses.astuple(posture),
+            posture,
         )
         connection.commit()
 
