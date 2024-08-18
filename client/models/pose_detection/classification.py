@@ -13,23 +13,25 @@ TORSO_ANGLE_THRESHOLD = 10
 
 
 def posture_angle(p1: Landmark, p2: Landmark) -> np.float64:
-    """
-    Returns the angle (in degrees) between P2 and P3, where P3 is a point on the
-    vertical axis of P1 (i.e. its x coordinate is the same as P1's), and is the "ideal"
-    location of the P2 landmark for good posture.
+    """Calculates the neck or torso posture angle (in degrees).
 
-    The y coordinate of P3 is irrelevant but for simplicity we set it to zero.
+    In particular, this calculates the angle (in degrees) between p2 and p3, where p3
+    is a point on the vertical axis of p1 (i.e. same x coordinate as p1), and
+    represents the "ideal" location of the p2 landmark for good posture.
 
-    For a neck inclination calculation, take P1 to be the shoulder location and pivot
-    point, and P2 to be the ear location. For a torso inclination calculation, take P1
-    to be the hip location and pivot point, and P2 to be the hip location.
+    The y coordinate of p3 is irrelevant but for simplicity we set it to zero.
+
+    For neck posture, take p1 to be the shoulder, p2 to be the ear. For torso posture,
+    take p1 to be the hip, p2 to be the shoulder.
+
+    REF: https://learnopencv.com/wp-content/uploads/2022/03/MediaPipe-pose-neckline-inclination.jpg
 
     Parameters:
         p1: Landmark for P1 as described above
         p2: Landmark for P2 as described above
 
     Returns:
-        Angle (in degrees) between P2 and P3
+        Neck or torso posture angle (in degrees)
     """
     x1, y1 = p1.x, p1.y
     x2, y2 = p2.x, p2.y
@@ -38,8 +40,7 @@ def posture_angle(p1: Landmark, p2: Landmark) -> np.float64:
 
 
 def posture_classify(pose_landmark_result: PoseLandmarkerResult) -> np.bool_:
-    """
-    Returns whether the pose in the image has good or bad posture.
+    """Classifies the pose in the image as either good or bad posture.
 
     Note: The camera should be aligned to capture the person's side view; the output
     may not be accurate otherwise. See `is_camera_aligned()`.
@@ -49,6 +50,9 @@ def posture_classify(pose_landmark_result: PoseLandmarkerResult) -> np.bool_:
     Parameters:
         pose_landmarker_result: Landmarker result as returned by a
           mediapipe.tasks.vision.PoseLandmarker
+
+    Returns:
+        True if the pose has good posture, False otherwise
     """
     landmarks: list[list[Landmark]] = pose_landmark_result.pose_world_landmarks
 
