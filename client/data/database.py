@@ -13,6 +13,12 @@ DATABASE_DEFINITION = RESOURCES.joinpath("database.dbml")
 DATABASE_RESOURCE = RESOURCES.joinpath("database.db")
 
 
+class User(NamedTuple):
+    """Represents a user record in the SQLite database"""
+
+    user_id: int
+
+
 class Posture(NamedTuple):
     """Represents a posture record in the SQLite database"""
 
@@ -70,6 +76,32 @@ def save_posture(posture: Posture | tuple) -> None:
             posture,
         )
         connection.commit()
+
+
+def get_users(num: int = 10) -> list[User]:
+    """
+    Args:
+        num: Number of user to retrieve
+    Returns:
+        num users from the database.
+    """
+    with _connect() as connection:
+        cursor = connection.cursor()
+        result = cursor.execute("SELECT * FROM user LIMIT ?", (num,))
+        return result.fetchall()
+
+
+def get_postures(num: int = 10) -> list[Posture]:
+    """
+    Args:
+        num: Number of posture records to retrieve
+    Returns:
+        num posture records from the database.
+    """
+    with _connect() as connection:
+        cursor = connection.cursor()
+        result = cursor.execute("SELECT * FROM posture LIMIT ?", (num,))
+        return result.fetchall()
 
 
 def get_schema_info() -> list[list[tuple[Any]]]:
