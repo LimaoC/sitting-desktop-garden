@@ -1,4 +1,4 @@
-"""Data routines that can be integrated into main control flow."""
+"""Module for interacting with SQLite database"""
 
 import sqlite3
 
