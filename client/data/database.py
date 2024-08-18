@@ -3,7 +3,7 @@
 import sqlite3
 
 from datetime import datetime
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Optional
 from importlib import resources
 
 from pydbml import PyDBML
@@ -16,12 +16,13 @@ DATABASE_RESOURCE = RESOURCES.joinpath("database.db")
 class User(NamedTuple):
     """Represents a user record in the SQLite database"""
 
-    user_id: int
+    id_: Optional[int]
 
 
 class Posture(NamedTuple):
     """Represents a posture record in the SQLite database"""
 
+    id_: Optional[int]
     user_id: int
     prop_good: float
     prop_in_frame: float
@@ -68,11 +69,13 @@ def save_posture(posture: Posture | tuple) -> None:
     Args:
         posture: The posture record to save.
     """
+    if posture[0] is not None:
+        raise ValueError("Posture record id must be None")
+
     with _connect() as connection:
         cursor = connection.cursor()
         cursor.execute(
-            "INSERT INTO posture (user_id, prop_good, prop_in_frame, period_start, period_end) "
-            "VALUES (?, ?, ?, ?, ?);",
+            "INSERT INTO posture VALUES (?, ?, ?, ?, ?, ?);",
             posture,
         )
         connection.commit()
@@ -88,7 +91,7 @@ def get_users(num: int = 10) -> list[User]:
     with _connect() as connection:
         cursor = connection.cursor()
         result = cursor.execute("SELECT * FROM user LIMIT ?", (num,))
-        return result.fetchall()
+        return [User(*record) for record in result.fetchall()]
 
 
 def get_postures(num: int = 10) -> list[Posture]:
@@ -101,7 +104,7 @@ def get_postures(num: int = 10) -> list[Posture]:
     with _connect() as connection:
         cursor = connection.cursor()
         result = cursor.execute("SELECT * FROM posture LIMIT ?", (num,))
-        return result.fetchall()
+        return [Posture(*record) for record in result.fetchall()]
 
 
 def get_schema_info() -> list[list[tuple[Any]]]:
@@ -127,4 +130,6 @@ def get_schema_info() -> list[list[tuple[Any]]]:
 
 def _connect() -> sqlite3.Connection:
     with resources.as_file(DATABASE_RESOURCE) as database_file:
-        return sqlite3.connect(database_file)
+        return sqlite3.connect(
+            database_file, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
+        )
