@@ -3,6 +3,7 @@
 import sqlite3
 from typing import Any
 from importlib import resources
+
 from pydbml import PyDBML
 
 RESOURCES = resources.files("data.resources")
@@ -25,6 +26,22 @@ def init_database() -> None:
         cursor = connection.cursor()
         cursor.executescript(init_script)
         connection.commit()
+
+
+def create_user() -> int:
+    """Creates a new user in the database.
+
+    Returns:
+        The id of the new user.
+    """
+    with _connect() as connection:
+        cursor = connection.cursor()
+        cursor.execute("INSERT INTO user DEFAULT VALUES;")
+        result = cursor.execute("SELECT last_insert_rowid() FROM user;")
+        user_id = result.fetchone()[0]
+        connection.commit()
+
+    return user_id
 
 
 def get_schema_info() -> list[list[tuple[Any]]]:
