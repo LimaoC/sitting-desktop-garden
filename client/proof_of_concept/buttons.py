@@ -12,9 +12,14 @@ Source:
     Largely based on https://core-electronics.com.au/guides/piicodev-button-getting-started-guide/#B62QRRH
 """
 
+## SECTION: Imports
+
 from PiicoDev_Switch import PiicoDev_Switch # Switch may be used for other types of PiicoDev Switch devices
 from PiicoDev_Unified import sleep_ms
 
+
+
+## SECTION: main()
 
 def main():
     print("==== TEST: Chungus on one button ====")
