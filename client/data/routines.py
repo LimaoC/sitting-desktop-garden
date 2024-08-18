@@ -5,8 +5,9 @@ from typing import Any
 from importlib import resources
 from pydbml import PyDBML
 
-DATABASE_DEFINITION = resources.files("data.resources").joinpath("database.dbml")
-DATABASE_RESOURCE = resources.files("data.resources").joinpath("database.db")
+RESOURCES = resources.files("data.resources")
+DATABASE_DEFINITION = RESOURCES.joinpath("database.dbml")
+DATABASE_RESOURCE = RESOURCES.joinpath("database.db")
 
 
 def init_database() -> None:
@@ -32,7 +33,7 @@ def get_schema_info() -> list[list[tuple[Any]]]:
     """Column information on all tables in database.
 
     Returns:
-        (list[list[tuple[Any]]]): Outer list contains table information, inner list contains column
+        Outer list contains table information, inner list contains column
             information tuples.
     """
     with resources.as_file(DATABASE_RESOURCE) as database_file:
