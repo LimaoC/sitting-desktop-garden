@@ -3,6 +3,7 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import collections
 import os
 import sys
 
@@ -42,3 +43,19 @@ napoleon_numpy_docstring = False
 
 html_theme = "piccolo_theme"
 html_static_path = ["_static"]
+
+# -- Post process ------------------------------------------------------------
+
+
+def remove_namedtuple_attrib_docstring(app, what, name, obj, skip, options):
+    """Removes the auto-generated docstring for NamedTuple attributes.
+
+    REF: https://stackoverflow.com/questions/61572220/python-sphinx-namedtuple-documentation
+    """
+    if type(obj) is collections._tuplegetter:
+        return True
+    return skip
+
+
+def setup(app):
+    app.connect("autodoc-skip-member", remove_namedtuple_attrib_docstring)
