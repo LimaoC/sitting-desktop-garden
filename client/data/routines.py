@@ -14,13 +14,27 @@ DATABASE_RESOURCE = RESOURCES.joinpath("database.db")
 
 
 class User(NamedTuple):
-    """Represents a user record in the SQLite database"""
+    """Represents a user record in the SQLite database
+
+    Attributes:
+        id_: Unique id for the user. Should be set to None when user does not exist in DB.
+    """
 
     id_: Optional[int]
 
 
 class Posture(NamedTuple):
-    """Represents a posture record in the SQLite database"""
+    """Represents a posture record in the SQLite database
+
+    Attributes:
+        id_: Unique id for the posture record. Should be set to None when record does not exist in
+            DB.
+        user_id: The user for which this posture applies to.
+        prop_good: Proportion of time the user is in the frame which the posture is good.
+        prop_in_frame: Proportion of time the user is in the frame during the period.
+        period_start: Start of the tracked period.
+        period_end: End of the tracked period.
+    """
 
     id_: Optional[int]
     user_id: int
@@ -85,7 +99,7 @@ def get_users(num: int = 10) -> list[User]:
     """
     Args:
         num: Number of user to retrieve
-        
+
     Returns:
         num users from the database.
     """
@@ -99,7 +113,7 @@ def get_postures(num: int = 10) -> list[Posture]:
     """
     Args:
         num: Number of posture records to retrieve
-        
+
     Returns:
         num posture records from the database.
     """
