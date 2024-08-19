@@ -14,10 +14,13 @@ from models.pose_detection.camera import is_camera_aligned
 
 @dataclass
 class AnnotatedImage:
-    """Represents mutable annotated image through data attribute.
+    """Represents mutable annotated image container.
 
     Can be used to set annotated image within a callback asynchronously without raising
     an error.
+
+    Attributes:
+        data: The actual image.
     """
 
     data: Optional[np.ndarray] = None
