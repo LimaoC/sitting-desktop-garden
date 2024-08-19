@@ -16,6 +16,6 @@ Table posture {
     // Proportion of time the user is in the frame
     prop_in_frame REAL
 
-    period_start DATETIME
-    period_end DATETIME
+    period_start TIMESTAMP
+    period_end TIMESTAMP
 }
