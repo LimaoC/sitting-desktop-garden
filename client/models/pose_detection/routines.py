@@ -25,7 +25,11 @@ POSE_LANDMARKER_FILE = resources.files("models.resources").joinpath(
 
 
 class DebugPostureTracker(PoseLandmarker):
-    """Handles routines for a Debugging Posture Tracker"""
+    """Handles routines for a Debugging Posture Tracker.
+
+    Attributes:
+        annotated_image: Mutable container for an image which may be mutated asynchronously.
+    """
 
     def __init__(
         self,
@@ -35,17 +39,17 @@ class DebugPostureTracker(PoseLandmarker):
     ) -> None:
         super().__init__(graph_config, running_mode, packet_callback)
         self.annotated_image = AnnotatedImage()
-        self.video_capture = cv2.VideoCapture(0)
+        self._video_capture = cv2.VideoCapture(0)
 
     def track_posture(self) -> None:
         """Get frame from video capture device and process with pose model, then posture
         algorithm. Print debugging info and display landmark annotated frame.
         """
-        success, frame = self.video_capture.read()
+        success, frame = self._video_capture.read()
         if not success:
             return
 
-        frame_timestamp_ms = self.video_capture.get(cv2.CAP_PROP_POS_MSEC)
+        frame_timestamp_ms = self._video_capture.get(cv2.CAP_PROP_POS_MSEC)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
         self.detect_async(mp_image, int(frame_timestamp_ms))
 
@@ -54,7 +58,7 @@ class DebugPostureTracker(PoseLandmarker):
             cv2.imshow("output", self.annotated_image.data)
 
     def __exit__(self, unused_exc_type, unused_exc_value, unused_traceback) -> None:
-        self.video_capture.release()
+        self._video_capture.release()
         cv2.destroyAllWindows()
         super().__exit__(unused_exc_type, unused_exc_value, unused_traceback)
 
