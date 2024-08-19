@@ -16,5 +16,7 @@ docs-clean:
 
 # Spin up a local server to serve documentation pages
 # Auto-reloads when code changes in PACKAGEDIR are made
+# Set custom environment variables for sphinx-apidoc, REF: https://github.com/sphinx-doc/sphinx/issues/8664
+docs-live: export SPHINX_APIDOC_OPTIONS=members,show-inheritance
 docs-live:
 	$(POETRY) sphinx-autobuild --open-browser --watch "$(PACKAGEDIR)" -a "$(SOURCEDIR)" "$(BUILDDIR)/html"
