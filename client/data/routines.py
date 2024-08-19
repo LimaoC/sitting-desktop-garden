@@ -63,13 +63,13 @@ def create_user() -> int:
     return user_id
 
 
-def save_posture(posture: Posture | tuple) -> None:
+def save_posture(posture: Posture) -> None:
     """Stores the posture record in the database.
 
     Args:
         posture: The posture record to save.
     """
-    if posture[0] is not None:
+    if posture.id_ is not None:
         raise ValueError("Posture record id must be None")
 
     with _connect() as connection:
