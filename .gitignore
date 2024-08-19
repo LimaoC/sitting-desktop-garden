@@ -1,4 +1,9 @@
-client/models/resources
+client/data/resources/*
+client/models/resources/*
+!client/data/resources/database.dbml
+docs/build/
+docs/source/generated/
+.ipynb_checkpoints/
 __pycache__/
 *.task
 *.egg-info

@@ -1,0 +1,47 @@
+# REF: https://coderefinery.github.io/documentation/gh_workflow/
+
+name: Build documentation
+
+  
+on: [push, pull_request, workflow_dispatch]
+
+env: 
+  PYTHON_VERSION: '3.10'
+  POETRY_VERSION: '1.8.3'
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Local action that tries to cache as much of python & poetry as possible
+      - name: Setup environment
+        uses: ./.github/workflows/setup-python
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          poetry-version: ${{ env.POETRY_VERSION }}
+      
+      - name: Sphinx build
+        run: |
+          poetry run sphinx-apidoc -f -o docs/source/generated client &&
+          cd docs &&
+          poetry run make html
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-docs
+          path: docs/build/html/
+
+      - name: Deploy to GitHub pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        with:
+          publish_branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/build/html

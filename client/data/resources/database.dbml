@@ -1,0 +1,21 @@
+Project sitting_desktop_garden {
+    database_type: "SQLite"
+} 
+
+Table user {
+    id INTEGER [primary key, unique, increment]
+}
+
+Table posture {
+    id INTEGER [primary key, unique, increment]
+    user_id INTEGER [ref: > user.id]
+    
+    // Proportion of time that posture is good within period 
+    prop_good REAL
+
+    // Proportion of time the user is in the frame
+    prop_in_frame REAL
+
+    period_start DATETIME
+    period_end DATETIME
+}

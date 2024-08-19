@@ -14,8 +14,10 @@ from models.pose_detection.camera import is_camera_aligned
 
 @dataclass
 class AnnotatedImage:
-    """Represents mutable annoted image through data attribute. Can be used to set annotated image
-    within a callback asynchronously without raising an error.
+    """Represents mutable annotated image through data attribute.
+
+    Can be used to set annotated image within a callback asynchronously without raising
+    an error.
     """
 
     data: Optional[np.ndarray] = None
@@ -26,11 +28,11 @@ def draw_landmarks_on_image(
 ) -> np.ndarray:
     """
     Args:
-        bgr_image (np.ndarray): CxWxH image array where channels are sorted in BGR.
-        detection_result (PoseLandmarkerResult): Landmarker result as returned by a
-            mediapipe.tasks.vision.PoseLandmarker
+        bgr_image: CxWxH image array where channels are sorted in BGR.
+        detection_result: Landmarker result as returned by a
+            mediapipe.tasks.vision.PoseLandmarker.
     Returns:
-        (np.ndarray): Image with landmarks annotated.
+        Image with landmarks annotated.
     """
     pose_landmarks_list = detection_result.pose_landmarks
     annotated_image = np.copy(bgr_image)
@@ -58,17 +60,17 @@ def display_landmarking(
     result: PoseLandmarkerResult,
     output_image: mp.Image,
     timestamp: int,
-    annotated_image=AnnotatedImage,
+    annotated_image: AnnotatedImage,
 ) -> None:
     """Mutates annotated image to contain visualization of detected landmarks.
+
     Also prints debugging info to the standard output.
 
     Args:
-        result (PoseLandmarkerResult):  Landmarker result as returned by a
-            mediapipe.tasks.vision.PoseLandmarker
-        output_image (mp.Image): Raw image used for landmarking.
-        timestamp (int): Video timestamp in milliseconds.
-        annotated_image (AnnotatedImage): Image to mutate.
+        result: Landmarker result as returned by a mediapipe.tasks.vision.PoseLandmarker
+        output_image: Raw image used for landmarking.
+        timestamp: Video timestamp in milliseconds.
+        annotated_image: Image to mutate.
     """
     annotated_image.data = draw_landmarks_on_image(output_image.numpy_view(), result)
     print(

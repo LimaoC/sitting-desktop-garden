@@ -84,6 +84,16 @@ To style individual files, you can use
 poetry run black client/models/pose_detection/classification.py
 ```
 
+## Documentation
+
+We use [Sphinx](https://www.sphinx-doc.org/) for documentation. To view the documentation locally, run the following command:
+```bash
+make docs-live
+```
+This spins up a local server which serves the documentation pages, and also hot-reloads and auto-rebuilds whenever code changes are made.
+
+You can build the documentation (without spinning up a server) with `make docs`, and clean the documentation output with `make docs-clean`.
+
 ## Downloading ML Models
 From top-level directory.
 ```bash
