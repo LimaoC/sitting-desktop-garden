@@ -123,6 +123,32 @@ def get_postures(num: int = 10) -> list[Posture]:
         return [Posture(*record) for record in result.fetchall()]
 
 
+def get_user_postures(user_id: int, num: int = -1) -> list[Posture]:
+    """
+    Args:
+        user_id: Id of user to get postures for.
+        num: Number of posture records to retrieve. Set to -1 to retrieve all records.
+
+    Returns:
+        num posture records from the database for the specified user. Retrieves latest inserted
+            posture records first.
+    """
+    params: tuple[int, ...] = (user_id,)
+
+    # Add limit to query
+    limit = ""
+    if num != -1:
+        limit = " LIMIT ?"
+        params = (num,) + params
+
+    query = f"SELECT * FROM posture{limit} WHERE user_id=? ORDER BY id DESC"
+
+    with _connect() as connection:
+        cursor = connection.cursor()
+        result = cursor.execute(query, params)
+        return [Posture(*record) for record in result.fetchall()]
+
+
 def get_schema_info() -> list[list[tuple[Any]]]:
     """Column information on all tables in database.
 
