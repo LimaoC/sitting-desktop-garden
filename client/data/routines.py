@@ -123,17 +123,26 @@ def get_postures(num: int = 10) -> list[Posture]:
         return [Posture(*record) for record in result.fetchall()]
 
 
-def get_user_postures(user_id: int, num: int = -1) -> list[Posture]:
+def get_user_postures(
+    user_id: int,
+    num: int = -1,
+    period_start: Optional[datetime] = None,
+    period_end: Optional[datetime] = None,
+) -> list[Posture]:
     """
     Args:
         user_id: Id of user to get postures for.
         num: Number of posture records to retrieve. Set to -1 to retrieve all records.
+        period_start: Only posture records starting at or after this period will be retrieved.
+            Leave as None to set no restriction.
+        period_end: Only posture records ending at or before this period will be retrieved.
+            Leave as None to set no restriction.
 
     Returns:
         num posture records from the database for the specified user. Retrieves latest inserted
             posture records first.
     """
-    params: tuple[int, ...] = (user_id,)
+    params: tuple[int | datetime, ...] = (user_id,)
 
     # Add limit to query
     limit = ""
@@ -141,7 +150,18 @@ def get_user_postures(user_id: int, num: int = -1) -> list[Posture]:
         limit = " LIMIT ?"
         params = (num,) + params
 
-    query = f"SELECT * FROM posture{limit} WHERE user_id=? ORDER BY id DESC"
+    # Add period to query
+    query_period = ""
+    if period_start is not None:
+        query_period += " AND DATETIME(period_start) >= DATETIME(?)"
+        params += (period_start,)
+    if period_end is not None:
+        query_period += " AND DATETIME(period_end) <= DATETIME(?)"
+        params += (period_end,)
+
+    query = (
+        f"SELECT * FROM posture{limit} WHERE user_id = ?{query_period} ORDER BY id DESC"
+    )
 
     with _connect() as connection:
         cursor = connection.cursor()
