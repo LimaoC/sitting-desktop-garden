@@ -1,4 +1,8 @@
 # Sitting Desktop Garden
+## Library Overview
+- `client/models`: Machine learning models (pose detection and face recognition)
+- `client/data`: Data handling for sitting-desktop-garden. Includes user, posture and face id data.
+- `notebooks`: Demos for module use.
 
 ## Installation
 **Important**: Make sure you have Python 3.10+ installed.
