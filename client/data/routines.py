@@ -133,9 +133,9 @@ def get_user_postures(
     Args:
         user_id: Id of user to get postures for.
         num: Number of posture records to retrieve. Set to -1 to retrieve all records.
-        period_start: Only posture records starting at or after this period will be retrieved.
+        period_start: Only posture records starting at or after this timestamp will be retrieved.
             Leave as None to set no restriction.
-        period_end: Only posture records ending at or before this period will be retrieved.
+        period_end: Only posture records ending at or before this timestamp will be retrieved.
             Leave as None to set no restriction.
 
     Returns:
