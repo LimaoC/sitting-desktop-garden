@@ -190,7 +190,7 @@ def draw_graph(display):
     print("<?> BEGIN draw_graph()")
     sleep_ms(2000)
     
-    curve = display.graph2D(minValue = -1, maxValue = -1, height = HEIGHT, width = WIDTH)
+    curve = display.graph2D(minValue = -1, maxValue = 1, height = HEIGHT, width = WIDTH)
         # minValue= key is for the minimum value on the logical graph. This gets mapped into pixels automatically.
         # maxValue= key is for the maximum value on the logical graph. This gets mapped into pixels automatically.
         # height=   key is for maximum display height.
@@ -224,7 +224,7 @@ def draw_graph(display):
     # Plot two curves simultaneously
     print("\tPlotting two curves simultaneously")
     linear = display.graph2D(minValue = 0, maxValue = WIDTH)
-    sinusoidal = display.graph2D(minValue = -1, maxValue = -1)
+    sinusoidal = display.graph2D(minValue = -1, maxValue = 1)
     for x in range(WIDTH):
         display.fill(0)
         display.updateGraph2D(linear, x)
