@@ -1407,6 +1407,23 @@ files = [
 sphinx = "*"
 
 [[package]]
+name = "piicodev"
+version = "1.10.0"
+description = "Drivers for the PiicoDev ecosystem of sensors and modules"
+optional = false
+python-versions = "*"
+files = [
+    {file = "piicodev-1.10.0-py3-none-any.whl", hash = "sha256:6a4f04563eb913cbced1356e85d40d18073cad4d28f3166fad9bbdfc63593062"},
+    {file = "piicodev-1.10.0.tar.gz", hash = "sha256:2d778f93a5946adf29821385708598557917cf778e3da53277c685a3baca79fa"},
+]
+
+[package.dependencies]
+smbus2 = ">=0.4.1"
+
+[package.extras]
+dev = ["pytest (>=3.7)"]
+
+[[package]]
 name = "pillow"
 version = "10.4.0"
 description = "Python Imaging Library (Fork)"
@@ -1928,6 +1945,22 @@ files = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
+
+[[package]]
+name = "smbus2"
+version = "0.4.3"
+description = "smbus2 is a drop-in replacement for smbus-cffi/smbus-python in pure Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "smbus2-0.4.3-py2.py3-none-any.whl", hash = "sha256:a2fc29cfda4081ead2ed61ef2c4fc041d71dd40a8d917e85216f44786fca2d1d"},
+    {file = "smbus2-0.4.3.tar.gz", hash = "sha256:36f2288a8e1a363cb7a7b2244ec98d880eb5a728a2494ac9c71e9de7bf6a803a"},
+]
+
+[package.extras]
+docs = ["sphinx (>=1.5.3)"]
+qa = ["flake8"]
+test = ["mock", "nose"]
 
 [[package]]
 name = "sniffio"
@@ -2460,4 +2493,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "be247fa6a9ec7f288b99b35862a9d5c37ad319302068d16ef81fa63ca9cfd589"
+content-hash = "dc4479c6eb6b02ca575daac3966a5633e5c8fea38fea545bd24b865a8ff29125"
