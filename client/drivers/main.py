@@ -10,9 +10,9 @@ Author:
 ## SECTION: Imports
 
 from PiicoDev_Switch import PiicoDev_Switch
-from PiicoDev_Unified import sleep_ms
+#from PiicoDev_Unified import sleep_ms
 
-from data_structures import ControlledData, HardwareComponents
+from data_structures import ControlledData, HardwareComponents, Picture, Face
 
 
 
@@ -91,16 +91,97 @@ def attempt_login() -> ControlledData:
 
     TODO: Actually write this function. Currently prints a debug message.
     """
+    # # DEBUG:
+    # print("<!> attempt_login()")
+    # DEBUG_login_success = True
+    # DEBUG_default_user_id = "play-user"
+    # # :DEBUG
+    # if DEBUG_login_success:
+    #     return ControlledData.make_empty(DEBUG_default_user_id)
+    # else:
+    #     return ControlledData.make_failed()
+    
+    while True:
+        picture = take_picture()
+        if picture.is_failed():
+            continue
+        face = ai_bros_face_recogniser(picture.underlying_picture) # TODO: This should be an external API call.
+        if face.is_failed():
+            continue
+        if face.is_matched():
+            return ControlledData.make_empty(face.get_user_id())
+        if not ask_create_new_user():
+            continue
+        new_user_id = create_new_user(picture.underlying_picture)
+        return ControlledData.make_empty(new_user_id)
+        
+
+def take_picture() -> Picture:
+    """
+    Takes a picture from the camera, and returns a (failable) picture object.
+
+    TODO: Actually write this function. Currently prints a debug message and returns a failed picture.
+    """
     # DEBUG:
-    print("<!> attempt_login()")
-    DEBUG_login_success = False
-    DEBUG_default_user_id = "shitpost"
+    print("<!> take_picture()")
+    DEBUG_return_value = Picture.make_failed()
     # :DEBUG
-    if DEBUG_login_success:
-        return ControlledData.make_empty(DEBUG_default_user_id)
-    else:
-        return ControlledData.make_failed()
-    # See Control_flow.pdf for expected control flow
+    return DEBUG_return_value
+
+def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face:
+    """
+    Recognise a face, powered by AI.
+
+    Args:
+        underlying_picture : UNDERLYING_PICTURE
+            The picture to pass to the face recogniser. This data passing may be handled differently
+            in the final version.
+    Returns:
+        (Face): Failed, matched or unmatched Face
+    TODO: Convert this into an external API call. Currently returns debug data.
+    """
+    # DEBUG:
+    print("<!> ai_bros_face_recogniser()")
+    DEBUG_failed = False
+    DEBUG_matched = True
+    DEBUG_user_id = 0
+    # :DEBUG
+    if DEBUG_failed:
+        return Face.make_failed()
+    if not DEBUG_matched:
+        return Face.make_unmatched()
+    return Face.make_matched(DEBUG_user_id)
+
+def ask_create_new_user() -> bool:
+    """
+    Ask the user whether they would like to create a new user profile based on the previous picture.
+
+    Returns:
+        (bool): True iff the user would like to create a new user profile
+    TODO: Make this go out to hardware peripherals. It should have:
+        Two buttons (yes / no)
+        The LED display ("Unmatched face. Create new user?")
+    """
+    # DEBUG:
+    DEBUG_user_response = False
+    # :DEBUG
+    return DEBUG_user_response
+
+def create_new_user(underlying_picture : "UNDERLYING_PICTURE") -> int:
+    """
+    Create a new user based on the given picture, and return their user id.
+
+    Args:
+        underlying_picture : UNDERLYING_PICTURE
+            Picture to associate with the new user profile
+    Returns:
+        (int): The new user's user id
+    TODO: Actually write to the local SQLite database, and properly determine the new user id.
+    """
+    # DEBUG:
+    DEBUG_new_user_id = 0
+    # :DEBUG
+    return DEBUG_new_user_id
 
 
 

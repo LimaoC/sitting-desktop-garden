@@ -17,7 +17,7 @@ from datetime import datetime
 
 ## SECTION: Constants
 
-EMPTY_USER_ID = ""
+EMPTY_USER_ID = None # TODO: Refine to a legal term
 EMPTY_POSTURE_DATA = None # TODO: Refine to a legal term, once the type is figured out
 
 
@@ -33,7 +33,7 @@ class ControlledData:
     Member fields:
         self._failed : bool                           
             True if this data is incomplete.
-        self._user_id : str
+        self._user_id : int
             ID of current user.
         self._posture_data : (TODO: figure out this type)   
             Data updated through ML models, used for feedback.
@@ -65,11 +65,11 @@ class ControlledData:
         self._last_sniff_time    = datetime.now()
 
     @classmethod
-    def make_empty(cls, user_id : str) -> "ControlledData":
+    def make_empty(cls, user_id : int) -> "ControlledData":
         """
         Construct a non-failed object of this class, with a provided user ID and empty posture data.
         
-        Returns: 
+        Returns:
             (ControlledData): An object of this class that is not failed, with legal user ID and empty posture data.
         """
         return_me = ControlledData()
@@ -109,10 +109,10 @@ class ControlledData:
         """
         return self._failed
     
-    def get_user_id(self) -> str:
+    def get_user_id(self) -> int:
         """
         Returns:
-            (str): The user id of this ControlledData.
+            (int): The user id of this ControlledData.
         """
         return self._user_id
 
@@ -181,8 +181,8 @@ class HardwareComponents:
         """
         DOUBLE_PRESS_DURATION = 400 # Milliseconds
         return HardwareComponents(
-            PiicoDev_Switch(id = [0, 0, 0, 0], DOUBLE_PRESS_DURATION = 400),
-            PiicoDev_Switch(id = [0, 0, 0, 1], DOUBLE_PRESS_DURATION = 400)
+            PiicoDev_Switch(id = [0, 0, 0, 0], double_press_duration = DOUBLE_PRESS_DURATION),
+            PiicoDev_Switch(id = [0, 0, 0, 1], double_press_duration = DOUBLE_PRESS_DURATION)
         )
 
     def __init__(self, button0, button1):
@@ -191,4 +191,124 @@ class HardwareComponents:
     # SECTION: Getters
 
     def get_button(self, index: int) -> PiicoDev_Switch:
+        """
+        Get a button. The index determines which button.
+
+        Args:
+            index : int
+                The button to select
+        Returns:
+            (PiicoDev_Switch): The button object selected
+        """
         return self._buttons[index]
+
+
+
+## SECTION: Picture
+
+class Picture:
+    """
+    A picture, which may have failed.
+
+    Member fields:
+        self._failed : bool
+            True iff this picture is incomplete.
+        self._underlying_picture : (TODO: Figure out this type!)
+            The picture encoded by this object.
+    """
+
+    def __init__(self) -> "Picture":
+        self._failed = True
+        self._underlying_picture = None
+
+    @classmethod
+    def make_failed(cls) -> "Picture":
+        """
+        Make a failed Picture.
+        """
+        return_me = Picture()
+        return_me._failed = True
+        return_me._underlying_picture = None
+        return return_me
+    
+    @classmethod
+    def make_valid(cls, underlying_picture : "UNDERLYING_PICTURE") -> "Picture":
+        """
+        Make a valid Picture.
+        """
+        return_me = Picture()
+        return_me._failed = False
+        return_me._underlying_picture = underlying_picture
+        return return_me
+
+    def is_failed(self) -> bool:
+        """
+        Check whether this object is failed.
+        """
+        return self._failed
+    
+    def get_underlying_picture(self) -> "UNDERLYING_PICTURE":
+        """
+        Get the underlying picture in this object.
+        """
+        return self._underlying_picture
+
+
+
+## SECTION: Face
+
+class Face:
+    """
+    A potentially recognised face, which may have failed to match or failed to run.
+
+    Member fields:
+        self._failed : bool
+            True iff the facial recognition model failed
+        self._matched : bool
+            True iff the facial recognition model matched a face
+        self._user_id : int
+            if not self._failed and self._matched, then this string will contain the user
+            id of the matched user
+    """
+    
+    def __init__(self) -> "Face":
+        self._failed = True
+        self._matched = False
+        self._user_id = None
+    
+    @classmethod
+    def make_failed(cls) -> "Face":
+        """
+        Make a failed Face.
+        """
+        return_me = Face()
+        return_me._failed = True
+        return_me._matched = False
+        return_me._user_id = None
+        return return_me
+    
+    @classmethod
+    def make_unmatched(cls) -> "Face":
+        """
+        Make an unmatched Face.
+        """
+        return_me = Face()
+        return_me._failed = False
+        return_me._matched = False
+        return_me._user_id = None
+        return return_me
+
+    @classmethod
+    def make_matched(cls, user_id : int) -> "Face":
+        """
+        Make a matched face.
+
+        Args:
+            user_id : int
+                The matched user id
+        """
+        return_me = Face()
+        return_me._failed = False
+        return_me._matched = True
+        return_me._user_id = user_id
+        return return_me
