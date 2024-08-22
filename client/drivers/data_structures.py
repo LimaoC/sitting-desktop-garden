@@ -9,6 +9,8 @@ Author:
 
 ## SECTION: Imports
 
+from PiicoDev_Switch import PiicoDev_Switch
+
 from datetime import datetime
 
 
@@ -155,4 +157,38 @@ class ControlledData:
         print("<!> WARNING: get_sniff_posture_data() not implemented!")
         # :DEBUG
         return None
+
+
+
+## SECTION: Hardware packaged together
+
+class HardwareComponents:
+    """
+    Hardware components packaged together into a class.
+
+    Member fields:
+        self._buttons : [PiicoDev_Switch]
+            A list of individual buttons. Will have length TWO (2).
+    """
+
+    # SECTION: Constructors
     
+    @classmethod
+    def make_fresh(cls):
+        """
+        Create a new instance of HardwareComponents, set up according to the hardware that we expect
+        to be plugged in.
+        """
+        DOUBLE_PRESS_DURATION = 400 # Milliseconds
+        return HardwareComponents(
+            PiicoDev_Switch(id = [0, 0, 0, 0], DOUBLE_PRESS_DURATION = 400),
+            PiicoDev_Switch(id = [0, 0, 0, 1], DOUBLE_PRESS_DURATION = 400)
+        )
+
+    def __init__(self, button0, button1):
+        self._buttons = [button0, button1]
+    
+    # SECTION: Getters
+
+    def get_button(self, index: int) -> PiicoDev_Switch:
+        return self._buttons[index]

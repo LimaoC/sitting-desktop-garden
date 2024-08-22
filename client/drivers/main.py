@@ -9,7 +9,10 @@ Author:
 
 ## SECTION: Imports
 
-from data_structures import ControlledData
+from PiicoDev_Switch import PiicoDev_Switch
+from PiicoDev_Unified import sleep_ms
+
+from data_structures import ControlledData, HardwareComponents
 
 
 
@@ -23,11 +26,11 @@ def main():
     print("<!> main()")
     # :DEBUG
 
-    initialise_hardware()
+    hardware = initialise_hardware()
 
     # Top level control flow
     while True:
-        wait_for_login_attempt()
+        wait_for_login_attempt(hardware.get_button(0))
         main_data = attempt_login()
         if main_data.is_failed():
             continue
@@ -41,30 +44,41 @@ def initialise_hardware():
     """
     Set up hardware for use throughout the project.
 
-    TODO: Actually write this function. Currently does nothing.
+    Returns:
+        (HardwareComponents): Object consisting of all hardware components connected to the Raspberry Pi.
+
+    TODO: Complete the function with all of the hardware peripherals (incrementally, as they get integrated).
+    WARNING: UNTESTED!
     """
     # DEBUG:
     print("<!> initialise_hardware()")
     # :DEBUG
+    return HardwareComponents.make_fresh()
 
 
 
 ## SECTION: Login handling
 
-def wait_for_login_attempt() -> bool:
+def wait_for_login_attempt(button0 : PiicoDev_Switch) -> bool:
     """
     Waits until the user attempts to log in.
 
+    Args:
+        button0 : PiicoDev_Switch
+            Button to wait for press on
     Returns:
         (bool): True when the user attempts to log in.
     
-    TODO: Actually write this function. Currently prints a debug message and instantly returns.
+    WARNING: UNTESTED!
     """
     # DEBUG:
-    print("<!> wait_for_login_attempt()")
+    print("<!> BEGIN wait_for_login_attempt()")
     # :DEBUG
-    return True
-    # See Control_flow.pdf for expected control flow
+
+    while True:
+        if button0.was_pressed:
+            print("<!> END wait_for_login_attempt()") # DEBUG
+            return True
 
 def attempt_login() -> ControlledData:
     """
