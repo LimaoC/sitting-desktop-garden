@@ -4,6 +4,7 @@
 .
 ├── client
 │   ├── data: Data handling for sitting-desktop-garden. Includes user, posture and face id data.
+│   ├── drivers: Control flow software for sitting-desktop-garden. Includes basic control flow and appropriate data structures.
 │   └── models: Machine learning models (pose detection and face recognition).
 ├── docs: Project documentation.
 ├── notebooks: Demos for module use.
