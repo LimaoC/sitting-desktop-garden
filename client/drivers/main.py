@@ -12,7 +12,7 @@ Author:
 from PiicoDev_Switch import PiicoDev_Switch
 #from PiicoDev_Unified import sleep_ms
 
-from drivers.data_structures import ControlledData, HardwareComponents, Picture, Face
+from data_structures import ControlledData, HardwareComponents, Picture, Face
 
 
 
