@@ -6,12 +6,14 @@ authors = ["Limao Chang <80520563+LimaoC@users.noreply.github.com>", "Mitchell C
 readme = "README.md"
 packages = [
     { include = "models", from = "client" },
+    { include = "drivers", from = "client" }
 ]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 mediapipe = "^0.10.14"
 pydbml = "1.1.1"
+piicodev = "^1.10.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
