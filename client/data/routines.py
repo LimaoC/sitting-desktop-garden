@@ -61,6 +61,12 @@ def init_database() -> None:
         connection.commit()
 
 
+def destroy_database() -> None:
+    """Delete the current database if it exists."""
+    with resources.as_file(DATABASE_RESOURCE) as database_file:
+        database_file.unlink(missing_ok=True)
+
+
 def create_user() -> int:
     """Creates a new user in the database.
 
