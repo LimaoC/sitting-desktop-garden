@@ -3,13 +3,13 @@
 from dataclasses import dataclass
 from typing import Optional
 
-import numpy as np
+import cv2
 import mediapipe as mp
-
-from mediapipe.tasks.python.vision.pose_landmarker import PoseLandmarkerResult
+import numpy as np
 from mediapipe.framework.formats import landmark_pb2
-from models.pose_detection.classification import posture_classify
+from mediapipe.tasks.python.vision.pose_landmarker import PoseLandmarkerResult
 from models.pose_detection.camera import is_camera_aligned
+from models.pose_detection.classification import posture_classify
 
 
 @dataclass
@@ -76,9 +76,28 @@ def display_landmarking(
         annotated_image: Image to mutate.
     """
     annotated_image.data = draw_landmarks_on_image(output_image.numpy_view(), result)
-    print(
-        f"Timestamp: {timestamp}\n"
-        f"Pose landmarker result: {result}\n"
-        f"Camera alignment: {is_camera_aligned(result)}\n"
-        f"Good posture: {posture_classify(result)}"
-    )
+    camera_aligned = is_camera_aligned(result)
+    posture = posture_classify(result)
+
+    red = (50, 50, 255)
+    green = (127, 255, 0)
+    posture_text_pos = (10, output_image.height - 40)
+    alignment_text_pos = (10, output_image.height - 10)
+
+    font = cv2.FONT_HERSHEY_DUPLEX
+    scale = 0.9
+    thickness = 2
+
+    def put_text(text, pos, colour):
+        """Wrapper function for cv2.putText that applies the default config"""
+        cv2.putText(annotated_image.data, text, pos, font, scale, colour, thickness)
+
+    if camera_aligned:
+        put_text("Camera aligned", alignment_text_pos, green)
+
+        if posture:
+            put_text("Good posture", posture_text_pos, green)
+        else:
+            put_text("Bad posture", posture_text_pos, red)
+    else:
+        put_text("Camera not aligned", alignment_text_pos, red)
