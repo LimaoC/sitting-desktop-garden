@@ -65,15 +65,16 @@ if ! nc -z $SSHTARGET 22 2>/dev/null; then
 	exit 1
 fi
 
+SSHUSER=$3
 echo -e "$INFO Copying Tarball - destination's password may be needed"
-if ! scp -q $TARNAME $SSHTARGET:~/; then
+if ! scp -q $TARNAME $SSHUSER@$SSHTARGET:~/; then
        echo -e "$ERROR Copy unsuccessful"
        cleanup
        exit 1
 fi
 
 echo -e "$INFO Extracting Build - the password may be needed again"
-if ! ssh $SSHTARGET "tar xf $TARNAME; rm $TARNAME"; then
+if ! ssh $SSHUSER@$SSHTARGET "tar xf $TARNAME; rm $TARNAME" &> /dev/null; then
 	echo -e "$ERROR Remote extraction failed"
 	cleanup
 	exit 1
