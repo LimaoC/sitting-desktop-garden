@@ -10,6 +10,7 @@ Author:
 ## SECTION: Imports
 
 from PiicoDev_Switch import PiicoDev_Switch
+from PiicoDev_SSD1306 import *
 
 from datetime import datetime
 
@@ -169,6 +170,8 @@ class HardwareComponents:
     Member fields:
         self._buttons : [PiicoDev_Switch]
             A list of individual buttons. Will have length TWO (2).
+        self._display : [(PiicoDev_SSD1306_MicroBit | PiicoDev_SSD1306_Linux | PiicoDev_SSD1306_MicroPython)]
+            OLED SSD1306 Display 
     """
 
     # SECTION: Constructors
@@ -182,11 +185,13 @@ class HardwareComponents:
         DOUBLE_PRESS_DURATION = 400 # Milliseconds
         return HardwareComponents(
             PiicoDev_Switch(id = [0, 0, 0, 0], double_press_duration = DOUBLE_PRESS_DURATION),
-            PiicoDev_Switch(id = [0, 0, 0, 1], double_press_duration = DOUBLE_PRESS_DURATION)
+            PiicoDev_Switch(id = [0, 0, 0, 1], double_press_duration = DOUBLE_PRESS_DURATION),
+            create_PiicoDev_SSD1306()
         )
 
-    def __init__(self, button0, button1):
-        self._buttons = [button0, button1]
+    def __init__(self, button0, button1, display):
+        self.buttons = [button0, button1]
+        self.display = display
     
     # SECTION: Getters
 
@@ -200,7 +205,7 @@ class HardwareComponents:
         Returns:
             (PiicoDev_Switch): The button object selected
         """
-        return self._buttons[index]
+        return self.buttons[index]
 
 
 

@@ -9,7 +9,10 @@ Author:
 
 ## SECTION: Imports
 
+from typing import Tuple
 from PiicoDev_Switch import PiicoDev_Switch
+from PiicoDev_SSD1306 import *
+
 #from PiicoDev_Unified import sleep_ms
 
 from data_structures import ControlledData, HardwareComponents, Picture, Face
@@ -26,6 +29,7 @@ def main():
     print("<!> main()")
     # :DEBUG
 
+    global hardware 
     hardware = initialise_hardware()
 
     # Top level control flow
@@ -40,7 +44,7 @@ def main():
 
 ## SECTION: Hardware initialisation
 
-def initialise_hardware():
+def initialise_hardware() -> HardwareComponents:
     """
     Set up hardware for use throughout the project.
 
@@ -102,18 +106,23 @@ def attempt_login() -> ControlledData:
     #     return ControlledData.make_failed()
     
     while True:
+        # Every 1 second?
         picture = take_picture()
         if picture.is_failed():
+            # DEBUG
+            print('<!> Picture Failed')
             continue
         face = ai_bros_face_recogniser(picture.underlying_picture) # TODO: This should be an external API call.
         if face.is_failed():
             continue
         if face.is_matched():
             return ControlledData.make_empty(face.get_user_id())
-        if not ask_create_new_user():
-            continue
-        new_user_id = create_new_user(picture.underlying_picture)
-        return ControlledData.make_empty(new_user_id)
+        elif ask_create_new_user():
+            return ControlledData.make_empty(create_new_user(picture))
+        # Tell the user the login failed
+        write_text_to_display("Failed login, try again BRO", (0,0))
+        return ControlledData.make_failed()
+        
         
 
 def take_picture() -> Picture:
@@ -127,6 +136,28 @@ def take_picture() -> Picture:
     DEBUG_return_value = Picture.make_failed()
     # :DEBUG
     return DEBUG_return_value
+
+def write_text_to_display(text: str, coords: Tuple[int, int]) -> bool:
+    """
+    Simple function to write text to a particular part of the screen. 
+    May need to add extenstibility to be able to format text better.
+
+    Args:
+        text: str
+            The text to display
+        coords:
+            Co-ordinates of where the text should be on the display
+    Returns:
+        bool: Whether text successfully put on display or not
+    TODO: The hardware implementation
+
+    Download the font file font-pet-me-128.dat (right-click, "save link as"). 
+    Save this file in your working directory.
+    """
+    
+    hardware.display.text(text, coords[0], coords[1], 1)
+    hardware.display.show()
+
 
 def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face:
     """
@@ -201,13 +232,40 @@ def do_everything(uqcs : ControlledData) -> None:
     # DEBUG:
     DEBUG_user_wants_to_log_out = False
     # :DEBUG
+
+    logged_in_display()
+
     while True:
     # Loop invariant: ! uqcs.is_failed()
         if DEBUG_user_wants_to_log_out:
             return
+        # update display every second?
         update_display_screen(uqcs)
         handle_posture_monitoring(uqcs)
         handle_feedback(uqcs)
+
+def logged_in_display(uqcs : ControlledData) -> bool:
+    """
+    Update the display screen with the things that are needed after the user immediately logs in
+    TODO: Determine what needs to be on there.
+
+    Args: 
+        (uqcs : ControlledData):
+            Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! uqcs.is_failed()
+    Ensures:
+        ! uqcs.is_failed()
+    
+    TODO: Implement this method. Currently prints a debug statement.
+    """
+
+    # draw_text
+    # draw_logout_button
+
+    return True
 
 def update_display_screen(uqcs : ControlledData) -> bool:
     """
