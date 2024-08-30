@@ -86,11 +86,11 @@ a specified hostname and untar it there.
 
 To use the script execute it in the project's root directory with,
 ```bash
-./deploy.sh [pathfile] [username]@[hostname]
+./deploy.sh [pathfile] [hostname] [username]
 ```
 For example, to deploy the files listed in `deploypaths.txt` to `testpi` (using username raspberry) the command would be
 ```bash
-./deploy.sh deploypaths.txt raspberry@testpi
+./deploy.sh deploypaths.txt testpi raspberry
 ```
 The pathname file should contain a path to a file or directory on each line. If a directory is listed `deploy.sh` will copy the entire contents over.
 You can use the `#` character at the start of a line to leave comments.
