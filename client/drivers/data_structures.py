@@ -190,22 +190,23 @@ class HardwareComponents:
         )
 
     def __init__(self, button0, button1, display):
-        self.buttons = [button0, button1]
-        self.display = display
+        self.button0: PiicoDev_Switch = button0 
+        self.button1: PiicoDev_Switch = button1
+        self.display: PiicoDev_SSD1306_MicroPython = display
     
     # SECTION: Getters
 
-    def get_button(self, index: int) -> PiicoDev_Switch:
-        """
-        Get a button. The index determines which button.
+    # def get_button(self, index: int) -> PiicoDev_Switch:
+    #     """
+    #     Get a button. The index determines which button.
 
-        Args:
-            index : int
-                The button to select
-        Returns:
-            (PiicoDev_Switch): The button object selected
-        """
-        return self.buttons[index]
+    #     Args:
+    #         index : int
+    #             The button to select
+    #     Returns:
+    #         (PiicoDev_Switch): The button object selected
+    #     """
+    #     return self.buttons[index]
 
 
 

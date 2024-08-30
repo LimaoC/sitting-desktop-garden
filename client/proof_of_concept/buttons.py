@@ -45,7 +45,7 @@ def main():
 
 ## TEST: One-button
 
-def basic_press_test(button):
+def basic_press_test(button: PiicoDev_Switch):
     print("<?> BEGIN basic_press_test()")
     sleep_ms(2000)
     cycle = 0

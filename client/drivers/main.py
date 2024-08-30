@@ -12,11 +12,12 @@ Author:
 from typing import Tuple
 from PiicoDev_Switch import PiicoDev_Switch
 from PiicoDev_SSD1306 import *
+import threading
 
 #from PiicoDev_Unified import sleep_ms
 
 from data_structures import ControlledData, HardwareComponents, Picture, Face
-
+from ai_bros import *
 
 
 ## SECTION: main()
@@ -34,7 +35,7 @@ def main():
 
     # Top level control flow
     while True:
-        wait_for_login_attempt(hardware.get_button(0))
+        wait_for_login_attempt()
         main_data = attempt_login()
         if main_data.is_failed():
             continue
@@ -63,7 +64,7 @@ def initialise_hardware() -> HardwareComponents:
 
 ## SECTION: Login handling
 
-def wait_for_login_attempt(button0 : PiicoDev_Switch) -> bool:
+def wait_for_login_attempt() -> bool:
     """
     Waits until the user attempts to log in.
 
@@ -80,7 +81,7 @@ def wait_for_login_attempt(button0 : PiicoDev_Switch) -> bool:
     # :DEBUG
 
     while True:
-        if button0.was_pressed:
+        if hardware.button0.was_pressed:
             print("<!> END wait_for_login_attempt()") # DEBUG
             return True
 
@@ -159,29 +160,41 @@ def write_text_to_display(text: str, coords: Tuple[int, int]) -> bool:
     hardware.display.show()
 
 
-def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face:
-    """
-    Recognise a face, powered by AI.
+# def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face:
+#     """
+#     Recognise a face, powered by AI.
 
-    Args:
-        underlying_picture : UNDERLYING_PICTURE
-            The picture to pass to the face recogniser. This data passing may be handled differently
-            in the final version.
-    Returns:
-        (Face): Failed, matched or unmatched Face
-    TODO: Convert this into an external API call. Currently returns debug data.
-    """
-    # DEBUG:
-    print("<!> ai_bros_face_recogniser()")
-    DEBUG_failed = False
-    DEBUG_matched = True
-    DEBUG_user_id = 0
-    # :DEBUG
-    if DEBUG_failed:
-        return Face.make_failed()
-    if not DEBUG_matched:
-        return Face.make_unmatched()
-    return Face.make_matched(DEBUG_user_id)
+#     Args:
+#         underlying_picture : UNDERLYING_PICTURE
+#             The picture to pass to the face recogniser. This data passing may be handled differently
+#             in the final version.
+#     Returns:
+#         (Face): Failed, matched or unmatched Face
+#     TODO: Convert this into an external API call. Currently returns debug data.
+#     """
+#     # DEBUG:
+#     print("<!> ai_bros_face_recogniser()")
+#     DEBUG_failed = False
+#     DEBUG_matched = True
+#     DEBUG_user_id = 0
+#     # :DEBUG
+#     if DEBUG_failed:
+#         return Face.make_failed()
+#     if not DEBUG_matched:
+#         return Face.make_unmatched()
+#     return Face.make_matched(DEBUG_user_id)
+
+# def ai_bros_posture_score(underlying_picture : "UNDERLYING_PICTURE") -> int:
+#     """
+#     Args:
+#         underlying_picture : UNDERLYING_PICTURE
+#             The picture of the person's posture
+#     Returns:
+#         int: score represtning how good the posture currently is???
+#     TODO: Convert this into an external API call. Currently returns debug data.
+#     """
+#     return 1
+
 
 def ask_create_new_user() -> bool:
     """
@@ -233,13 +246,17 @@ def do_everything(uqcs : ControlledData) -> None:
     DEBUG_user_wants_to_log_out = False
     # :DEBUG
 
-    logged_in_display()
+    #logged_in_display()
 
     while True:
     # Loop invariant: ! uqcs.is_failed()
-        if DEBUG_user_wants_to_log_out:
-            return
-        # update display every second?
+    # Currently just have Button 0 pressed logout the user
+        if hardware.button0.was_pressed:
+            return 
+        
+        # Probably should run individual threads for each of these
+        posture_monitoring_thread = threading.Thread(handle_posture_monitoring, args=(uqcs))
+        posture_monitoring_thread.start()
         update_display_screen(uqcs)
         handle_posture_monitoring(uqcs)
         handle_feedback(uqcs)
@@ -308,6 +325,9 @@ def handle_posture_monitoring(uqcs : ControlledData) -> bool:
     print("<!> handle_posture_monitoring()")
     # :DEBUG
     # See Control_flow.pdf for expected control flow
+    while True:
+        picture = take_picture()
+        ai_bros_posture_score()
     return True
 
 def handle_feedback(uqcs : ControlledData) -> bool:
