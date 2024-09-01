@@ -230,6 +230,7 @@ class HardwareComponents:
             self.display.text(chunk, x, y + index * LINE_HEIGHT, colour)
         return y + len(chunks) * LINE_HEIGHT
     
+    # 2024-09-01 17:12 Gabe: TESTED.
     def oled_display_texts(self, texts: List[str], x : int, y : int, colour : int) -> int:
         """
         Display many lines of text on the oled display, wrapping lines if necessary.
@@ -249,8 +250,6 @@ class HardwareComponents:
         
         Returns:
             (int): The y-value at which any subsequent lines should start printing from.
-        
-        WARNING: UNTESTED!
         """
         display_height_offset = 0
         for text in texts:
