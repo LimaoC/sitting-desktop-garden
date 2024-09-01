@@ -27,6 +27,9 @@ from ai_bros import *
 WAIT_FOR_LOGIN_POLLING_INTERVAL = 100
 """ Number of milliseconds between pictures taken for login attempts. """
 LOGIN_TAKE_PICTURE_INTERVAL = 1000
+""" Number of milliseconds between starting to attempt_login() and taking the first picture. """
+START_LOGIN_ATTEMPTS_DELAY = 3000
+
 
 
 
@@ -109,6 +112,7 @@ def wait_for_login_attempt() -> bool:
             return True
         sleep_ms(WAIT_FOR_LOGIN_POLLING_INTERVAL)
 
+# 2024-09-01 16:10 Gabe: Partially TESTED. See comments in the function itself.
 def attempt_login() -> ControlledData:
     """
     Attempts to log in.
@@ -130,13 +134,30 @@ def attempt_login() -> ControlledData:
     # else:
     #     return ControlledData.make_failed()
     
+    # 2024-09-01 16:10 Gabe: TESTED. until the "WARNING:" below.
+
+    LOGIN_FAILED_MESSAGE = "LIS: Failed; try again BRO"
+    SMILE_FOR_CAMERA_MESSAGE = "LIS: Smile for the camera!"
+    PICTURE_FAILED_MESSAGE = "LIS: Picture failed T-T"
+
+    hardware.display.fill(0)
+    hardware.oled_display_text(SMILE_FOR_CAMERA_MESSAGE, 0, 0, 1)
+    hardware.display.show()
+    sleep_ms(START_LOGIN_ATTEMPTS_DELAY)
+
     while True:
-        sleep_ms(LOGIN_TAKE_PICTURE_INTERVAL)
+        hardware.display.fill(0)
+        hardware.oled_display_text(SMILE_FOR_CAMERA_MESSAGE, 0, 0, 1)
+        hardware.display.show()
         picture = take_picture()
         if picture.is_failed():
-            # DEBUG
-            print('<!> Picture Failed')
+            print('<!> Picture Failed') # DEBUG
+            hardware.display.fill(0)
+            hardware.oled_display_text(PICTURE_FAILED_MESSAGE, 0, 0, 1)
+            hardware.display.show()
+            sleep_ms(LOGIN_TAKE_PICTURE_INTERVAL)
             continue
+        # WARNING: Below here is untested.
         face = ai_bros_face_recogniser(picture.underlying_picture) # TODO: This should be an external API call.
         if face.is_failed():
             continue
@@ -145,7 +166,9 @@ def attempt_login() -> ControlledData:
         elif ask_create_new_user():
             return ControlledData.make_empty(create_new_user(picture))
         # Tell the user the login failed
-        write_text_to_display("Failed login, try again BRO", (0,0))
+        hardware.display.fill(0)
+        hardware.oled_display_text(LOGIN_FAILED_MESSAGE, 0, 0, 1)
+        hardware.display.show()
         return ControlledData.make_failed()  
 
 def take_picture() -> Picture:
@@ -160,6 +183,7 @@ def take_picture() -> Picture:
     # :DEBUG
     return DEBUG_return_value
 
+# NOTE:
 # 2024-09-01 16:00 Gabe: I've taken inspiration from this, and written a better function in
 #                        data_structures.py ~> HardwareComponents.oled_display_text
 # def write_text_to_display(text: str, coords: Tuple[int, int]) -> bool:
