@@ -33,6 +33,12 @@ START_LOGIN_ATTEMPTS_DELAY = 3000
 ASK_CREATE_NEW_USER_POLLING_INTERVAL = 100
 """ Number of milliseconds between telling the user that login has completely failed and returning from attempt_login(). """
 FAIL_LOGIN_DELAY = 3000
+""" Number of milliseconds between telling the user that login has succeeded and beginning real functionality. """
+LOGIN_SUCCESS_DELAY = 3000
+""" Number of milliseconds between the user successfully logging out and returning to main(). """
+LOGOUT_SUCCESS_DELAY = 3000
+""" DEBUG Number of milliseconds between each loop iteration in do_everything(). """
+DEBUG_DO_EVERYTHING_INTERVAL = 1000
 
 
 
@@ -55,9 +61,8 @@ def main():
         main_data = attempt_login()
         if main_data.is_failed():
             continue
-        print("<!> would do_everything() here.")
-        sleep_ms(5000) # DEBUG
-        #do_everything(main_data)
+        print("<!> main(): Successful login")
+        do_everything(main_data)
 
 
 
@@ -182,6 +187,7 @@ def take_picture() -> Picture:
     # :DEBUG
     return DEBUG_return_value
 
+# 2024-09-01 17:06 Gabe: TESTED.
 def ask_create_new_user() -> bool:
     """
     Ask the user whether they would like to create a new user profile based on the previous picture.
@@ -191,13 +197,7 @@ def ask_create_new_user() -> bool:
     TODO: Make this go out to hardware peripherals. It should have:
         Two buttons (yes / no)
         The LED display ("Unmatched face. Create new user?")
-    
-    WARNING: UNTESTED!
     """
-    # # DEBUG:
-    # DEBUG_user_response = False
-    # # :DEBUG
-    # return DEBUG_user_response
     print("<!> BEGIN ask_create_new_user()")
 
     CREATE_NEW_USER_MESSAGES = ["No face matched.", "Create new user?", "button0: no", "button1: yes"]
@@ -244,6 +244,9 @@ def create_new_user(underlying_picture : "UNDERLYING_PICTURE") -> int:
 
 ## SECTION: Control for the logged-in user
 
+# 2024-09-02 07-03 Gabe: Currently working the following here:
+#   top-level control flow
+#   interaction with buttons and display
 def do_everything(uqcs : ControlledData) -> None:
     """
     Main control flow once a user is logged in.
@@ -255,24 +258,45 @@ def do_everything(uqcs : ControlledData) -> None:
     
     TODO: Actually implement this
     """
-    # DEBUG:
-    DEBUG_user_wants_to_log_out = False
-    # :DEBUG
+    print("<!> BEGIN do_everything()")
 
-    #logged_in_display()
+    LOGIN_MESSAGE = "Logged in with user id: " + str(uqcs.get_user_id())
+    LOGOUT_MESSAGE = "Logged out user id " + str(uqcs.get_user_id())
+
+    # Display message to user
+    hardware.display.fill(0)
+    hardware.oled_display_text(LOGIN_MESSAGE, 0, 0, 1)
+    hardware.display.show()
+    sleep_ms(LOGIN_SUCCESS_DELAY)
+    
+    # Clear button queues
+    hardware.button0.was_pressed
+    hardware.button1.was_pressed
 
     while True:
     # Loop invariant: ! uqcs.is_failed()
-    # Currently just have Button 0 pressed logout the user
+        # Check for user actions
         if hardware.button0.was_pressed:
+            hardware.display.fill(0)
+            hardware.oled_display_text(LOGOUT_MESSAGE, 0, 0, 1)
+            hardware.display.show()
+            sleep_ms(LOGOUT_SUCCESS_DELAY)
+            print("<!> END do_everything()")
             return 
         
         # Probably should run individual threads for each of these
-        posture_monitoring_thread = threading.Thread(handle_posture_monitoring, args=(uqcs))
-        posture_monitoring_thread.start()
-        update_display_screen(uqcs)
-        handle_posture_monitoring(uqcs)
-        handle_feedback(uqcs)
+        # TODO: Move the threading to a more reasonable location. main() is probably best.
+        # posture_monitoring_thread = threading.Thread(handle_posture_monitoring, args=(uqcs))
+        # posture_monitoring_thread.start()
+
+        # DEBUG:
+        # update_display_screen(uqcs)
+        # handle_posture_monitoring(uqcs)
+        # handle_feedback(uqcs)
+        # :DEBUG
+
+        sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
+
 
 def logged_in_display(uqcs : ControlledData) -> bool:
     """
