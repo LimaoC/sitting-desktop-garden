@@ -29,7 +29,10 @@ WAIT_FOR_LOGIN_POLLING_INTERVAL = 100
 LOGIN_TAKE_PICTURE_INTERVAL = 1000
 """ Number of milliseconds between starting to attempt_login() and taking the first picture. """
 START_LOGIN_ATTEMPTS_DELAY = 3000
-
+""" Number of milliseconds between each time the button is polled during ask_create_new_user(). """
+ASK_CREATE_NEW_USER_POLLING_INTERVAL = 100
+""" Number of milliseconds between telling the user that login has completely failed and returning from attempt_login(). """
+FAIL_LOGIN_DELAY = 3000
 
 
 
@@ -112,7 +115,7 @@ def wait_for_login_attempt() -> bool:
             return True
         sleep_ms(WAIT_FOR_LOGIN_POLLING_INTERVAL)
 
-# 2024-09-01 16:48 Gabe: Partially TESTED. See comments in the function itself.
+# 2024-09-01 17:06 Gabe: TESTED., assuming ai_bros_face_recogniser() does what it should do.
 def attempt_login() -> ControlledData:
     """
     Attempts to log in.
@@ -121,16 +124,13 @@ def attempt_login() -> ControlledData:
         (ControlledData): which is:
             FAILED                 if the login is unsuccessful
             EMPTY (but not failed) if the login is successful
-
-    TODO: Finish writing this function.
     """
-    # 2024-09-01 16:48 Gabe: TESTED. until the "WARNING:" below.
 
     # TODO: Finalise these messages
-    LOGIN_FAILED_MESSAGE = "LIS: Failed catastrophically; try again BRO"
     SMILE_FOR_CAMERA_MESSAGE = "LIS: Smile for the camera!"
     PICTURE_FAILED_MESSAGE = "LIS: Picture failed T-T"
     AI_FAILED_MESSAGE = "LIS: Failed to determine user T-T"
+    LOGIN_TOTALLY_FAILED_MESSAGE = "LIS: Failed to log in T-T"
 
     hardware.display.fill(0)
     hardware.oled_display_text(SMILE_FOR_CAMERA_MESSAGE, 0, 0, 1)
@@ -160,14 +160,14 @@ def attempt_login() -> ControlledData:
         if face.matched:
             print("<!> Mega W for AI") # DEBUG
             return ControlledData.make_empty(face.user_id)
-        # WARNING: Below here is untested.
         elif ask_create_new_user():
             return ControlledData.make_empty(create_new_user(picture))
-        # Tell the user the login failed catastrophically
-        print("<!> attempt_login(): CATASTROPHIC FAILURE!") # DEBUG
+        # Tell the user the login failed
+        print("<!> attempt_login(): Totally failed lol") # DEBUG
         hardware.display.fill(0)
-        hardware.oled_display_text(LOGIN_FAILED_MESSAGE, 0, 0, 1)
+        hardware.oled_display_text(LOGIN_TOTALLY_FAILED_MESSAGE, 0, 0, 1)
         hardware.display.show()
+        sleep_ms(FAIL_LOGIN_DELAY)
         return ControlledData.make_failed()  
 
 def take_picture() -> Picture:
@@ -182,68 +182,6 @@ def take_picture() -> Picture:
     # :DEBUG
     return DEBUG_return_value
 
-# NOTE:
-# 2024-09-01 16:00 Gabe: I've taken inspiration from this, and written a better function in
-#                        data_structures.py ~> HardwareComponents.oled_display_text
-# def write_text_to_display(text: str, coords: Tuple[int, int]) -> bool:
-#     """
-#     Simple function to write text to a particular part of the screen. 
-#     May need to add extenstibility to be able to format text better.
-
-#     Args:
-#         text: str
-#             The text to display
-#         coords:
-#             Co-ordinates of where the text should be on the display
-#     Returns:
-#         bool: Whether text successfully put on display or not
-#     TODO: The hardware implementation
-
-#     Download the font file font-pet-me-128.dat (right-click, "save link as"). 
-#     Save this file in your working directory.
-#     """
-    
-#     hardware.display.text(text, coords[0], coords[1], 1)
-#     hardware.display.show()
-#     return True
-
-
-# def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face:
-#     """
-#     Recognise a face, powered by AI.
-
-#     Args:
-#         underlying_picture : UNDERLYING_PICTURE
-#             The picture to pass to the face recogniser. This data passing may be handled differently
-#             in the final version.
-#     Returns:
-#         (Face): Failed, matched or unmatched Face
-#     TODO: Convert this into an external API call. Currently returns debug data.
-#     """
-#     # DEBUG:
-#     print("<!> ai_bros_face_recogniser()")
-#     DEBUG_failed = False
-#     DEBUG_matched = True
-#     DEBUG_user_id = 0
-#     # :DEBUG
-#     if DEBUG_failed:
-#         return Face.make_failed()
-#     if not DEBUG_matched:
-#         return Face.make_unmatched()
-#     return Face.make_matched(DEBUG_user_id)
-
-# def ai_bros_posture_score(underlying_picture : "UNDERLYING_PICTURE") -> int:
-#     """
-#     Args:
-#         underlying_picture : UNDERLYING_PICTURE
-#             The picture of the person's posture
-#     Returns:
-#         int: score represtning how good the posture currently is???
-#     TODO: Convert this into an external API call. Currently returns debug data.
-#     """
-#     return 1
-
-
 def ask_create_new_user() -> bool:
     """
     Ask the user whether they would like to create a new user profile based on the previous picture.
@@ -253,11 +191,38 @@ def ask_create_new_user() -> bool:
     TODO: Make this go out to hardware peripherals. It should have:
         Two buttons (yes / no)
         The LED display ("Unmatched face. Create new user?")
+    
+    WARNING: UNTESTED!
     """
-    # DEBUG:
-    DEBUG_user_response = False
-    # :DEBUG
-    return DEBUG_user_response
+    # # DEBUG:
+    # DEBUG_user_response = False
+    # # :DEBUG
+    # return DEBUG_user_response
+    print("<!> BEGIN ask_create_new_user()")
+
+    CREATE_NEW_USER_MESSAGES = ["No face matched.", "Create new user?", "button0: no", "button1: yes"]
+    # Display to screen
+    hardware.display.fill(0)
+    hardware.oled_display_texts(CREATE_NEW_USER_MESSAGES, 0, 0, 1)
+    hardware.display.show()
+    # Clear button queue
+    hardware.button0.was_pressed
+    hardware.button1.was_pressed
+
+    while True:
+        if hardware.button0.was_pressed:
+            # Clear the display
+            hardware.display.fill(0)
+            hardware.display.show()
+            print("<!> END ask_create_new_user(): do NOT create new user") # DEBUG
+            return False
+        if hardware.button1.was_pressed:
+            # Clear the display
+            hardware.display.fill(0)
+            hardware.display.show()
+            print("<!> END ask_create_new_user(): DO create new user") # DEBUG
+            return True
+        sleep_ms(ASK_CREATE_NEW_USER_POLLING_INTERVAL)
 
 def create_new_user(underlying_picture : "UNDERLYING_PICTURE") -> int:
     """

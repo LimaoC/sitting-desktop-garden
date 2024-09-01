@@ -9,6 +9,7 @@ Author:
 
 ## SECTION: Imports
 
+from typing import List
 from PiicoDev_Switch import PiicoDev_Switch
 from PiicoDev_SSD1306 import *
 
@@ -83,6 +84,7 @@ class ControlledData:
         return_me._last_cushion_time  = datetime.now()
         return_me._last_plant_time    = datetime.now()
         return_me._last_sniff_time    = datetime.now()
+        print("<!> Made a new empty ControlledData() with user_id", return_me._user_id)
         return return_me
 
     @classmethod
@@ -200,7 +202,8 @@ class HardwareComponents:
     
     # SECTION: Using peripherals
 
-    def oled_display_text(self, text : str, x : int, y : int, colour : int) -> None:
+    # 2024-09-01 16:57 Gabe: TESTED.
+    def oled_display_text(self, text : str, x : int, y : int, colour : int) -> int:
         """
         Display text on the oled display, wrapping lines if necessary.
         NOTE: Does not blank display. Call `.display.fill(0)` if needed.
@@ -208,7 +211,7 @@ class HardwareComponents:
 
         Args:
             text : str
-                String to write to the OLED display
+                String to write to the OLED display.
             x : int
                 Horizontal coordinate from left side of screen.
             y : int
@@ -216,12 +219,43 @@ class HardwareComponents:
             colour : int
                 0: black
                 1: white
+        
+        Returns:
+            (int): The y-value at which any subsequent lines should start printing from.
         """
         LINE_HEIGHT = 15 # pixels
         LINE_WIDTH = 16 # characters
         chunks = [text[i : i + LINE_WIDTH] for i in range(0, len(text), LINE_WIDTH)]
         for (index, chunk) in enumerate(chunks):
             self.display.text(chunk, x, y + index * LINE_HEIGHT, colour)
+        return y + len(chunks) * LINE_HEIGHT
+    
+    def oled_display_texts(self, texts: List[str], x : int, y : int, colour : int) -> int:
+        """
+        Display many lines of text on the oled display, wrapping lines if necessary.
+        NOTE: Does not blank display. Call `.display.fill(0)` if needed.
+        NOTE: Does not render. Call `.display.show()` if needed.
+
+        Args:
+            texts : List[str]
+                Strings to write to the OLED display. Each string begins on a new line.
+            x : int
+                Horizontal coordinate from left side of screen.
+            y : int
+                Vertical coordinate from top side of screen.
+            colour : int
+                0: black
+                1: white
+        
+        Returns:
+            (int): The y-value at which any subsequent lines should start printing from.
+        
+        WARNING: UNTESTED!
+        """
+        display_height_offset = 0
+        for text in texts:
+            display_height_offset = self.oled_display_text(text, x, y + display_height_offset, colour)
+        return display_height_offset
 
 
 
@@ -276,7 +310,7 @@ class Face:
         self.matched : bool
             True iff the facial recognition model matched a face
         self.user_id : int
-            if not self._failed and self._matched, then this string will contain the user
+            if not self.failed and self.matched, then this string will contain the user
             id of the matched user
     """
     
