@@ -201,8 +201,8 @@ class HardwareComponents:
     def oled_display_text(self, text : str, x : int, y : int, colour : int) -> None:
         """
         Display text on the oled display, wrapping lines if necessary.
-        NOTE: Does not blank display.
-        NOTE: Does not render.
+        NOTE: Does not blank display. Call `.display.fill(0)` if needed.
+        NOTE: Does not render. Call `.display.show()` if needed.
 
         Args:
             text : str
