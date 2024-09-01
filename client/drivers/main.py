@@ -24,7 +24,7 @@ from ai_bros import *
 ## SECTION: Global constants
 
 """ Number of milliseconds between each time the button is polled during wait_for_login_attempt(). """
-WAIT_FOR_LOGIN_POLLING_INTERVAL = 1000
+WAIT_FOR_LOGIN_POLLING_INTERVAL = 100
 """ Number of milliseconds between pictures taken for login attempts. """
 LOGIN_TAKE_PICTURE_INTERVAL = 1000
 
