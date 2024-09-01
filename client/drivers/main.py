@@ -160,27 +160,29 @@ def take_picture() -> Picture:
     # :DEBUG
     return DEBUG_return_value
 
-def write_text_to_display(text: str, coords: Tuple[int, int]) -> bool:
-    """
-    Simple function to write text to a particular part of the screen. 
-    May need to add extenstibility to be able to format text better.
+# 2024-09-01 16:00 Gabe: I've taken inspiration from this, and written a better function in
+#                        data_structures.py ~> HardwareComponents.oled_display_text
+# def write_text_to_display(text: str, coords: Tuple[int, int]) -> bool:
+#     """
+#     Simple function to write text to a particular part of the screen. 
+#     May need to add extenstibility to be able to format text better.
 
-    Args:
-        text: str
-            The text to display
-        coords:
-            Co-ordinates of where the text should be on the display
-    Returns:
-        bool: Whether text successfully put on display or not
-    TODO: The hardware implementation
+#     Args:
+#         text: str
+#             The text to display
+#         coords:
+#             Co-ordinates of where the text should be on the display
+#     Returns:
+#         bool: Whether text successfully put on display or not
+#     TODO: The hardware implementation
 
-    Download the font file font-pet-me-128.dat (right-click, "save link as"). 
-    Save this file in your working directory.
-    """
+#     Download the font file font-pet-me-128.dat (right-click, "save link as"). 
+#     Save this file in your working directory.
+#     """
     
-    hardware.display.text(text, coords[0], coords[1], 1)
-    hardware.display.show()
-    return True
+#     hardware.display.text(text, coords[0], coords[1], 1)
+#     hardware.display.show()
+#     return True
 
 
 # def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face:
