@@ -44,5 +44,6 @@ def ai_bros_posture_score(underlying_picture : "UNDERLYING_PICTURE") -> int:
     TODO: Convert this into an external API call. Currently returns debug data.
     NOTE: This will eventually be a database lookup. We're running the AI posture peeker
           asynchronously to the controller code.
+    FIXME: This documentation is terrible
     """
     return 1
