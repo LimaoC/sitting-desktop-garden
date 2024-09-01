@@ -9,15 +9,25 @@ Author:
 
 ## SECTION: Imports
 
-from typing import Tuple
+from PiicoDev_Unified import sleep_ms
 from PiicoDev_Switch import PiicoDev_Switch
 from PiicoDev_SSD1306 import *
-import threading
 
-#from PiicoDev_Unified import sleep_ms
+from typing import Tuple
+import threading
 
 from data_structures import ControlledData, HardwareComponents, Picture, Face
 from ai_bros import *
+
+
+
+## SECTION: Global constants
+
+""" Number of milliseconds between each time the button is polled during wait_for_login_attempt(). """
+WAIT_FOR_LOGIN_POLLING_INTERVAL = 1000
+""" Number of milliseconds between pictures taken for login attempts. """
+LOGIN_TAKE_PICTURE_INTERVAL = 1000
+
 
 
 ## SECTION: main()
@@ -39,12 +49,15 @@ def main():
         main_data = attempt_login()
         if main_data.is_failed():
             continue
-        do_everything(main_data)
+        print("<!> would do_everything() here.")
+        sleep_ms(5000) # DEBUG
+        #do_everything(main_data)
 
 
 
 ## SECTION: Hardware initialisation
 
+# 2024-09-01_15-29 Gabe: TESTED. for buttons and OLED display.
 def initialise_hardware() -> HardwareComponents:
     """
     Set up hardware for use throughout the project.
@@ -53,17 +66,20 @@ def initialise_hardware() -> HardwareComponents:
         (HardwareComponents): Object consisting of all hardware components connected to the Raspberry Pi.
 
     TODO: Complete the function with all of the hardware peripherals (incrementally, as they get integrated).
-    WARNING: UNTESTED!
     """
-    # DEBUG:
-    print("<!> initialise_hardware()")
-    # :DEBUG
-    return HardwareComponents.make_fresh()
+    print("<!> initialise_hardware()") # DEBUG
+    return_me = HardwareComponents.make_fresh()
+    # Clear button queues
+    return_me.button0.was_pressed 
+    return_me.button1.was_pressed
+    print("<!> initialise_hardware() FINISHED") # DEBUG
+    return return_me
 
 
 
 ## SECTION: Login handling
 
+# 2024-09-01_15-52 Gabe: TESTED.
 def wait_for_login_attempt() -> bool:
     """
     Waits until the user attempts to log in.
@@ -72,18 +88,26 @@ def wait_for_login_attempt() -> bool:
         button0 : PiicoDev_Switch
             Button to wait for press on
     Returns:
-        (bool): True when the user attempts to log in.
-    
-    WARNING: UNTESTED!
+        (bool): True when the user attempts to log in.    
     """
-    # DEBUG:
     print("<!> BEGIN wait_for_login_attempt()")
-    # :DEBUG
+
+    WAIT_FOR_LOGIN_OLED_MESSAGE = "Press button0 to log in!"
+    # Display to screen
+    hardware.display.fill(0)
+    hardware.oled_display_text(WAIT_FOR_LOGIN_OLED_MESSAGE, 0, 0, 1)
+    hardware.display.show()
+    # Clear button queue
+    hardware.button0.was_pressed
 
     while True:
         if hardware.button0.was_pressed:
+            # Clear the display
+            hardware.display.fill(0)
+            hardware.display.show()
             print("<!> END wait_for_login_attempt()") # DEBUG
             return True
+        sleep_ms(WAIT_FOR_LOGIN_POLLING_INTERVAL)
 
 def attempt_login() -> ControlledData:
     """
@@ -107,7 +131,7 @@ def attempt_login() -> ControlledData:
     #     return ControlledData.make_failed()
     
     while True:
-        # Every 1 second?
+        sleep_ms(LOGIN_TAKE_PICTURE_INTERVAL)
         picture = take_picture()
         if picture.is_failed():
             # DEBUG
@@ -122,9 +146,7 @@ def attempt_login() -> ControlledData:
             return ControlledData.make_empty(create_new_user(picture))
         # Tell the user the login failed
         write_text_to_display("Failed login, try again BRO", (0,0))
-        return ControlledData.make_failed()
-        
-        
+        return ControlledData.make_failed()  
 
 def take_picture() -> Picture:
     """
@@ -158,6 +180,7 @@ def write_text_to_display(text: str, coords: Tuple[int, int]) -> bool:
     
     hardware.display.text(text, coords[0], coords[1], 1)
     hardware.display.show()
+    return True
 
 
 # def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face:
