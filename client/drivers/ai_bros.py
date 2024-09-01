@@ -24,9 +24,9 @@ def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face:
     """
     # DEBUG:
     print("<!> ai_bros_face_recogniser()")
-    DEBUG_failed = True
-    DEBUG_matched = False
-    DEBUG_user_id = 0
+    DEBUG_failed = False
+    DEBUG_matched = True
+    DEBUG_user_id = -42
     # :DEBUG
     if DEBUG_failed:
         return Face.make_failed()

@@ -18,7 +18,9 @@ from datetime import datetime
 
 ## SECTION: Constants
 
-EMPTY_USER_ID = None # TODO: Refine to a legal term
+""" Sentinel value for an invalid user. """
+EMPTY_USER_ID = -1
+
 EMPTY_POSTURE_DATA = None # TODO: Refine to a legal term, once the type is figured out
 
 

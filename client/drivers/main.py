@@ -112,7 +112,7 @@ def wait_for_login_attempt() -> bool:
             return True
         sleep_ms(WAIT_FOR_LOGIN_POLLING_INTERVAL)
 
-# 2024-09-01 16:10 Gabe: Partially TESTED. See comments in the function itself.
+# 2024-09-01 16:48 Gabe: Partially TESTED. See comments in the function itself.
 def attempt_login() -> ControlledData:
     """
     Attempts to log in.
@@ -124,10 +124,10 @@ def attempt_login() -> ControlledData:
 
     TODO: Finish writing this function.
     """
-    # 2024-09-01 16:39 Gabe: TESTED. until the "WARNING:" below.
+    # 2024-09-01 16:48 Gabe: TESTED. until the "WARNING:" below.
 
     # TODO: Finalise these messages
-    LOGIN_FAILED_MESSAGE = "LIS: Failed; try again BRO"
+    LOGIN_FAILED_MESSAGE = "LIS: Failed catastrophically; try again BRO"
     SMILE_FOR_CAMERA_MESSAGE = "LIS: Smile for the camera!"
     PICTURE_FAILED_MESSAGE = "LIS: Picture failed T-T"
     AI_FAILED_MESSAGE = "LIS: Failed to determine user T-T"
@@ -157,12 +157,14 @@ def attempt_login() -> ControlledData:
             hardware.display.show()
             sleep_ms(LOGIN_TAKE_PICTURE_INTERVAL)
             continue
-        # WARNING: Below here is untested.
         if face.matched:
-            return ControlledData.make_empty(face.get_user_id())
+            print("<!> Mega W for AI") # DEBUG
+            return ControlledData.make_empty(face.user_id)
+        # WARNING: Below here is untested.
         elif ask_create_new_user():
             return ControlledData.make_empty(create_new_user(picture))
-        # Tell the user the login failed
+        # Tell the user the login failed catastrophically
+        print("<!> attempt_login(): CATASTROPHIC FAILURE!") # DEBUG
         hardware.display.fill(0)
         hardware.oled_display_text(LOGIN_FAILED_MESSAGE, 0, 0, 1)
         hardware.display.show()
