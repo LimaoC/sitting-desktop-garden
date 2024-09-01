@@ -122,23 +122,15 @@ def attempt_login() -> ControlledData:
             FAILED                 if the login is unsuccessful
             EMPTY (but not failed) if the login is successful
 
-    TODO: Actually write this function. Currently prints a debug message.
+    TODO: Finish writing this function.
     """
-    # # DEBUG:
-    # print("<!> attempt_login()")
-    # DEBUG_login_success = True
-    # DEBUG_default_user_id = "play-user"
-    # # :DEBUG
-    # if DEBUG_login_success:
-    #     return ControlledData.make_empty(DEBUG_default_user_id)
-    # else:
-    #     return ControlledData.make_failed()
-    
-    # 2024-09-01 16:10 Gabe: TESTED. until the "WARNING:" below.
+    # 2024-09-01 16:39 Gabe: TESTED. until the "WARNING:" below.
 
+    # TODO: Finalise these messages
     LOGIN_FAILED_MESSAGE = "LIS: Failed; try again BRO"
     SMILE_FOR_CAMERA_MESSAGE = "LIS: Smile for the camera!"
     PICTURE_FAILED_MESSAGE = "LIS: Picture failed T-T"
+    AI_FAILED_MESSAGE = "LIS: Failed to determine user T-T"
 
     hardware.display.fill(0)
     hardware.oled_display_text(SMILE_FOR_CAMERA_MESSAGE, 0, 0, 1)
@@ -157,11 +149,16 @@ def attempt_login() -> ControlledData:
             hardware.display.show()
             sleep_ms(LOGIN_TAKE_PICTURE_INTERVAL)
             continue
-        # WARNING: Below here is untested.
         face = ai_bros_face_recogniser(picture.underlying_picture) # TODO: This should be an external API call.
-        if face.is_failed():
+        if face.failed:
+            print("<!> AI has failed us") # DEBUG
+            hardware.display.fill(0)
+            hardware.oled_display_text(AI_FAILED_MESSAGE, 0, 0, 1)
+            hardware.display.show()
+            sleep_ms(LOGIN_TAKE_PICTURE_INTERVAL)
             continue
-        if face.is_matched():
+        # WARNING: Below here is untested.
+        if face.matched:
             return ControlledData.make_empty(face.get_user_id())
         elif ask_create_new_user():
             return ControlledData.make_empty(create_new_user(picture))
@@ -179,7 +176,7 @@ def take_picture() -> Picture:
     """
     # DEBUG:
     print("<!> take_picture()")
-    DEBUG_return_value = Picture.make_failed()
+    DEBUG_return_value = Picture.make_valid("DEBUG_picture_goes_here")
     # :DEBUG
     return DEBUG_return_value
 
