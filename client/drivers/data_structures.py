@@ -168,8 +168,10 @@ class HardwareComponents:
     Hardware components packaged together into a class.
 
     Member fields:
-        self._buttons : [PiicoDev_Switch]
-            A list of individual buttons. Will have length TWO (2).
+        self.button0 : PiicoDev_Switch
+            A button with address switches set to [0, 0, 0, 0]
+        self.button1 : PiicoDev_Switch
+            A button with address switches set to [0, 0, 0, 1]
         self._display : [(PiicoDev_SSD1306_MicroBit | PiicoDev_SSD1306_Linux | PiicoDev_SSD1306_MicroPython)]
             OLED SSD1306 Display 
     """
@@ -218,20 +220,6 @@ class HardwareComponents:
         chunks = [text[i : i + LINE_WIDTH] for i in range(0, len(text), LINE_WIDTH)]
         for (index, chunk) in enumerate(chunks):
             self.display.text(chunk, x, y + index * LINE_HEIGHT, colour)
-    
-    # SECTION: Getters
-
-    # def get_button(self, index: int) -> PiicoDev_Switch:
-    #     """
-    #     Get a button. The index determines which button.
-
-    #     Args:
-    #         index : int
-    #             The button to select
-    #     Returns:
-    #         (PiicoDev_Switch): The button object selected
-    #     """
-    #     return self.buttons[index]
 
 
 
@@ -242,15 +230,15 @@ class Picture:
     A picture, which may have failed.
 
     Member fields:
-        self._failed : bool
+        self.failed : bool
             True iff this picture is incomplete.
-        self._underlying_picture : (TODO: Figure out this type!)
+        self.underlying_picture : (TODO: Figure out this type!)
             The picture encoded by this object.
     """
 
     def __init__(self) -> "Picture":
-        self._failed = True
-        self._underlying_picture = None
+        self.failed : bool = True
+        self.underlying_picture : "UNDERLYING_PICTURE" = None
 
     @classmethod
     def make_failed(cls) -> "Picture":
@@ -258,8 +246,8 @@ class Picture:
         Make a failed Picture.
         """
         return_me = Picture()
-        return_me._failed = True
-        return_me._underlying_picture = None
+        return_me.failed = True
+        return_me.underlying_picture = None
         return return_me
     
     @classmethod
@@ -268,21 +256,9 @@ class Picture:
         Make a valid Picture.
         """
         return_me = Picture()
-        return_me._failed = False
-        return_me._underlying_picture = underlying_picture
+        return_me.failed = False
+        return_me.underlying_picture = underlying_picture
         return return_me
-
-    def is_failed(self) -> bool:
-        """
-        Check whether this object is failed.
-        """
-        return self._failed
-    
-    def get_underlying_picture(self) -> "UNDERLYING_PICTURE":
-        """
-        Get the underlying picture in this object.
-        """
-        return self._underlying_picture
 
 
 
@@ -293,19 +269,19 @@ class Face:
     A potentially recognised face, which may have failed to match or failed to run.
 
     Member fields:
-        self._failed : bool
+        self.failed : bool
             True iff the facial recognition model failed
-        self._matched : bool
+        self.matched : bool
             True iff the facial recognition model matched a face
-        self._user_id : int
+        self.user_id : int
             if not self._failed and self._matched, then this string will contain the user
             id of the matched user
     """
     
     def __init__(self) -> "Face":
-        self._failed = True
-        self._matched = False
-        self._user_id = None
+        self.failed : bool = True
+        self.matched : bool = False
+        self.user_id : int = None
     
     @classmethod
     def make_failed(cls) -> "Face":
@@ -313,9 +289,9 @@ class Face:
         Make a failed Face.
         """
         return_me = Face()
-        return_me._failed = True
-        return_me._matched = False
-        return_me._user_id = None
+        return_me.failed = True
+        return_me.matched = False
+        return_me.user_id = None
         return return_me
     
     @classmethod
@@ -324,9 +300,9 @@ class Face:
         Make an unmatched Face.
         """
         return_me = Face()
-        return_me._failed = False
-        return_me._matched = False
-        return_me._user_id = None
+        return_me.failed = False
+        return_me.matched = False
+        return_me.user_id = None
         return return_me
 
     @classmethod
@@ -339,7 +315,7 @@ class Face:
                 The matched user id
         """
         return_me = Face()
-        return_me._failed = False
-        return_me._matched = True
-        return_me._user_id = user_id
+        return_me.failed = False
+        return_me.matched = True
+        return_me.user_id = user_id
         return return_me

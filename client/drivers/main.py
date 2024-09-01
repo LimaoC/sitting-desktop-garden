@@ -150,7 +150,7 @@ def attempt_login() -> ControlledData:
         hardware.oled_display_text(SMILE_FOR_CAMERA_MESSAGE, 0, 0, 1)
         hardware.display.show()
         picture = take_picture()
-        if picture.is_failed():
+        if picture.failed:
             print('<!> Picture Failed') # DEBUG
             hardware.display.fill(0)
             hardware.oled_display_text(PICTURE_FAILED_MESSAGE, 0, 0, 1)
