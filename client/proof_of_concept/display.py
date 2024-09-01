@@ -24,6 +24,24 @@ import random
 
 
 
+## SECTION: How the .graph2D constructor works
+
+"""
+PiicoDev_SSD1306
+    .graph2D
+        .__init__(
+            self,
+            originX = 0, originY = HEIGHT-1,    # SSD coordinates of BOTTOM-LEFT CORNER of the graph.  Units: pixels
+            width = WIDTH, height = HEIGHT,     # Width and height that the graph TAKES UP ON THE SSD. Units: pixels.
+            minValue = 0, maxValue = 255,       # Minimum and maximum vertical value that can be dispalyed on the graph. Unitless.
+                                                    # Note: horizontal values for graph are *literally* horizontal pixels.
+            c = 1,                              # Colour in which to draw graph.
+            bars = False                        # Use True for a bar chart. We'll probably never use this.
+        )
+"""
+
+
+
 ## SECTION: main()
 
 def main():

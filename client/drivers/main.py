@@ -290,40 +290,43 @@ def do_everything(uqcs : ControlledData) -> None:
         # posture_monitoring_thread.start()
 
         # DEBUG:
-        # update_display_screen(uqcs)
+        update_display_screen(uqcs)
         # handle_posture_monitoring(uqcs)
         # handle_feedback(uqcs)
         # :DEBUG
 
         sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
 
+# 2024-09-02 07:21 Gabe: Don't think we need this method anymore
+# def logged_in_display(uqcs : ControlledData) -> bool:
+#     """
+#     Update the display screen with the things that are needed after the user immediately logs in
+#     TODO: Determine what needs to be on there.
 
-def logged_in_display(uqcs : ControlledData) -> bool:
-    """
-    Update the display screen with the things that are needed after the user immediately logs in
-    TODO: Determine what needs to be on there.
-
-    Args: 
-        (uqcs : ControlledData):
-            Data encapsulating the current state of the program.
-    Returns:
-        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
-    Requires:
-        ! uqcs.is_failed()
-    Ensures:
-        ! uqcs.is_failed()
+#     Args: 
+#         (uqcs : ControlledData):
+#             Data encapsulating the current state of the program.
+#     Returns:
+#         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+#     Requires:
+#         ! uqcs.is_failed()
+#     Ensures:
+#         ! uqcs.is_failed()
     
-    TODO: Implement this method. Currently prints a debug statement.
-    """
+#     TODO: Implement this method. Currently prints a debug statement.
+#     """
 
-    # draw_text
-    # draw_logout_button
+#     # draw_text
+#     # draw_logout_button
 
-    return True
+#     return True
 
 def update_display_screen(uqcs : ControlledData) -> bool:
     """
     Update the display screen with whatever needs to be on there.
+    We will display:
+        User id (top row)
+        Current-session posture graph
     TODO: Determine what needs to be on there.
 
     Args: 
@@ -338,9 +341,15 @@ def update_display_screen(uqcs : ControlledData) -> bool:
     
     TODO: Implement this method. Currently prints a debug statement.
     """
-    # DEBUG:
-    print("<!> update_display_screen()")
-    # :DEBUG
+    print("<!> BEGIN update_display_screen()")
+
+    control_messages = ["b0: logout", "id: " + str(uqcs.get_user_id())]
+
+    hardware.display.fill(0)
+    next_line_y = hardware.oled_display_texts(control_messages, 0, 0, 1)
+    # TODO: Display current-session posture graph
+    hardware.display.show()
+    print("<!> END update_display_screen()")
     return True
 
 def handle_posture_monitoring(uqcs : ControlledData) -> bool:
