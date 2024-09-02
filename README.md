@@ -112,7 +112,6 @@ To run a specific test, say `test_dummy.py`, use
 poetry run pytest tests/test_dummy.py
 ```
 
-
 ## Code Styling
 
 We use [black](https://black.readthedocs.io/en/stable/) for automated code formatting. To run Black, run this command from the root of the repo:

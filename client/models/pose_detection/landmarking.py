@@ -92,12 +92,12 @@ def display_landmarking(
         """Wrapper function for cv2.putText that applies the default config"""
         cv2.putText(annotated_image.data, text, pos, font, scale, colour, thickness)
 
-    if camera_aligned:
-        put_text("Camera aligned", alignment_text_pos, green)
-
-        if posture:
-            put_text("Good posture", posture_text_pos, green)
-        else:
-            put_text("Bad posture", posture_text_pos, red)
-    else:
+    if not camera_aligned:
         put_text("Camera not aligned", alignment_text_pos, red)
+        return
+    
+    put_text("Camera aligned", alignment_text_pos, green)
+    if posture:
+        put_text("Good posture", posture_text_pos, green)
+    else:
+        put_text("Bad posture", posture_text_pos, red)
