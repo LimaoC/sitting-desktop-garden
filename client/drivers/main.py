@@ -343,32 +343,13 @@ def update_display_screen(uqcs : ControlledData) -> bool:
     """
     print("<!> BEGIN update_display_screen()")
 
-    CONTROL_MESSAGES = ["b0: logout", "id: " + str(uqcs.get_user_id())]
-    GRAPH_MIN_VALUE = 0
-    GRAPH_MAX_VALUE = 60    # TODO: 2024-09-02 07-53 Gabe:
-                            #       This needs to be a real value for the underlying data that we expect to be shown. 
-                            #       From memory, this is probably `60` for "number of the last 60 seconds spent sitting well"
-    
     from math import sin, pi
     DEBUG_DISPLAY_THIS_GRAPH = [30 * (1 + sin(2 * pi * x / WIDTH)) for x in range(WIDTH)]
 
     hardware.display.fill(0)
-    next_line_y = hardware.oled_display_texts(CONTROL_MESSAGES, 0, 0, 1)
-    posture_graph = hardware.display.graph2D(
-        originX = 0, originY = HEIGHT - 1, 
-        width = WIDTH, height = HEIGHT - next_line_y, 
-        minValue = GRAPH_MIN_VALUE, maxValue = GRAPH_MAX_VALUE, 
-        c = 1, bars = False
-    )
-    # FIXME: 2024-09-02 07-58 Gabe: 
-    #   This is shit and terrible!!
-    #   It also doesn't work!
-    #   We should be holding a PiicoDev_SSD1306.graph2D in uqcs,
-    #    and simply updating that member field here.
-    #   We shouldn't be creating a whole new graph2D object every time
-    #    we want to draw to the same graph!!!
+    hardware.oled_display_texts(hardware.get_control_messages(), 0, 0, 1)
     for y in DEBUG_DISPLAY_THIS_GRAPH:
-        hardware.display.updateGraph2D(posture_graph, y)
+        hardware.display.updateGraph2D(hardware.posture_graph, y)
     hardware.display.show()
     print("<!> END update_display_screen()")
     return True

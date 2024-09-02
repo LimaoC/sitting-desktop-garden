@@ -15,6 +15,9 @@ from PiicoDev_SSD1306 import *
 
 from datetime import datetime
 
+# DEBUG:
+from math import sin, pi
+# :DEBUG
 
 
 ## SECTION: Constants
@@ -67,6 +70,8 @@ class ControlledData:
         self._last_cushion_time  = datetime.now()
         self._last_plant_time    = datetime.now()
         self._last_sniff_time    = datetime.now()
+        self._DEBUG_current_graph_list_index = 0
+        self._DEBUG_current_graph_function = lambda x:  30 * (1 + sin(2 * pi * x / WIDTH))
 
     @classmethod
     def make_empty(cls, user_id : int) -> "ControlledData":
@@ -106,6 +111,19 @@ class ControlledData:
         return return_me
 
     # SECTION: Getters/Setters
+
+    def DEBUG_get_next_posture_graph_value(self) -> int:
+        """
+        Get next thing to put on the DEBUG graph.
+
+        Returns:
+            (int): Next thing to put on the DEBUG graph.
+
+        TODO: Remove this method
+        """
+        return_me = self._DEBUG_current_graph_function(self._DEBUG_current_graph_list_index)
+        self._DEBUG_current_graph_list_index += 1
+        return return_me
 
     def is_failed(self) -> bool:
         """
@@ -176,8 +194,11 @@ class HardwareComponents:
             A button with address switches set to [0, 0, 0, 0]
         self.button1 : PiicoDev_Switch
             A button with address switches set to [0, 0, 0, 1]
-        self._display : [(PiicoDev_SSD1306_MicroBit | PiicoDev_SSD1306_Linux | PiicoDev_SSD1306_MicroPython)]
-            OLED SSD1306 Display 
+        self.display : PiicoDev_SSD1306
+            OLED SSD1306 Display with default address
+        self.posture_graph : PiicoDev_SSD1306.graph2D | None
+            Graph object for rendering on self.display. NOT INITIALISED by default; i.e. None until initialised.
+            Should get initialised ONCE THE USER IS LOGGED IN because the graph will look different for each user.
     """
 
     # SECTION: Constructors
@@ -198,7 +219,47 @@ class HardwareComponents:
     def __init__(self, button0, button1, display):
         self.button0: PiicoDev_Switch = button0 
         self.button1: PiicoDev_Switch = button1
-        self.display: PiicoDev_SSD1306_MicroPython = display
+        self.display: PiicoDev_SSD1306 = display
+        self.posture_graph : PiicoDev_SSD1306.graph2D | None = None
+    
+    # SECTION: Setters
+
+    # 2024-09-02 14-45 Gabe: TESTED.
+    def get_control_messages(self, user_id : int) -> List[int]:
+        """
+        Get messages to display during usual application loop.
+
+        Args:
+            user_id : int
+                ID of the currently logged-in user.
+        """
+        return ["b0: logout", "id: " + str(user_id)]
+
+    def initialise_posture_graph(self, user_id : int) -> None:
+        """
+        Initialise self.posture_graph according to the provided user_id.
+
+        Args:
+            user_id : int
+                ID of the currently logged-in user.
+
+        WARNING: UNTESTED!
+        """
+        CONTROL_MESSAGES = self.get_control_messages(user_id)
+        GRAPH_MIN_VALUE = 0
+        GRAPH_MAX_VALUE = 60    # TODO: 2024-09-02 07-53 Gabe:
+                                #       This needs to be a real value for the underlying data that we expect to be shown. 
+                                #       From memory, this is probably `60` for "number of the last 60 seconds spent sitting well"
+        LINE_HEIGHT = 15 # pixels
+        LINE_WIDTH = 16 # characters
+        
+        initialisation_y_value = len([CONTROL_MESSAGES[i : i + LINE_WIDTH] for i in range(0, len(CONTROL_MESSAGES), LINE_WIDTH)]) * LINE_HEIGHT
+        self.posture_graph = self.display.graph2D(
+            originX = 0, originY = HEIGHT - 1, 
+            width = WIDTH, height = HEIGHT - initialisation_y_value, 
+            minValue = GRAPH_MIN_VALUE, maxValue = GRAPH_MAX_VALUE, 
+            c = 1, bars = False
+        )
     
     # SECTION: Using peripherals
 
