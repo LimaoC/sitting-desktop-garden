@@ -39,6 +39,38 @@ You can check that the `sitting-desktop-garden` package has been installed corre
 poetry run pip list | grep sitting-desktop-garden
 ```
 
+## Raspberry Pi Setup
+### Downloading ML Models
+From top-level directory.
+```bash
+mkdir client/models/resources &&
+curl -o client/models/resources/pose_landmarker_lite.task \
+https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task
+```
+### Installing Camera Drivers for OpenCV
+Run the following command on the Raspberry Pi to install the necessary camera driver. This driver should come with the Raspberry Pi OS.
+```bash
+sudo modprobe bcm2835-v4l2
+```
+To test if this is successfuly installed.
+```bash
+ls -ltrh /dev/video*
+```
+
+### Deployment
+To deploy a build to the Raspberry Pi use the `deploy.sh` script. This script will create a tarball of file listed in a text file, transfer it to
+a specified hostname and untar it there.
+
+To use the script execute it in the project's root directory with,
+```bash
+./deploy.sh [pathfile] [hostname] [username]
+```
+For example, to deploy the files listed in `deploypaths.txt` to `testpi` (using username raspberry) the command would be
+```bash
+./deploy.sh deploypaths.txt testpi raspberry
+```
+The pathname file should contain a path to a file or directory on each line. If a directory is listed `deploy.sh` will copy the entire contents over.
+You can use the `#` character at the start of a line to leave comments.
 ## Development
 
 To add a new dependency to the package, use
@@ -80,20 +112,6 @@ To run a specific test, say `test_dummy.py`, use
 poetry run pytest tests/test_dummy.py
 ```
 
-## Deployment
-To deploy a build to the Raspberry Pi use the `deploy.sh` script. This script will create a tarball of file listed in a text file, transfer it to
-a specified hostname and untar it there.
-
-To use the script execute it in the project's root directory with,
-```bash
-./deploy.sh [pathfile] [username]@[hostname]
-```
-For example, to deploy the files listed in `deploypaths.txt` to `testpi` (using username raspberry) the command would be
-```bash
-./deploy.sh deploypaths.txt raspberry@testpi
-```
-The pathname file should contain a path to a file or directory on each line. If a directory is listed `deploy.sh` will copy the entire contents over.
-You can use the `#` character at the start of a line to leave comments.
 
 ## Code Styling
 
@@ -119,10 +137,3 @@ This spins up a local server which serves the documentation pages, and also hot-
 
 You can build the documentation (without spinning up a server) with `make docs`, and clean the documentation output with `make docs-clean`.
 
-## Downloading ML Models
-From top-level directory.
-```bash
-mkdir client/models/resources &&
-curl -o client/models/resources/pose_landmarker_lite.task \
-https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task
-```
