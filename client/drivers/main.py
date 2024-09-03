@@ -247,21 +247,21 @@ def create_new_user(underlying_picture : "UNDERLYING_PICTURE") -> int:
 # 2024-09-02 07-03 Gabe: Currently working the following here:
 #   top-level control flow
 #   interaction with buttons and display
-def do_everything(uqcs : ControlledData) -> None:
+def do_everything(auspost : ControlledData) -> None:
     """
     Main control flow once a user is logged in.
 
     Args:
-        (uqcs : ControlledData): Data encapsulating the current state of the program.
+        (auspost : ControlledData): Data encapsulating the current state of the program.
     Requires:
-        ! uqcs.is_failed()
+        ! auspost.is_failed()
     
     TODO: Actually implement this
     """
     print("<!> BEGIN do_everything()")
 
-    LOGIN_MESSAGE = "Logged in with user id: " + str(uqcs.get_user_id())
-    LOGOUT_MESSAGE = "Logged out user id " + str(uqcs.get_user_id())
+    LOGIN_MESSAGE = "Logged in with user id: " + str(auspost.get_user_id())
+    LOGOUT_MESSAGE = "Logged out user id " + str(auspost.get_user_id())
 
     # Display message to user
     hardware.display.fill(0)
@@ -274,7 +274,7 @@ def do_everything(uqcs : ControlledData) -> None:
     hardware.button1.was_pressed
 
     while True:
-    # Loop invariant: ! uqcs.is_failed()
+    # Loop invariant: ! auspost.is_failed()
         # Check for user actions
         if hardware.button0.was_pressed:
             hardware.display.fill(0)
@@ -286,32 +286,32 @@ def do_everything(uqcs : ControlledData) -> None:
         
         # Probably should run individual threads for each of these
         # TODO: Move the threading to a more reasonable location. main() is probably best.
-        # posture_monitoring_thread = threading.Thread(handle_posture_monitoring, args=(uqcs))
+        # posture_monitoring_thread = threading.Thread(handle_posture_monitoring, args=(auspost))
         # posture_monitoring_thread.start()
 
         # DEBUG:
-        update_display_screen(uqcs)
-        # handle_posture_monitoring(uqcs)
-        # handle_feedback(uqcs)
+        update_display_screen(auspost)
+        # handle_posture_monitoring(auspost)
+        # handle_feedback(auspost)
         # :DEBUG
 
         sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
 
 # 2024-09-02 07:21 Gabe: Don't think we need this method anymore
-# def logged_in_display(uqcs : ControlledData) -> bool:
+# def logged_in_display(auspost : ControlledData) -> bool:
 #     """
 #     Update the display screen with the things that are needed after the user immediately logs in
 #     TODO: Determine what needs to be on there.
 
 #     Args: 
-#         (uqcs : ControlledData):
+#         (auspost : ControlledData):
 #             Data encapsulating the current state of the program.
 #     Returns:
 #         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
 #     Requires:
-#         ! uqcs.is_failed()
+#         ! auspost.is_failed()
 #     Ensures:
-#         ! uqcs.is_failed()
+#         ! auspost.is_failed()
     
 #     TODO: Implement this method. Currently prints a debug statement.
 #     """
@@ -321,7 +321,7 @@ def do_everything(uqcs : ControlledData) -> None:
 
 #     return True
 
-def update_display_screen(uqcs : ControlledData) -> bool:
+def update_display_screen(auspost : ControlledData) -> bool:
     """
     Update the display screen with whatever needs to be on there.
     We will display:
@@ -330,42 +330,39 @@ def update_display_screen(uqcs : ControlledData) -> bool:
     TODO: Determine what needs to be on there.
 
     Args: 
-        (uqcs : ControlledData):
+        (auspost : ControlledData):
             Data encapsulating the current state of the program.
     Returns:
         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
     Requires:
-        ! uqcs.is_failed()
+        ! auspost.is_failed()
     Ensures:
-        ! uqcs.is_failed()
+        ! auspost.is_failed()
     
     TODO: Implement this method. Currently prints a debug statement.
     """
     print("<!> BEGIN update_display_screen()")
 
-    from math import sin, pi
-    DEBUG_DISPLAY_THIS_GRAPH = [30 * (1 + sin(2 * pi * x / WIDTH)) for x in range(WIDTH)]
-
     hardware.display.fill(0)
     hardware.oled_display_texts(hardware.get_control_messages(), 0, 0, 1)
-    for y in DEBUG_DISPLAY_THIS_GRAPH:
-        hardware.display.updateGraph2D(hardware.posture_graph, y)
+    hardware.display.updateGraph2D(hardware.posture_graph, auspost.DEBUG_get_next_posture_graph_value())
     hardware.display.show()
+
     print("<!> END update_display_screen()")
     return True
 
-def handle_posture_monitoring(uqcs : ControlledData) -> bool:
+def handle_posture_monitoring(auspost : ControlledData) -> bool:
     """
     Take a snapshot monitoring the user, and update the given ControlledData if necessary.
 
     Args:
-        (uqcs : ControlledData): Data encapsulating the current state of the program.
+        (auspost : ControlledData): Data encapsulating the current state of the program.
     Returns:
         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
     Requires:
-        ! uqcs.is_failed()
+        ! auspost.is_failed()
     Ensures:
-        ! uqcs.is_failed()
+        ! auspost.is_failed()
     
     TODO: Implement this method. Currently prints a debug statement.
     """
@@ -378,18 +375,18 @@ def handle_posture_monitoring(uqcs : ControlledData) -> bool:
         ai_bros_posture_score()
     return True
 
-def handle_feedback(uqcs : ControlledData) -> bool:
+def handle_feedback(auspost : ControlledData) -> bool:
     """
     Provide feedback to the user if necessary.
     
     Args:
-        (uqcs : ControlledData): Data encapsulating the current state of the program.
+        (auspost : ControlledData): Data encapsulating the current state of the program.
     Returns:
         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
     Requires:
-        ! uqcs.is_failed()
+        ! auspost.is_failed()
     Ensures:
-        ! uqcs.is_failed()
+        ! auspost.is_failed()
     
     TODO: Implement this method. Currently prints a debug statement.
     """
