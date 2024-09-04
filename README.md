@@ -40,6 +40,31 @@ poetry run pip list | grep sitting-desktop-garden
 ```
 
 ## Raspberry Pi Setup
+### Environment
+Navigate to home directory.
+```bash
+cd ~
+```
+Install miniconda.
+```bash
+curl -o ~/conda-installer.sh \
+https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh &&
+bash conda-installer.sh
+```
+Follow the prompts to install and then restart the shell. Create a new environment with the correct python version.
+```bash
+conda create -n garden python=3.10
+```
+Activate the environment.
+```bash
+conda activate garden
+```
+Install poetry using the official installer. This will place poetry in its own virtual environment.
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+Follow the steps in [Installation](#installation) to install dependencies.
+
 ### Downloading ML Models
 From top-level directory.
 ```bash
