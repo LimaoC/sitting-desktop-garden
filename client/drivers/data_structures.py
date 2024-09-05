@@ -50,7 +50,7 @@ class ControlledData:
             Time of the last successful cushion feedback event.
         self._last_plant_time : datetime.datetime
             Time of the last successful plant feedback event.
-        self._last_sniff_time : datetime.datetime
+        self._last_sniff_time : datetime.datetime                TODO: Change this so it doesn't say "sniff". Change the getters and setters
             Time of the last successful scent feedback event.
 
     Class invariant:
