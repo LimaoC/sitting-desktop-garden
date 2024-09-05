@@ -6,6 +6,7 @@ authors = ["Limao Chang <80520563+LimaoC@users.noreply.github.com>", "Mitchell C
 readme = "README.md"
 packages = [
     { include = "models", from = "client" },
+<<<<<<< HEAD
     { include = "drivers", from = "client" },
     { include = "proof_of_concept", from = "client" }
 ]
@@ -15,7 +16,20 @@ python = "^3.10"
 mediapipe = "^0.10.14"
 piicodev = "^1.10.0"
 piccolo-theme = "^0.23.0"
+=======
+    { include = "drivers", from = "client" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+mediapipe = "0.10.14"
+>>>>>>> main
 pydbml = "1.1.1"
+piicodev = "^1.10.0"
+deepface = "^0.0.93"
+tensorflow-io-gcs-filesystem = "0.27.0"
+tf-keras = "^2.17.0"
+h5py = "3.10.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"

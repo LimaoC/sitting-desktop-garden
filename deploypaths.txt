@@ -1,6 +1,6 @@
 # Enter paths of files and directories to be bundled and sent to the pi
 # deploy.sh will preserve the source directory layout so imports between files
 # should still work if all files are copied in
-
 client/
+pyproject.toml
 poetry.lock
