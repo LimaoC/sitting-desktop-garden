@@ -214,6 +214,7 @@ class HardwareComponents:
             PiicoDev_Switch(id = [0, 0, 0, 0], double_press_duration = DOUBLE_PRESS_DURATION), # WARNING: 2024-09-01 17:12 Gabe: I think this produces an "I2C is not enabled" warning. No idea why.
             PiicoDev_Switch(id = [0, 0, 0, 1], double_press_duration = DOUBLE_PRESS_DURATION), # WARNING: 2024-09-01 17:12 Gabe: I think this produces an "I2C is not enabled" warning. No idea why.
             create_PiicoDev_SSD1306() # This is the constructor; ignore the "is not defined" error message.
+            
         )
 
     def __init__(self, button0, button1, display):
@@ -264,11 +265,12 @@ class HardwareComponents:
     # SECTION: Using peripherals
 
     # 2024-09-01 16:57 Gabe: TESTED.
-    def oled_display_text(self, text : str, x : int, y : int, colour : int) -> int:
+    def oled_display_text(self, text : str, x : int, y : int, colour : int = 1) -> int:
         """
         Display text on the oled display, wrapping lines if necessary.
         NOTE: Does not blank display. Call `.display.fill(0)` if needed.
         NOTE: Does not render. Call `.display.show()` if needed.
+        
 
         Args:
             text : str
@@ -278,6 +280,7 @@ class HardwareComponents:
             y : int
                 Vertical coordinate from top side of screen.
             colour : int
+                Defaults white.
                 0: black
                 1: white
         
