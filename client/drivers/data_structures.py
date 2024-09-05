@@ -161,6 +161,51 @@ class ControlledData:
         """
         self._last_snapshot_time = time
 
+    def get_last_cushion_time(self) -> datetime:
+        """
+        Returns:
+            (datetime): The last time that the user was provided cushion feedback.
+        """
+        return self._last_cushion_time
+
+    def set_last_cushion_time(self, time : datetime) -> None:
+        """
+        Args:
+            time : datetime
+                The last time that the user was provided cushion feedback.
+        """
+        self._last_cushion_time = time
+    
+    def get_last_plant_time(self) -> datetime:
+        """
+        Returns:
+            (datetime): The last time that the user was provided plant feedback.
+        """
+        return self._last_plant_time
+
+    def set_last_plant_time(self, time : datetime) -> None:
+        """
+        Args:
+            time : datetime
+                The last time that the user was provided plant feedback.
+        """
+        self._last_plant_time = time
+    
+    def get_last_sniff_time(self) -> datetime:
+        """
+        Returns:
+            (datetime): The last time that the user was provided olfactory feedback.
+        """
+        return self._last_cushion_time
+
+    def set_last_sniff_time(self, time : datetime) -> None:
+        """
+        Args:
+            time : datetime
+                The last time that the user was provided olfactory feedback.
+        """
+        self._last_sniff_time = time
+    
     def accept_new_posture_data(self, posture_data : "POSTURE_DATA") -> None: # TODO: Refine type signature
         """
         Update the internal store of posture data.

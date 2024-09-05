@@ -377,25 +377,86 @@ def handle_feedback(auspost : ControlledData) -> bool:
         ! auspost.is_failed()
     Ensures:
         ! auspost.is_failed()
+    """
+    if (datetime.now() > auspost.get_last_cushion_time() + HANDLE_CUSHION_FEEDBACK_TIMEOUT):
+        if not handle_cushion_feedback(auspost):
+            return False
+    if (datetime.now() > auspost.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT):
+        if not handle_plant_feedback(auspost):
+            return False
+    if (datetime.now() > auspost.get_last_sniff_time() + HANDLE_SNIFF_FEEDBACK_TIMEOUT):
+        if not handle_sniff_feedback(auspost):
+            return False
     
-    TODO: Implement this method. Currently prints a debug statement.
+    return True
+
+
+
+## SECTION: Feedback handling
+
+def handle_cushion_feedback(auspost : ControlledData) -> bool:
+    """
+    Vibrate cushion (if necessary), and update the timestamp of when cushion feedback was last given.
+    
+    Args:
+        (auspost : ControlledData): Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! auspost.is_failed()
+    Ensures:
+        ! auspost.is_failed()
+    
+    TODO: Implement this method. Currently prints a debug statement and updates the time.
     """
     # DEBUG:
-    print("<!> handle_feedback()")
+    print("<!> handle_cushion_feedback()")
     # :DEBUG
-    # See Control_flow.pdf for expected control flow
+    auspost.set_last_cushion_time(datetime.now())
+    return True
+
+def handle_plant_feedback(auspost : ControlledData) -> bool:
     """
-    if (now > last-cushion-attempt-time + HANDLE_CUSHION_FEEDBACK_TIMEOUT) {
-        handle_cushion_feedback(auspost); // TODO: Define and implement this method
-    }
-    if (now > last-plant-attempt-time + HANDLE_PLANT_FEEDBACK_TIMEOUT) {
-        handle_plant_feedback(auspost); // TODO: Define and implement this method, on continuous servos
-    }
-    if (now > last-sniff-attempt-time + HANDLE_SNIFF_FEEDBACK_TIMEOUT) {
-        handle_sniff_feedback(auspost); // TODO: Define and implement this method, on 180* servos
-    }
-    """
+    Set the plant height according to short-term current session data, and update the timestamp
+    of when plant feedback was last given.
+
+    Args:
+        (auspost : ControlledData): Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! auspost.is_failed()
+    Ensures:
+        ! auspost.is_failed()
     
+    TODO: Implement this method. Currently prints a debug statement and updates the time.
+    """
+    # DEBUG:
+    print("<!> handle_plant_feedback()")
+    # :DEBUG
+    auspost.set_last_plant_time(datetime.now())
+    return True
+
+def handle_sniff_feedback(auspost : ControlledData) -> bool:
+    """
+    Dispense olfactory reward (if necessary), and update the timestamp of when olfactory feedback
+    was last given.
+
+    Args:
+        (auspost : ControlledData): Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! auspost.is_failed()
+    Ensures:
+        ! auspost.is_failed()
+    
+    TODO: Implement this method. Currently prints a debug statement and updates the time.
+    """
+    # DEBUG:
+    print("<!> handle_sniff_feedback()")
+    # :DEBUG
+    auspost.set_last_sniff_time(datetime.now())
     return True
 
 
