@@ -10,11 +10,12 @@ Author:
 ## SECTION: Imports
 
 from PiicoDev_Unified import sleep_ms
-from PiicoDev_Switch import PiicoDev_Switch
+from PiicoDev_Switch import *
 from PiicoDev_SSD1306 import *
 
 from typing import Tuple
 import threading
+from datetime import datetime
 
 from data_structures import ControlledData, HardwareComponents, Picture, Face
 from ai_bros import *
@@ -37,6 +38,14 @@ FAIL_LOGIN_DELAY = 3000
 LOGIN_SUCCESS_DELAY = 3000
 """ Number of milliseconds between the user successfully logging out and returning to main(). """
 LOGOUT_SUCCESS_DELAY = 3000
+""" Minimum delay between reading posture data from the SQLite database, in do_everything(). """
+GET_POSTURE_DATA_TIMEOUT = 2000 # DEBUG: Change this value up to ~60000 later.
+""" Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback(). """
+HANDLE_CUSHION_FEEDBACK_TIMEOUT = 5000
+""" Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback(). """
+HANDLE_PLANT_FEEDBACK_TIMEOUT = 10000
+""" Minimum delay between consecutive uses of the scent bottle-controlling servos. Used in handle_feedback(). """
+HANDLE_SNIFF_FEEDBACK_TIMEOUT = 20000
 """ DEBUG Number of milliseconds between each loop iteration in do_everything(). """
 DEBUG_DO_EVERYTHING_INTERVAL = 1000
 
@@ -263,6 +272,9 @@ def do_everything(auspost : ControlledData) -> None:
     LOGIN_MESSAGE = "Logged in with user id: " + str(auspost.get_user_id())
     LOGOUT_MESSAGE = "Logged out user id " + str(auspost.get_user_id())
 
+    # Initialise posture graph for the current session
+    hardware.initialise_posture_graph(auspost.get_user_id())
+
     # Display message to user
     hardware.display.fill(0)
     hardware.oled_display_text(LOGIN_MESSAGE, 0, 0, 1)
@@ -291,43 +303,18 @@ def do_everything(auspost : ControlledData) -> None:
 
         # DEBUG:
         update_display_screen(auspost)
-        # handle_posture_monitoring(auspost)
-        # handle_feedback(auspost)
+        handle_posture_monitoring(auspost)
+        handle_feedback(auspost)
         # :DEBUG
 
         sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
-
-# 2024-09-02 07:21 Gabe: Don't think we need this method anymore
-# def logged_in_display(auspost : ControlledData) -> bool:
-#     """
-#     Update the display screen with the things that are needed after the user immediately logs in
-#     TODO: Determine what needs to be on there.
-
-#     Args: 
-#         (auspost : ControlledData):
-#             Data encapsulating the current state of the program.
-#     Returns:
-#         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
-#     Requires:
-#         ! auspost.is_failed()
-#     Ensures:
-#         ! auspost.is_failed()
-    
-#     TODO: Implement this method. Currently prints a debug statement.
-#     """
-
-#     # draw_text
-#     # draw_logout_button
-
-#     return True
 
 def update_display_screen(auspost : ControlledData) -> bool:
     """
     Update the display screen with whatever needs to be on there.
     We will display:
-        User id (top row)
+        As per HardwareComponents.get_control_messages(), and
         Current-session posture graph
-    TODO: Determine what needs to be on there.
 
     Args: 
         (auspost : ControlledData):
@@ -339,12 +326,12 @@ def update_display_screen(auspost : ControlledData) -> bool:
     Ensures:
         ! auspost.is_failed()
     
-    TODO: Implement this method. Currently prints a debug statement.
+    WARNING: UNTESTED!
     """
     print("<!> BEGIN update_display_screen()")
 
     hardware.display.fill(0)
-    hardware.oled_display_texts(hardware.get_control_messages(), 0, 0, 1)
+    hardware.oled_display_texts(hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1)
     hardware.display.updateGraph2D(hardware.posture_graph, auspost.DEBUG_get_next_posture_graph_value())
     hardware.display.show()
 
@@ -364,15 +351,18 @@ def handle_posture_monitoring(auspost : ControlledData) -> bool:
     Ensures:
         ! auspost.is_failed()
     
-    TODO: Implement this method. Currently prints a debug statement.
+    TODO: Implement error handling
+    WARNING: UNTESTED!
     """
     # DEBUG:
     print("<!> handle_posture_monitoring()")
     # :DEBUG
-    # See Control_flow.pdf for expected control flow
-    while True:
-        picture = take_picture()
-        ai_bros_posture_score()
+    now = datetime.now()
+    if (now > auspost.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT):
+        # TODO: The ai_bros_get_posture_data() call might fail once it's implemented properly.
+        #       If it does, we need to handle it properly.
+        auspost.accept_new_posture_data(ai_bros_get_posture_data(auspost.get_last_snapshot_time()))
+        auspost.set_last_snapshot_time(now)
     return True
 
 def handle_feedback(auspost : ControlledData) -> bool:
@@ -387,13 +377,86 @@ def handle_feedback(auspost : ControlledData) -> bool:
         ! auspost.is_failed()
     Ensures:
         ! auspost.is_failed()
+    """
+    if (datetime.now() > auspost.get_last_cushion_time() + HANDLE_CUSHION_FEEDBACK_TIMEOUT):
+        if not handle_cushion_feedback(auspost):
+            return False
+    if (datetime.now() > auspost.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT):
+        if not handle_plant_feedback(auspost):
+            return False
+    if (datetime.now() > auspost.get_last_sniff_time() + HANDLE_SNIFF_FEEDBACK_TIMEOUT):
+        if not handle_sniff_feedback(auspost):
+            return False
     
-    TODO: Implement this method. Currently prints a debug statement.
+    return True
+
+
+
+## SECTION: Feedback handling
+
+def handle_cushion_feedback(auspost : ControlledData) -> bool:
+    """
+    Vibrate cushion (if necessary), and update the timestamp of when cushion feedback was last given.
+    
+    Args:
+        (auspost : ControlledData): Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! auspost.is_failed()
+    Ensures:
+        ! auspost.is_failed()
+    
+    TODO: Implement this method. Currently prints a debug statement and updates the time.
     """
     # DEBUG:
-    print("<!> handle_feedback()")
+    print("<!> handle_cushion_feedback()")
     # :DEBUG
-    # See Control_flow.pdf for expected control flow
+    auspost.set_last_cushion_time(datetime.now())
+    return True
+
+def handle_plant_feedback(auspost : ControlledData) -> bool:
+    """
+    Set the plant height according to short-term current session data, and update the timestamp
+    of when plant feedback was last given.
+
+    Args:
+        (auspost : ControlledData): Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! auspost.is_failed()
+    Ensures:
+        ! auspost.is_failed()
+    
+    TODO: Implement this method. Currently prints a debug statement and updates the time.
+    """
+    # DEBUG:
+    print("<!> handle_plant_feedback()")
+    # :DEBUG
+    auspost.set_last_plant_time(datetime.now())
+    return True
+
+def handle_sniff_feedback(auspost : ControlledData) -> bool:
+    """
+    Dispense olfactory reward (if necessary), and update the timestamp of when olfactory feedback
+    was last given.
+
+    Args:
+        (auspost : ControlledData): Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! auspost.is_failed()
+    Ensures:
+        ! auspost.is_failed()
+    
+    TODO: Implement this method. Currently prints a debug statement and updates the time.
+    """
+    # DEBUG:
+    print("<!> handle_sniff_feedback()")
+    # :DEBUG
+    auspost.set_last_sniff_time(datetime.now())
     return True
 
 

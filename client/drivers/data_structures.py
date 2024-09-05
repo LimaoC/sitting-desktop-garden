@@ -45,7 +45,7 @@ class ControlledData:
         self._posture_data : (TODO: figure out this type)   
             Data updated through ML models, used for feedback.
         self._last_snapshot_time : datetime.datetime
-            Time of the last successful pose estimation.
+            Time of the last successful pull of posture data from the SQLite database
         self._last_cushion_time : datetime.datetime
             Time of the last successful cushion feedback event.
         self._last_plant_time : datetime.datetime
@@ -142,9 +142,84 @@ class ControlledData:
     def get_posture_data(self) -> "POSTURE_DATA": # TODO: Refine type signature
         """
         Returns:
-            (POSTURE_DATA): The posture data stored in this ControlledData
+            (POSTURE_DATA): The posture data stored in this ControlledData.
         """
         return self._posture_data
+
+    def get_last_snapshot_time(self) -> datetime:
+        """
+        Returns:
+            (datetime): The last time that the internal posture data was updated.
+        """
+        return self._last_snapshot_time
+    
+    def set_last_snapshot_time(self, time : datetime) -> None:
+        """
+        Args:
+            time : datetime
+                The last time that the internal posture data was updated.
+        """
+        self._last_snapshot_time = time
+
+    def get_last_cushion_time(self) -> datetime:
+        """
+        Returns:
+            (datetime): The last time that the user was provided cushion feedback.
+        """
+        return self._last_cushion_time
+
+    def set_last_cushion_time(self, time : datetime) -> None:
+        """
+        Args:
+            time : datetime
+                The last time that the user was provided cushion feedback.
+        """
+        self._last_cushion_time = time
+    
+    def get_last_plant_time(self) -> datetime:
+        """
+        Returns:
+            (datetime): The last time that the user was provided plant feedback.
+        """
+        return self._last_plant_time
+
+    def set_last_plant_time(self, time : datetime) -> None:
+        """
+        Args:
+            time : datetime
+                The last time that the user was provided plant feedback.
+        """
+        self._last_plant_time = time
+    
+    def get_last_sniff_time(self) -> datetime:
+        """
+        Returns:
+            (datetime): The last time that the user was provided olfactory feedback.
+        """
+        return self._last_cushion_time
+
+    def set_last_sniff_time(self, time : datetime) -> None:
+        """
+        Args:
+            time : datetime
+                The last time that the user was provided olfactory feedback.
+        """
+        self._last_sniff_time = time
+    
+    def accept_new_posture_data(self, posture_data : "POSTURE_DATA") -> None: # TODO: Refine type signature
+        """
+        Update the internal store of posture data.
+
+        Args:
+            posture_data : POSTURE_DATA
+                New posture data to accept and merge with the current state of this object.
+        
+        TODO: Implement me!
+        """
+        # DEBUG:
+        print("<!> accept_new_posture_data()")
+        # :DEBUG
+
 
     # SECTION: Posture data mapping
     
@@ -229,6 +304,7 @@ class HardwareComponents:
     def get_control_messages(self, user_id : int) -> List[int]:
         """
         Get messages to display during usual application loop.
+        TODO: Finalise these!
 
         Args:
             user_id : int
@@ -254,6 +330,7 @@ class HardwareComponents:
         LINE_HEIGHT = 15 # pixels
         LINE_WIDTH = 16 # characters
         
+        # The posture graph will occupy space from the bottom (y = HEIGHT - 1) up to initialisation_y_value.
         initialisation_y_value = len([CONTROL_MESSAGES[i : i + LINE_WIDTH] for i in range(0, len(CONTROL_MESSAGES), LINE_WIDTH)]) * LINE_HEIGHT
         self.posture_graph = self.display.graph2D(
             originX = 0, originY = HEIGHT - 1, 
