@@ -41,7 +41,7 @@ def ai_bros_posture_score(underlying_picture : "UNDERLYING_PICTURE") -> int: # T
         underlying_picture : UNDERLYING_PICTURE
             The picture of the person's posture
     Returns:
-        int: score represtning how good the posture currently is???
+        int: score representing how good the posture currently is???
     TODO: Convert this into an external API call. Currently returns debug data.
     NOTE: This will eventually be a database lookup. We're running the AI posture peeker
           asynchronously to the controller code.
