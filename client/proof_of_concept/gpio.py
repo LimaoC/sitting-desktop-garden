@@ -18,7 +18,8 @@ Source:
 import RPi.GPIO as GPIO # WARNING: This should be installed by default on the RPi, 
                         # but not on your local machine. 
                         #  I haven't `poetry add`ed it (I tried, but it failed >:( ).
-from PiicoDev_Unified import sleep_ms
+#from PiicoDev_Unified import sleep_ms
+from time import sleep
 
 
 
@@ -26,7 +27,7 @@ from PiicoDev_Unified import sleep_ms
 
 def main():
     print("<!> BEGIN main()...")
-    GPIO.setmode(GPIO.BOARD) # use P1 header pin numbering convention
+    GPIO.setmode(GPIO.BCM) # use pin numbering convention as per the PiicoDev header
 
     # Set data directions
     GPIO.setup(7, GPIO.IN)
@@ -34,7 +35,7 @@ def main():
 
     print("<?> Will read from pin 7 into code; will write to pin 8.")
     print("<!> Doing that in 5 seconds...")
-    sleep_ms(5000)
+    sleep(5)
 
     input_value = GPIO.input(7)
     print("<!> Read " + str(input_value) + " from pin 7")
@@ -42,7 +43,7 @@ def main():
     print("<!> Wrote high to pin 8")
     
     print("<?> Writing low to pin 8 in 2 seconds")
-    sleep_ms(2000)
+    sleep(2)
     GPIO.output(8, GPIO.LOW)
 
     print("<!> END main()")
