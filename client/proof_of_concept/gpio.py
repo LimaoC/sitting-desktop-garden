@@ -29,21 +29,21 @@ def main():
     GPIO.setmode(GPIO.BOARD) # use P1 header pin numbering convention
 
     # Set data directions
-    GPIO.setup(17, GPIO.IN)
-    GPIO.setup(18, GPIO.OUT)
+    GPIO.setup(7, GPIO.IN)
+    GPIO.setup(8, GPIO.OUT)
 
-    print("<?> Will read from pin 17 into code; will write to pin 18.")
+    print("<?> Will read from pin 7 into code; will write to pin 8.")
     print("<!> Doing that in 5 seconds...")
     sleep_ms(5000)
 
-    input_value = GPIO.input(17)
-    print("<!> Read " + str(input_value) + " from pin 17")
-    GPIO.output(18, GPIO.HIGH)
-    print("<!> Wrote high to pin 18")
+    input_value = GPIO.input(7)
+    print("<!> Read " + str(input_value) + " from pin 7")
+    GPIO.output(8, GPIO.HIGH)
+    print("<!> Wrote high to pin 8")
     
-    print("<?> Writing low to pin 18 in 2 seconds")
+    print("<?> Writing low to pin 8 in 2 seconds")
     sleep_ms(2000)
-    GPIO.output(18, GPIO.LOW)
+    GPIO.output(8, GPIO.LOW)
 
     print("<!> END main()")
 
