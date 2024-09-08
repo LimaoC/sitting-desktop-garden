@@ -27,5 +27,13 @@ else
     SSH_PREFIX="sshpass -p $PASSWORD"
 fi
 
-echo -e $INFO Installing and compiling python3.10
-$SSH_PREFIX ssh "$SSHUSER@$SSHTARGET" 'bash -s' < python_install.sh
+if $SSH_PREFIX ssh "$SSHUSER@$SSHTARGET" 'command -v python3.10 > /dev/null'; then
+    echo -e "$WARN It appears Python3.10 already exists on target. I won't compile it again."
+else
+    echo -e $INFO Installing and Compiling Python
+    if ! $SSH_PREFIX ssh "$SSHUSER@$SSHTARGET" 'bash -s' < python_install.sh; then
+        echo -e $ERROR Something went wrong... please check above.
+        exit 1
+    fi
+    echo -e $INFO Python successfully installed!
+fi
