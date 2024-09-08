@@ -358,7 +358,7 @@ def handle_posture_monitoring(auspost : ControlledData) -> bool:
     print("<!> handle_posture_monitoring()")
     # :DEBUG
     now = datetime.now()
-    if (now > auspost.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT):
+    if (now > auspost.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT): # BUG: can't add a `datetime.datetime` and an `int`.
         # TODO: The ai_bros_get_posture_data() call might fail once it's implemented properly.
         #       If it does, we need to handle it properly.
         auspost.accept_new_posture_data(ai_bros_get_posture_data(auspost.get_last_snapshot_time()))
