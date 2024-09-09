@@ -15,7 +15,7 @@ from PiicoDev_SSD1306 import *
 
 from typing import Tuple
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from data_structures import ControlledData, HardwareComponents, Picture, Face
 from ai_bros import *
@@ -39,13 +39,13 @@ LOGIN_SUCCESS_DELAY = 3000
 """ Number of milliseconds between the user successfully logging out and returning to main(). """
 LOGOUT_SUCCESS_DELAY = 3000
 """ Minimum delay between reading posture data from the SQLite database, in do_everything(). """
-GET_POSTURE_DATA_TIMEOUT = 2000 # DEBUG: Change this value up to ~60000 later.
+GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds = 2000) # DEBUG: Change this value up to ~60000 later.
 """ Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback(). """
-HANDLE_CUSHION_FEEDBACK_TIMEOUT = 5000
+HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds = 5000)
 """ Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback(). """
-HANDLE_PLANT_FEEDBACK_TIMEOUT = 10000
+HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds = 10000)
 """ Minimum delay between consecutive uses of the scent bottle-controlling servos. Used in handle_feedback(). """
-HANDLE_SNIFF_FEEDBACK_TIMEOUT = 20000
+HANDLE_SNIFF_FEEDBACK_TIMEOUT = timedelta(milliseconds = 20000)
 """ DEBUG Number of milliseconds between each loop iteration in do_everything(). """
 DEBUG_DO_EVERYTHING_INTERVAL = 1000
 
