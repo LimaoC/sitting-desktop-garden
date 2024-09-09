@@ -37,6 +37,7 @@ if ! sudo make altinstall; then
     exit 1
 fi
 
+cd ../
 echo -e "Cleaning up"
 sudo rm Python-3.10.12.tgz
 sudo rm -r Python-3.10.12
