@@ -4,6 +4,7 @@ import statistics
 import time
 import logging
 import multiprocessing as multp
+import multiprocessing.connection as connection
 from importlib import resources
 from typing import Callable, Mapping
 from datetime import datetime
@@ -220,7 +221,7 @@ def create_debug_posture_tracker() -> DebugPostureTracker:
     return tracker
 
 
-def _run_posture(con: multp.connection.Connection) -> None:
+def _run_posture(con: connection.Connection) -> None:
     with create_posture_tracker() as tracker:
         con.send(True)
         while True:
@@ -236,7 +237,7 @@ def _run_posture(con: multp.connection.Connection) -> None:
             tracker.track_posture()
 
 
-def _run_debug_posture(con: multp.connection.Connection) -> None:
+def _run_debug_posture(con: connection.Connection) -> None:
     with create_debug_posture_tracker() as tracker:
         con.send(True)
         while not con.poll() or con.recv != STOP_CHILD:
