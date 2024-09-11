@@ -1,5 +1,5 @@
 import logging
-import sys
+import pprint
 
 from models.pose_detection.routines import PostureProcess
 from data.routines import destroy_database, init_database, create_user, get_postures
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+    logging.basicConfig(level=logging.DEBUG)
     logger.debug("Testing PostureProces")
     logger.debug("Destroying database")
     destroy_database()
@@ -16,7 +16,7 @@ def main() -> None:
     init_database()
     logger.debug("Inserting user")
     user_id = create_user()
-    logger.debug(f"starting postures {get_postures()}")
+    logger.debug("starting postures %s", get_postures())
     process = PostureProcess()
     for i in range(200):
         logger.debug("Parent process running")
@@ -29,7 +29,7 @@ def main() -> None:
             process.stop()
             break
 
-    logger.debug(f"Postures after async tracking {get_postures()}")
+    logger.debug("Postures after async tracking \n%s", pprint.pformat(get_postures()))
 
 
 if __name__ == "__main__":
