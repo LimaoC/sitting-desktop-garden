@@ -130,18 +130,20 @@ class PostureTracker(PoseLandmarker):
         self._save_period()
 
     def _save_period(self) -> None:
-        if time.time() - self._start_time > 60:
-            period_end = datetime.now()
-            posture = Posture(
-                id_=None,
-                user_id=self.user_id,
-                prop_good=statistics.mean(self._posture_scores),
-                prop_in_frame=statistics.mean(self._in_frames),
-                period_start=self._period_start,
-                period_end=period_end,
-            )
-            save_posture(posture)
-            self._new_period()
+        if time.time() - self._start_time <= 60:
+            return
+
+        period_end = datetime.now()
+        posture = Posture(
+            id_=None,
+            user_id=self.user_id,
+            prop_good=statistics.mean(self._posture_scores),
+            prop_in_frame=statistics.mean(self._in_frames),
+            period_start=self._period_start,
+            period_end=period_end,
+        )
+        save_posture(posture)
+        self._new_period()
 
     def _new_period(self) -> None:
         self._posture_scores = []
