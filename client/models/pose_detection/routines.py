@@ -1,5 +1,7 @@
 """Routines that can be integrated into a main control flow."""
 
+import logging
+import multiprocessing as multp
 from importlib import resources
 from typing import Callable, Mapping
 
@@ -22,6 +24,23 @@ from models.pose_detection.landmarking import AnnotatedImage, display_landmarkin
 POSE_LANDMARKER_FILE = resources.files("models.resources").joinpath(
     "pose_landmarker_lite.task"
 )
+
+logger = logging.getLogger(__name__)
+
+
+class DebugPostureProcess:
+    def __init__(self) -> None:
+        self._parent_con, child_con = multp.Pipe()
+        self._process = multp.Process(target=_run_debug_posture, args=(child_con,))
+        self._process.start()
+
+        while not self._parent_con.recv():
+            pass
+
+        logger.debug("Done loading model and communicated to parent.")
+
+    def stop(self) -> None:
+        self._parent_con.send(-2)
 
 
 class DebugPostureTracker(PoseLandmarker):
@@ -81,3 +100,10 @@ def create_debug_posture_tracker() -> DebugPostureTracker:
     tracker = DebugPostureTracker.create_from_options(options)
     tracker.annotated_image = annotated_image
     return tracker
+
+
+def _run_debug_posture(con) -> None:
+    with create_debug_posture_tracker() as tracker:
+        con.send(True)
+        while con.recv() != -2:
+            tracker.track_posture()
