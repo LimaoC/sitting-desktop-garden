@@ -32,6 +32,7 @@ POSE_LANDMARKER_FILE = resources.files("models.resources").joinpath(
 )
 
 NO_USER = -1
+STOP_CHILD = -2
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +52,10 @@ class PostureProcess:
         self._parent_con.send(user_id)
 
     def untrack_user(self) -> None:
-        self._parent_con.send(-1)
+        self._parent_con.send(NO_USER)
 
     def stop(self) -> None:
-        self._parent_con.send(-2)
+        self._parent_con.send(STOP_CHILD)
 
 
 class DebugPostureProcess:
@@ -69,7 +70,7 @@ class DebugPostureProcess:
         logger.debug("Done loading model and communicated to parent.")
 
     def stop(self) -> None:
-        self._parent_con.send(-2)
+        self._parent_con.send(STOP_CHILD)
 
 
 class PostureTracker(PoseLandmarker):
@@ -227,7 +228,7 @@ def _run_posture(con: multp.connection.Connection) -> None:
             if con.poll():
                 parent_msg = con.recv()
 
-                if parent_msg == -2:
+                if parent_msg == STOP_CHILD:
                     break
 
                 tracker.user_id = parent_msg
@@ -238,9 +239,6 @@ def _run_posture(con: multp.connection.Connection) -> None:
 def _run_debug_posture(con: multp.connection.Connection) -> None:
     with create_debug_posture_tracker() as tracker:
         con.send(True)
-        while True:
-            if con.poll() and con.recv() == -2:
-                break
-
+        while not con.poll() or con.recv != STOP_CHILD:
             logger.debug("Tracking...")
             tracker.track_posture()
