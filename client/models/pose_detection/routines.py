@@ -23,8 +23,8 @@ from mediapipe.tasks.python.vision.pose_landmarker import (
     PoseLandmarkerOptions,
 )
 
-from models.pose_detection.landmarking import AnnotatedImage, display_landmarking
 from data.routines import Posture, save_posture
+from models.pose_detection.landmarking import AnnotatedImage, display_landmarking
 from models.pose_detection.camera import is_camera_aligned
 from models.pose_detection.classification import posture_classify
 
@@ -39,7 +39,15 @@ logger = logging.getLogger(__name__)
 
 
 class PostureProcess:
+    """Handles starting and managing a new process that runs posture recognition. Data from this
+    process gets written to the sqlite database that can be interfaced with using the data/routines
+    API.
+    """
+
     def __init__(self) -> None:
+        """Create a new process which loads the MediaPipe Pose model and runs periodic posture
+        tracking. This initializer blocks until the model is loaded.
+        """
         self._parent_con, child_con = multp.Pipe()
         self._process = multp.Process(target=_run_posture, args=(child_con,))
         self._process.start()
@@ -50,12 +58,19 @@ class PostureProcess:
         logger.debug("Done loading model and communicated to parent.")
 
     def track_user(self, user_id: int) -> None:
+        """Starts tracking posture and writing to database.
+
+        Args:
+            user_id: The user to associate posture data with in the database.
+        """
         self._parent_con.send(user_id)
 
     def untrack_user(self) -> None:
+        """Stop tracking posture for the current user if one exists."""
         self._parent_con.send(NO_USER)
 
     def stop(self) -> None:
+        """Gracefully end the process."""
         self._parent_con.send(STOP_CHILD)
 
 
