@@ -194,6 +194,11 @@ class DebugPostureTracker(PoseLandmarker):
 
 
 def create_posture_tracker() -> PostureTracker:
+    """Handles config of single image frame input and model loading.
+
+    Returns:
+        Tracker object which acts as context manager.
+    """
     options = PoseLandmarkerOptions(
         base_options=BaseOptions(model_asset_path=POSE_LANDMARKER_FILE),
         running_mode=RunningMode.IMAGE,
