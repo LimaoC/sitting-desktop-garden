@@ -74,21 +74,6 @@ class PostureProcess:
         self._parent_con.send(STOP_CHILD)
 
 
-class DebugPostureProcess:
-    def __init__(self) -> None:
-        self._parent_con, child_con = multp.Pipe()
-        self._process = multp.Process(target=_run_debug_posture, args=(child_con,))
-        self._process.start()
-
-        # Blocks until something is recieved from child
-        self._parent_con.recv()
-
-        logger.debug("Done loading model and communicated to parent.")
-
-    def stop(self) -> None:
-        self._parent_con.send(STOP_CHILD)
-
-
 class PostureTracker(PoseLandmarker):
     """Handles routines for a Posture Tracker.
 
@@ -251,12 +236,4 @@ def _run_posture(con: connection.Connection) -> None:
 
                 tracker.user_id = parent_msg
 
-            tracker.track_posture()
-
-
-def _run_debug_posture(con: connection.Connection) -> None:
-    with create_debug_posture_tracker() as tracker:
-        con.send(True)
-        while not con.poll() or con.recv != STOP_CHILD:
-            logger.debug("Tracking...")
             tracker.track_posture()
