@@ -34,8 +34,8 @@ class DebugPostureProcess:
         self._process = multp.Process(target=_run_debug_posture, args=(child_con,))
         self._process.start()
 
-        while not self._parent_con.recv():
-            pass
+        # Blocks until something is recieved from child
+        self._parent_con.recv()
 
         logger.debug("Done loading model and communicated to parent.")
 
@@ -105,5 +105,9 @@ def create_debug_posture_tracker() -> DebugPostureTracker:
 def _run_debug_posture(con) -> None:
     with create_debug_posture_tracker() as tracker:
         con.send(True)
-        while con.recv() != -2:
+        while True:
+            if con.poll() and con.recv() == -2:
+                break
+
+            logger.debug("Tracking...")
             tracker.track_posture()
