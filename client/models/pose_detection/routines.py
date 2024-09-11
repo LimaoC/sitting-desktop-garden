@@ -127,6 +127,8 @@ class PostureTracker(PoseLandmarker):
         if aligned:
             self._posture_scores.append(bool(posture_classify(result)))
 
+        self._save_period()
+
     def _save_period(self) -> None:
         if time.time() - self._start_time > 60:
             period_end = datetime.now()
