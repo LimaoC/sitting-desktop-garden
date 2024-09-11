@@ -110,7 +110,7 @@ class PostureTracker(PoseLandmarker):
 
     def track_posture(self) -> None:
         """Get frame from video capture device and process with pose model, then posture
-        algorithm. Print debugging info and display landmark annotated frame.
+        algorithm. Saves posture data to database periodically.
         """
         if self.user_id == NO_USER:
             return
