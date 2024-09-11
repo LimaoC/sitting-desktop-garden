@@ -100,6 +100,7 @@ class PostureTracker(PoseLandmarker):
 
     @property
     def user_id(self) -> int:
+        """Currently tracked user. Data will be associated with this user in the database."""
         return self._user_id
 
     @user_id.setter
@@ -118,7 +119,6 @@ class PostureTracker(PoseLandmarker):
         if not success:
             return
 
-        # frame_timestamp_ms = self._video_capture.get(cv2.CAP_PROP_POS_MSEC)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
         result = self.detect(mp_image)
 
