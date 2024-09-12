@@ -287,7 +287,7 @@ def do_everything(auspost : ControlledData) -> None:
 
     while True:
     # Loop invariant: ! auspost.is_failed()
-        # Check for user actions
+        # Check for user logout
         if hardware.button0.was_pressed:
             hardware.display.fill(0)
             hardware.oled_display_text(LOGOUT_MESSAGE, 0, 0, 1)
@@ -301,14 +301,13 @@ def do_everything(auspost : ControlledData) -> None:
         # posture_monitoring_thread = threading.Thread(handle_posture_monitoring, args=(auspost))
         # posture_monitoring_thread.start()
 
-        # DEBUG:
         update_display_screen(auspost)
         handle_posture_monitoring(auspost)
         handle_feedback(auspost)
-        # :DEBUG
 
         sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
 
+# 2024-09-13 08-17 Gabe: TESTED.
 def update_display_screen(auspost : ControlledData) -> bool:
     """
     Update the display screen with whatever needs to be on there.
@@ -325,8 +324,6 @@ def update_display_screen(auspost : ControlledData) -> bool:
         ! auspost.is_failed()
     Ensures:
         ! auspost.is_failed()
-    
-    WARNING: UNTESTED!
     """
     print("<!> BEGIN update_display_screen()")
 

@@ -300,7 +300,7 @@ class HardwareComponents:
     # SECTION: Setters
 
     # 2024-09-02 14-45 Gabe: TESTED.
-    def get_control_messages(self, user_id : int) -> List[int]:
+    def get_control_messages(self, user_id : int) -> List[str]:
         """
         Get messages to display during usual application loop.
         TODO: Finalise these!
@@ -308,9 +308,14 @@ class HardwareComponents:
         Args:
             user_id : int
                 ID of the currently logged-in user.
+        
+        Returns:
+            (List[str]): The messages to display to the user during
+                         the main application loop.
         """
         return ["b0: logout", "id: " + str(user_id)]
 
+    # 2024-09-13 08-31 Gabe: TESTED.
     def initialise_posture_graph(self, user_id : int) -> None:
         """
         Initialise self.posture_graph according to the provided user_id.
@@ -318,8 +323,6 @@ class HardwareComponents:
         Args:
             user_id : int
                 ID of the currently logged-in user.
-
-        WARNING: UNTESTED!
         """
         CONTROL_MESSAGES = self.get_control_messages(user_id)
         GRAPH_MIN_VALUE = 0
@@ -330,7 +333,12 @@ class HardwareComponents:
         LINE_WIDTH = 16 # characters
         
         # The posture graph will occupy space from the bottom (y = HEIGHT - 1) up to initialisation_y_value.
-        initialisation_y_value = len([CONTROL_MESSAGES[i : i + LINE_WIDTH] for i in range(0, len(CONTROL_MESSAGES), LINE_WIDTH)]) * LINE_HEIGHT
+        flatten = lambda xss: [x for xs in xss for x in xs]
+        it = flatten(map(
+            (lambda me: [me[i : i + LINE_WIDTH] for i in range(0, len(CONTROL_MESSAGES), LINE_WIDTH)]),
+            CONTROL_MESSAGES
+        ))
+        initialisation_y_value = len(it) * LINE_HEIGHT
         self.posture_graph = self.display.graph2D(
             originX = 0, originY = HEIGHT - 1, 
             width = WIDTH, height = HEIGHT - initialisation_y_value, 
