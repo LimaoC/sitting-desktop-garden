@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 
 from data_structures import ControlledData, HardwareComponents, Picture, Face
 from ai_bros import *
-from client.data.routines import *
+# from client.data.routines import * # FIXME: This import doesn't go through.
 
 
 
@@ -65,7 +65,7 @@ def main():
     global hardware 
     hardware = initialise_hardware()
 
-    init_database()
+    # init_database() # DEBUG: Commented out
 
     # Top level control flow
     while True:
@@ -312,6 +312,7 @@ def do_everything(auspost : ControlledData) -> None:
         sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
 
 # 2024-09-13 08-17 Gabe: TESTED.
+# 2024-09-13 09-06 Gabe: BUG: Corrupted text gets displayed T-T
 def update_display_screen(auspost : ControlledData) -> bool:
     """
     Update the display screen with whatever needs to be on there.
@@ -331,9 +332,22 @@ def update_display_screen(auspost : ControlledData) -> bool:
     """
     print("<!> BEGIN update_display_screen()")
 
-    hardware.display.fill(0)
+    # FIXME: Test this code
+    # Replace control messages
+    print("<!> hardware.posture_graph_from = " + str(hardware.posture_graph_from))
+    print("<!> WIDTH = " + str(WIDTH))
+    hardware.display.fill_rect(0, 0, WIDTH - 1, hardware.posture_graph_from - 1, 0)
+    # DEBUG::
+    print("<!> control messages:")
+    print((hardware.get_control_messages(auspost.get_user_id())))
+    # ::DEBUG
+    # BUG: This line is displaying corrupted text.
     hardware.oled_display_texts(hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1)
-    hardware.display.updateGraph2D(hardware.posture_graph, auspost.DEBUG_get_next_posture_graph_value())
+    # If there is new data to display on the graph, then do so.
+    if not auspost.get_posture_data().empty():
+        hardware.display.fill_rect(0, hardware.posture_graph_from, WIDTH - 1, HEIGHT - 1, 0)
+        hardware.display.updateGraph2D(hardware.posture_graph, auspost.get_posture_data().get_nowait())
+    # Render
     hardware.display.show()
 
     print("<!> END update_display_screen()")
@@ -363,6 +377,9 @@ def handle_posture_monitoring(auspost : ControlledData) -> bool:
         # TODO: The ai_bros_get_posture_data() call might fail once it's implemented properly.
         #       If it does, we need to handle it properly.
         auspost.accept_new_posture_data(ai_bros_get_posture_data(auspost.get_last_snapshot_time()))
+        # DEBUG:
+        auspost.accept_new_posture_data([auspost.DEBUG_get_next_posture_graph_value()])
+        # :DEBUG
         auspost.set_last_snapshot_time(now)
     return True
 

@@ -5,7 +5,7 @@ from PiicoDev_Switch import PiicoDev_Switch
 from PiicoDev_SSD1306 import *
 import threading
 from datetime import datetime
-from client.data.routines import *
+# from client.data.routines import * # FIXME: This import doesn't go through.
 
 #from PiicoDev_Unified import sleep_ms
 
@@ -30,16 +30,16 @@ def ai_bros_face_recogniser(underlying_picture : int) -> Face: # TODO: Refine ty
     DEBUG_unmatched = None
     DEBUG_user_id = -42
 
-    returned_user = get_user_from_face(underlying_picture)
-    #returned_user = DEBUG_unmatched
+    # returned_user = get_user_from_face(underlying_picture)
+    returned_user = DEBUG_unmatched
 
     # :DEBUG
     if DEBUG_failed:
         return Face.make_failed()
-    if returned_user is None:
-        return Face.make_unmatched()
-    #return Face.make_matched(DEBUG_user_id.id_)
-    return Face.make_matched(returned_user.id_)
+    # if returned_user is None:             # DEBUG
+    #     return Face.make_unmatched()      # DEBUG
+    return Face.make_matched(DEBUG_user_id)
+    # return Face.make_matched(returned_user.id_) # DEBUG
 
 def ai_bros_posture_score(underlying_picture : "UNDERLYING_PICTURE") -> int: # TODO: Refine type signature
     """
