@@ -52,10 +52,9 @@ else
 fi
 
 echo -e $INFO Copying Dependency Data
-$SSH_PREFIX scp ../{pyproject.toml,requirements_uvonly.in,README.md} ./apt_packages.txt $SSHUSER@$SSHTARGET:~/
+$SSH_PREFIX scp ../{pyproject.toml,README.md} ./apt_packages.txt $SSHUSER@$SSHTARGET:~/
 echo -e $INFO Installing apt packages
-$SSH_GO "xargs -a apt_packages.txt sudo apt-get install -y"
 echo -e $INFO Compiling dependencies
-$SSH_GO "~/.cargo/bin/uv pip compile pyproject.toml requirements_uvonly.in -o requirements.txt"
+$SSH_GO "~/.cargo/bin/uv pip compile pyproject.toml -o requirements.txt"
 echo -e $INFO Installing dependencies
 $SSH_GO "sudo ~/.cargo/bin/uv pip install --system --python 3.10 -r requirements.txt"

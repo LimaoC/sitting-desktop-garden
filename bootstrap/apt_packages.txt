@@ -1,8 +1,0 @@
-libcap-dev
-libcamera-dev
-libatlas-base-dev
-ffmpeg
-libopenjp2-7
-libkms++-dev
-libfmt-dev
-libdrm-dev
