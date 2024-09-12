@@ -7,3 +7,4 @@ docs/source/generated/
 __pycache__/
 *.task
 *.egg-info
+client/proof_of_concept/databasing.py

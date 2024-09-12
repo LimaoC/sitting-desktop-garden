@@ -18,9 +18,12 @@ class User(NamedTuple):
 
     Attributes:
         id_: Unique id for the user. Should be set to None when user does not exist in DB.
+        face: Face associated with each user.
     """
 
     id_: Optional[int]
+    # Change datatype later
+    face: int
 
 
 class Posture(NamedTuple):
@@ -67,7 +70,7 @@ def destroy_database() -> None:
         database_file.unlink(missing_ok=True)
 
 
-def create_user() -> int:
+def create_user(user: User) -> int:
     """Creates a new user in the database.
 
     Returns:
@@ -75,7 +78,9 @@ def create_user() -> int:
     """
     with _connect() as connection:
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO user DEFAULT VALUES;")
+        cursor.execute(
+            "INSERT INTO user VALUES (?, ?);",
+            user)
         result = cursor.execute("SELECT last_insert_rowid() FROM user;")
         user_id = result.fetchone()[0]
         connection.commit()
@@ -100,6 +105,11 @@ def save_posture(posture: Posture) -> None:
         )
         connection.commit()
 
+def get_user_from_face(face) -> User | None: 
+    with _connect() as connection:
+        cursor = connection.cursor()
+        result = cursor.execute("SELECT * FROM user WHERE face = ?", (face,))
+        return result.fetchone()
 
 def get_users(num: int = 10) -> list[User]:
     """
