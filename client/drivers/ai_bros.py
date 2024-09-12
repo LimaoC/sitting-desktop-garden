@@ -5,13 +5,14 @@ from PiicoDev_Switch import PiicoDev_Switch
 from PiicoDev_SSD1306 import *
 import threading
 from datetime import datetime
+from client.data.routines import *
 
 #from PiicoDev_Unified import sleep_ms
 
 from data_structures import ControlledData, HardwareComponents, Picture, Face
 
 
-def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face: # TODO: Refine type signature
+def ai_bros_face_recogniser(underlying_picture : int) -> Face: # TODO: Refine type signature
     """
     Recognise a face, powered by AI.
 
@@ -26,14 +27,19 @@ def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face: 
     # DEBUG:
     print("<!> ai_bros_face_recogniser()")
     DEBUG_failed = False
-    DEBUG_matched = True
+    DEBUG_unmatched = None
     DEBUG_user_id = -42
+
+    returned_user = get_user_from_face(underlying_picture)
+    #returned_user = DEBUG_unmatched
+
     # :DEBUG
     if DEBUG_failed:
         return Face.make_failed()
-    if not DEBUG_matched:
+    if returned_user is None:
         return Face.make_unmatched()
-    return Face.make_matched(DEBUG_user_id)
+    #return Face.make_matched(DEBUG_user_id.id_)
+    return Face.make_matched(returned_user.id_)
 
 def ai_bros_posture_score(underlying_picture : "UNDERLYING_PICTURE") -> int: # TODO: Refine type signature
     """

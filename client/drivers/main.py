@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 
 from data_structures import ControlledData, HardwareComponents, Picture, Face
 from ai_bros import *
+from client.data.routines import *
 
 
 
@@ -63,6 +64,8 @@ def main():
 
     global hardware 
     hardware = initialise_hardware()
+
+    init_database()
 
     # Top level control flow
     while True:
@@ -175,7 +178,7 @@ def attempt_login() -> ControlledData:
             print("<!> Mega W for AI") # DEBUG
             return ControlledData.make_empty(face.user_id)
         elif ask_create_new_user():
-            return ControlledData.make_empty(create_new_user(picture))
+            return ControlledData.make_empty(create_new_user(picture.underlying_picture))
         # Tell the user the login failed
         print("<!> attempt_login(): Totally failed lol") # DEBUG
         hardware.display.fill(0)
@@ -233,7 +236,7 @@ def ask_create_new_user() -> bool:
             return True
         sleep_ms(ASK_CREATE_NEW_USER_POLLING_INTERVAL)
 
-def create_new_user(underlying_picture : "UNDERLYING_PICTURE") -> int:
+def create_new_user(underlying_picture : int) -> int:
     """
     Create a new user based on the given picture, and return their user id.
 
@@ -246,8 +249,9 @@ def create_new_user(underlying_picture : "UNDERLYING_PICTURE") -> int:
     """
     # DEBUG:
     DEBUG_new_user_id = 0
+    new_user_id = create_user(User(None, underlying_picture))
     # :DEBUG
-    return DEBUG_new_user_id
+    return new_user_id
 
 
 
