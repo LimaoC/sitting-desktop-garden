@@ -4,7 +4,6 @@ Project sitting_desktop_garden {
 
 Table user {
     id INTEGER [primary key, unique, increment]
-	face INTEGER [not null]
 }
 
 Table posture {
