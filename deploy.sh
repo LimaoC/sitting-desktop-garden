@@ -58,6 +58,8 @@ if ! tar cf $TARNAME -C $TEMPDIRPATH "./build"; then
 fi
 
 SSHTARGET=$2
+SSHUSER=$3
+
 # Check if we can find target
 if ! nc -z $SSHTARGET 22 2>/dev/null; then
 	echo -e "$ERROR Host unreachable";
@@ -65,20 +67,42 @@ if ! nc -z $SSHTARGET 22 2>/dev/null; then
 	exit 1
 fi
 
-SSHUSER=$3
-echo -e "$INFO Copying Tarball - destination's password may be needed"
-if ! scp -q $TARNAME $SSHUSER@$SSHTARGET:~/; then
+# Check for sshpass
+command -v sshpass > /dev/null
+SSHPASS=$?
+
+if [ $SSHPASS == 1 ]; then
+    echo -e "$WARN sshpass not found. I will continue but will need you to reenter your password often"
+    SSH_PREFIX=""
+else 
+    PASSWORD="USER INPUT"
+    echo -e "$INFO I'll use sshpass to manage your password"
+    read -sp "Enter password: " PASSWORD
+    echo ""
+    SSH_PREFIX="sshpass -p $PASSWORD"
+fi
+
+SSH_GO="$SSH_PREFIX ssh $SSHUSER@$SSHTARGET"
+
+echo -e "$INFO Copying Tarball"
+if ! $SSH_PREFIX "scp -q $TARNAME $SSHUSER@$SSHTARGET:~/"; then
        echo -e "$ERROR Copy unsuccessful"
        cleanup
        exit 1
 fi
 
-echo -e "$INFO Extracting Build - the password may be needed again"
-if ! ssh $SSHUSER@$SSHTARGET "tar xf $TARNAME; rm $TARNAME" &> /dev/null; then
+echo -e "$INFO Extracting Build"
+if ! $SSH_GO "tar xf $TARNAME; rm $TARNAME" &> /dev/null; then
 	echo -e "$ERROR Remote extraction failed"
 	cleanup
 	exit 1
 fi
+
+echo -e "$INFO Downloading Models"
+$SSH_GO "mkdir build/client/models/resources &&
+curl -o build/client/models/resources/pose_landmarker_lite.task \
+https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task
+"
 
 echo -e "$INFO Deployed Successfully"
 cleanup
