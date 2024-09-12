@@ -41,47 +41,11 @@ poetry run pip list | grep sitting-desktop-garden
 
 ## Raspberry Pi Setup
 ### Environment
-Navigate to home directory.
+With a fresh install of Raspberry Pi OS, run the following command from the project's base directory.
 ```bash
-cd ~
+cd bootstrap && ./bootstrap.sh [Target IP] [Username]
 ```
-Install miniconda.
-```bash
-curl -o ~/conda-installer.sh \
-https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh &&
-bash conda-installer.sh
-```
-Follow the prompts to install and then restart the shell. Create a new environment with the correct python version.
-```bash
-conda create -n garden python=3.10
-```
-Activate the environment.
-```bash
-conda activate garden
-```
-Install poetry using the official installer. This will place poetry in its own virtual environment.
-```bash
-curl -sSL https://install.python-poetry.org | python3 -
-```
-Follow the steps in [Installation](#installation) to install dependencies.
-
-### Downloading ML Models
-From top-level directory.
-```bash
-mkdir client/models/resources &&
-curl -o client/models/resources/pose_landmarker_lite.task \
-https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task
-```
-### Installing Camera Drivers for OpenCV
-Run the following command on the Raspberry Pi to install the necessary camera driver. This driver should come with the Raspberry Pi OS.
-```bash
-sudo modprobe bcm2835-v4l2
-```
-To test if this is successfuly installed.
-```bash
-ls -ltrh /dev/video*
-```
-
+This will install python3.10 to the Pi and the dependencies for the project.
 ### Deployment
 To deploy a build to the Raspberry Pi use the `deploy.sh` script. This script will create a tarball of file listed in a text file, transfer it to
 a specified hostname and untar it there.
