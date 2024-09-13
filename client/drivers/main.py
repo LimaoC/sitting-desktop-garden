@@ -248,10 +248,11 @@ def create_new_user(underlying_picture : int) -> int:
     TODO: Actually write to the local SQLite database, and properly determine the new user id.
     """
     # DEBUG:
-    DEBUG_new_user_id = 0
-    new_user_id = create_user(User(None, underlying_picture))
+    DEBUG_new_user_id = -42
+    # new_user_id = create_user(User(None, underlying_picture)) # DEBUG
     # :DEBUG
-    return new_user_id
+    return DEBUG_new_user_id
+    # return new_user_id # DEBUG
 
 
 
@@ -288,6 +289,9 @@ def do_everything(auspost : ControlledData) -> None:
     # Clear button queues
     hardware.button0.was_pressed
     hardware.button1.was_pressed
+    # Clear display
+    hardware.display.fill(0)
+    hardware.display.show()
 
     while True:
     # Loop invariant: ! auspost.is_failed()
@@ -311,8 +315,7 @@ def do_everything(auspost : ControlledData) -> None:
 
         sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
 
-# 2024-09-13 08-17 Gabe: TESTED.
-# 2024-09-13 09-06 Gabe: BUG: Corrupted text gets displayed T-T
+# 2024-09-13 11-32 Gabe: TESTED.
 def update_display_screen(auspost : ControlledData) -> bool:
     """
     Update the display screen with whatever needs to be on there.
@@ -332,20 +335,9 @@ def update_display_screen(auspost : ControlledData) -> bool:
     """
     print("<!> BEGIN update_display_screen()")
 
-    # FIXME: Test this code
-    # Replace control messages
-    print("<!> hardware.posture_graph_from = " + str(hardware.posture_graph_from))
-    print("<!> WIDTH = " + str(WIDTH))
-    hardware.display.fill_rect(0, 0, WIDTH - 1, hardware.posture_graph_from - 1, 0)
-    # DEBUG::
-    print("<!> control messages:")
-    print((hardware.get_control_messages(auspost.get_user_id())))
-    # ::DEBUG
-    # BUG: This line is displaying corrupted text.
+    hardware.display.fill(0)
     hardware.oled_display_texts(hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1)
-    # If there is new data to display on the graph, then do so.
     if not auspost.get_posture_data().empty():
-        hardware.display.fill_rect(0, hardware.posture_graph_from, WIDTH - 1, HEIGHT - 1, 0)
         hardware.display.updateGraph2D(hardware.posture_graph, auspost.get_posture_data().get_nowait())
     # Render
     hardware.display.show()
