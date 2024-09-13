@@ -6,7 +6,7 @@ authors = ["Limao Chang <80520563+LimaoC@users.noreply.github.com>", "Mitchell C
 readme = "README.md"
 packages = [
     { include = "models", from = "client" },
-    { include = "drivers", from = "client" }
+    { include = "drivers", from = "client" },
     { include = "data", from = "client" }
 ]
 
