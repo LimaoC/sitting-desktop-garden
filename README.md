@@ -1,4 +1,19 @@
 # Sitting Desktop Garden
+
+**Table of Contents**
+
+- [Sitting Desktop Garden](#sitting-desktop-garden)
+  - [Library Overview](#library-overview)
+  - [Development](#development)
+    - [Installation](#installation)
+    - [Dependencies](#dependencies)
+    - [Testing](#testing)
+    - [Code Styling](#code-styling)
+    - [Documentation](#documentation)
+  - [Raspberry Pi Setup](#raspberry-pi-setup)
+    - [Environment](#environment)
+    - [Deployment](#deployment)
+
 ## Library Overview
 ```
 .
@@ -10,8 +25,10 @@
 ├── notebooks: Demos for module use.
 ```
 
-## Installation
-**Important**: Make sure you have Python 3.10+ installed.
+## Development
+
+### Installation
+**Important**: Make sure you have Python 3.10 installed.
 
 We use [Poetry](https://python-poetry.org/) for dependency management. The installation instructions can be found [here](https://python-poetry.org/docs/).  Once you have Poetry installed, you can install the project dependencies (and the `sitting-desktop-garden` package) with
 
@@ -39,28 +56,7 @@ You can check that the `sitting-desktop-garden` package has been installed corre
 poetry run pip list | grep sitting-desktop-garden
 ```
 
-## Raspberry Pi Setup
-### Environment
-With a fresh install of Raspberry Pi OS, run the following command from the project's base directory.
-```bash
-cd bootstrap && ./bootstrap.sh [Target IP] [Username]
-```
-This will install python3.10 to the Pi and the dependencies for the project.
-### Deployment
-To deploy a build to the Raspberry Pi use the `deploy.sh` script. This script will create a tarball of file listed in a text file, transfer it to
-a specified hostname and untar it there.
-
-To use the script execute it in the project's root directory with,
-```bash
-./deploy.sh [pathfile] [hostname] [username]
-```
-For example, to deploy the files listed in `deploypaths.txt` to `testpi` (using username raspberry) the command would be
-```bash
-./deploy.sh deploypaths.txt testpi raspberry
-```
-The pathname file should contain a path to a file or directory on each line. If a directory is listed `deploy.sh` will copy the entire contents over.
-You can use the `#` character at the start of a line to leave comments.
-## Development
+### Dependencies
 
 To add a new dependency to the package, use
 
@@ -86,7 +82,7 @@ poetry install --without dev
 
 To see a list of installed packages, use `poetry show`, or `poetry show --tree` for a graphical view. You can also see a list of non-dev dependencies with `poetry show --only main` or `poetry show --without dev`.
 
-## Testing
+### Testing
 
 We use [pytest](https://docs.pytest.org/en/stable/index.html) for testing. Tests are stored in `tests/`, and the tests for each file are prefixed with `test_`.
 
@@ -101,7 +97,7 @@ To run a specific test, say `test_dummy.py`, use
 poetry run pytest tests/test_dummy.py
 ```
 
-## Code Styling
+### Code Styling
 
 We use [black](https://black.readthedocs.io/en/stable/) for automated code formatting. To run Black, run this command from the root of the repo:
 
@@ -115,7 +111,7 @@ To style individual files, you can use
 poetry run black client/models/pose_detection/classification.py
 ```
 
-## Documentation
+### Documentation
 
 We use [Sphinx](https://www.sphinx-doc.org/) for documentation. To view the documentation locally, run the following command:
 ```bash
@@ -125,3 +121,25 @@ This spins up a local server which serves the documentation pages, and also hot-
 
 You can build the documentation (without spinning up a server) with `make docs`, and clean the documentation output with `make docs-clean`.
 
+
+## Raspberry Pi Setup
+### Environment
+With a fresh install of Raspberry Pi OS, run the following command from the project's base directory.
+```bash
+cd bootstrap && ./bootstrap.sh [Target IP] [Username]
+```
+This will install python3.10 to the Pi and the dependencies for the project.
+### Deployment
+To deploy a build to the Raspberry Pi use the `deploy.sh` script. This script will create a tarball of file listed in a text file, transfer it to
+a specified hostname and untar it there.
+
+To use the script execute it in the project's root directory with,
+```bash
+./deploy.sh [pathfile] [hostname] [username]
+```
+For example, to deploy the files listed in `deploypaths.txt` to `testpi` (using username raspberry) the command would be
+```bash
+./deploy.sh deploypaths.txt testpi raspberry
+```
+The pathname file should contain a path to a file or directory on each line. If a directory is listed `deploy.sh` will copy the entire contents over.
+You can use the `#` character at the start of a line to leave comments.
