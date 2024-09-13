@@ -5,8 +5,8 @@ from PiicoDev_Switch import PiicoDev_Switch
 from PiicoDev_SSD1306 import *
 import threading
 from datetime import datetime
-from client.data.routines import *
-from models.face_rec.routines import get_user_from_face
+# from client.data.routines import * # FIXME: This import doesn't resolve
+# from models.face_rec.routines import get_user_from_face # FIXME: This import doesn't resolve
 
 #from PiicoDev_Unified import sleep_ms
 
@@ -31,10 +31,10 @@ def ai_bros_face_recogniser(underlying_picture : int) -> Face: # TODO: Refine ty
     DEBUG_unmatched = None
     DEBUG_user_id = -42
 
-    try:
-        returned_user = get_user_from_face(underlying_picture)
-    except NotImplementedError:
-        returned_user = -1
+    # try:
+    #     returned_user = get_user_from_face(underlying_picture)
+    # except NotImplementedError:
+    #     returned_user = -1
     #returned_user = DEBUG_unmatched
 
     # :DEBUG
