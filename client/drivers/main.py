@@ -15,10 +15,11 @@ from PiicoDev_SSD1306 import *
 
 from typing import Tuple
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from data_structures import ControlledData, HardwareComponents, Picture, Face
 from ai_bros import *
+# from client.data.routines import * # FIXME: This import doesn't go through.
 
 
 
@@ -39,13 +40,13 @@ LOGIN_SUCCESS_DELAY = 3000
 """ Number of milliseconds between the user successfully logging out and returning to main(). """
 LOGOUT_SUCCESS_DELAY = 3000
 """ Minimum delay between reading posture data from the SQLite database, in do_everything(). """
-GET_POSTURE_DATA_TIMEOUT = 2000 # DEBUG: Change this value up to ~60000 later.
+GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds = 2000) # DEBUG: Change this value up to ~60000 later.
 """ Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback(). """
-HANDLE_CUSHION_FEEDBACK_TIMEOUT = 5000
+HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds = 5000)
 """ Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback(). """
-HANDLE_PLANT_FEEDBACK_TIMEOUT = 10000
+HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds = 10000)
 """ Minimum delay between consecutive uses of the scent bottle-controlling servos. Used in handle_feedback(). """
-HANDLE_SNIFF_FEEDBACK_TIMEOUT = 20000
+HANDLE_SNIFF_FEEDBACK_TIMEOUT = timedelta(milliseconds = 20000)
 """ DEBUG Number of milliseconds between each loop iteration in do_everything(). """
 DEBUG_DO_EVERYTHING_INTERVAL = 1000
 
@@ -63,6 +64,8 @@ def main():
 
     global hardware 
     hardware = initialise_hardware()
+
+    # init_database() # DEBUG: Commented out
 
     # Top level control flow
     while True:
@@ -175,7 +178,7 @@ def attempt_login() -> ControlledData:
             print("<!> Mega W for AI") # DEBUG
             return ControlledData.make_empty(face.user_id)
         elif ask_create_new_user():
-            return ControlledData.make_empty(create_new_user(picture))
+            return ControlledData.make_empty(create_new_user(picture.underlying_picture))
         # Tell the user the login failed
         print("<!> attempt_login(): Totally failed lol") # DEBUG
         hardware.display.fill(0)
@@ -233,7 +236,7 @@ def ask_create_new_user() -> bool:
             return True
         sleep_ms(ASK_CREATE_NEW_USER_POLLING_INTERVAL)
 
-def create_new_user(underlying_picture : "UNDERLYING_PICTURE") -> int:
+def create_new_user(underlying_picture : int) -> int:
     """
     Create a new user based on the given picture, and return their user id.
 
@@ -246,8 +249,14 @@ def create_new_user(underlying_picture : "UNDERLYING_PICTURE") -> int:
     """
     # DEBUG:
     DEBUG_new_user_id = 0
+    # new_user_id = create_user()
+    # try:
+    #     register_faces(new_user_id, [underlying_picture])
+    # except NotImplementedError:
+    #     pass
     # :DEBUG
     return DEBUG_new_user_id
+    # return new_user_id # DEBUG
 
 
 
@@ -284,10 +293,13 @@ def do_everything(auspost : ControlledData) -> None:
     # Clear button queues
     hardware.button0.was_pressed
     hardware.button1.was_pressed
+    # Clear display
+    hardware.display.fill(0)
+    hardware.display.show()
 
     while True:
     # Loop invariant: ! auspost.is_failed()
-        # Check for user actions
+        # Check for user logout
         if hardware.button0.was_pressed:
             hardware.display.fill(0)
             hardware.oled_display_text(LOGOUT_MESSAGE, 0, 0, 1)
@@ -301,14 +313,13 @@ def do_everything(auspost : ControlledData) -> None:
         # posture_monitoring_thread = threading.Thread(handle_posture_monitoring, args=(auspost))
         # posture_monitoring_thread.start()
 
-        # DEBUG:
         update_display_screen(auspost)
         handle_posture_monitoring(auspost)
         handle_feedback(auspost)
-        # :DEBUG
 
         sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
 
+# 2024-09-13 11-32 Gabe: TESTED.
 def update_display_screen(auspost : ControlledData) -> bool:
     """
     Update the display screen with whatever needs to be on there.
@@ -325,14 +336,14 @@ def update_display_screen(auspost : ControlledData) -> bool:
         ! auspost.is_failed()
     Ensures:
         ! auspost.is_failed()
-    
-    WARNING: UNTESTED!
     """
     print("<!> BEGIN update_display_screen()")
 
     hardware.display.fill(0)
     hardware.oled_display_texts(hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1)
-    hardware.display.updateGraph2D(hardware.posture_graph, auspost.DEBUG_get_next_posture_graph_value())
+    if not auspost.get_posture_data().empty():
+        hardware.display.updateGraph2D(hardware.posture_graph, auspost.get_posture_data().get_nowait())
+    # Render
     hardware.display.show()
 
     print("<!> END update_display_screen()")
@@ -362,6 +373,9 @@ def handle_posture_monitoring(auspost : ControlledData) -> bool:
         # TODO: The ai_bros_get_posture_data() call might fail once it's implemented properly.
         #       If it does, we need to handle it properly.
         auspost.accept_new_posture_data(ai_bros_get_posture_data(auspost.get_last_snapshot_time()))
+        # DEBUG:
+        auspost.accept_new_posture_data([auspost.DEBUG_get_next_posture_graph_value()])
+        # :DEBUG
         auspost.set_last_snapshot_time(now)
     return True
 
