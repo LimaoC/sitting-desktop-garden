@@ -14,6 +14,7 @@ from PiicoDev_Switch import PiicoDev_Switch
 from PiicoDev_SSD1306 import *
 
 from datetime import datetime
+from queue import Queue
 
 # DEBUG:
 from math import sin, pi
@@ -24,8 +25,6 @@ from math import sin, pi
 
 """ Sentinel value for an invalid user. """
 EMPTY_USER_ID = -1
-
-EMPTY_POSTURE_DATA = None # TODO: Refine to a legal term, once the type is figured out
 
 
 
@@ -42,20 +41,36 @@ class ControlledData:
             True if this data is incomplete.
         self._user_id : int
             ID of current user.
-        self._posture_data : (TODO: figure out this type)   
-            Data updated through ML models, used for feedback.
-        self._last_snapshot_time : datetime.datetime
+        self._posture_data : Queue[float]
+            Data from the ML models which has not been seen yet, and is to be displayed
+            on the posture graph.
+        self._last_snapshot_time : datetime
             Time of the last successful pull of posture data from the SQLite database
-        self._last_cushion_time : datetime.datetime
+        self._last_cushion_time : datetime
             Time of the last successful cushion feedback event.
-        self._last_plant_time : datetime.datetime
+        self._last_plant_time : datetime
             Time of the last successful plant feedback event.
-        self._last_sniff_time : datetime.datetime                TODO: Change this so it doesn't say "sniff". Change the getters and setters
+        self._last_sniff_time : datetime                TODO: Change this so it doesn't say "sniff". Change the getters and setters
             Time of the last successful scent feedback event.
 
     Class invariant:
         self._failed ==> (all other variables are default values)
     """
+
+    _failed : bool                           
+    """True if this data is incomplete."""
+    _user_id : int
+    """ID of current user."""
+    _posture_data : Queue[float]
+    """Data updated through ML models, used for feedback."""
+    _last_snapshot_time : datetime
+    """Time of the last successful pull of posture data from the SQLite database"""
+    _last_cushion_time : datetime
+    """Time of the last successful cushion feedback event."""
+    _last_plant_time : datetime
+    """Time of the last successful plant feedback event."""
+    _last_sniff_time : datetime
+    """Time of the last successful scent feedback event."""
 
     # SECTION: Constructors
 
@@ -65,7 +80,7 @@ class ControlledData:
         """
         self._failed             = True
         self._user_id            = EMPTY_USER_ID
-        self._posture_data       = EMPTY_POSTURE_DATA
+        self._posture_data       = Queue()
         self._last_snapshot_time = datetime.now()
         self._last_cushion_time  = datetime.now()
         self._last_plant_time    = datetime.now()
@@ -84,7 +99,7 @@ class ControlledData:
         return_me = ControlledData()
         return_me._failed             = False
         return_me._user_id            = user_id
-        return_me._posture_data       = EMPTY_POSTURE_DATA
+        return_me._posture_data       = Queue()
         return_me._last_snapshot_time = datetime.now()
         return_me._last_cushion_time  = datetime.now()
         return_me._last_plant_time    = datetime.now()
@@ -103,7 +118,7 @@ class ControlledData:
         return_me = ControlledData()
         return_me._failed             = True
         return_me._user_id            = EMPTY_USER_ID
-        return_me._posture_data       = EMPTY_POSTURE_DATA
+        return_me._posture_data       = Queue()
         return_me._last_snapshot_time = datetime.now()
         return_me._last_cushion_time  = datetime.now()
         return_me._last_plant_time    = datetime.now()
@@ -139,7 +154,7 @@ class ControlledData:
         """
         return self._user_id
 
-    def get_posture_data(self) -> "POSTURE_DATA": # TODO: Refine type signature
+    def get_posture_data(self) -> Queue[float]:
         """
         Returns:
             (POSTURE_DATA): The posture data stored in this ControlledData.
@@ -206,12 +221,12 @@ class ControlledData:
         """
         self._last_sniff_time = time
     
-    def accept_new_posture_data(self, posture_data : "POSTURE_DATA") -> None: # TODO: Refine type signature
+    def accept_new_posture_data(self, posture_data : List[float]) -> None: # TODO: Refine type signature
         """
-        Update the internal store of posture data.
+        Update the internal store of posture data for the OLED display.
 
         Args:
-            posture_data : POSTURE_DATA
+            posture_data : List[float]
                 New posture data to accept and merge with the current state of this object.
         
         TODO: Implement me!
@@ -219,6 +234,8 @@ class ControlledData:
         # DEBUG:
         print("<!> accept_new_posture_data()")
         # :DEBUG
+        for datum in posture_data:
+            self._posture_data.put_nowait(datum)
 
 
     # SECTION: Posture data mapping
@@ -276,6 +293,20 @@ class HardwareComponents:
             Should get initialised ONCE THE USER IS LOGGED IN because the graph will look different for each user.
     """
 
+    button0 : PiicoDev_Switch
+    """A button with address switches set to [0, 0, 0, 0]"""
+    button1 : PiicoDev_Switch
+    """A button with address switches set to [0, 0, 0, 1]"""
+    display : PiicoDev_SSD1306
+    """OLED SSD1306 Display with default address"""
+    posture_graph : PiicoDev_SSD1306.graph2D | None
+    """
+    Graph object for rendering on self.display. NOT INITIALISED by default; i.e. None until initialised.
+    Should get initialised ONCE THE USER IS LOGGED IN because the graph will look different for each user.
+    """
+    posture_graph_from : int | None
+    """y-coordinate from which the posture graph begins, or `None` if no posture graph is active."""
+
     # SECTION: Constructors
     
     @classmethod
@@ -292,15 +323,16 @@ class HardwareComponents:
         )
 
     def __init__(self, button0, button1, display):
-        self.button0: PiicoDev_Switch = button0 
-        self.button1: PiicoDev_Switch = button1
-        self.display: PiicoDev_SSD1306 = display
+        self.button0 : PiicoDev_Switch = button0 
+        self.button1 : PiicoDev_Switch = button1
+        self.display : PiicoDev_SSD1306 = display
         self.posture_graph : PiicoDev_SSD1306.graph2D | None = None
+        self.posture_graph_from : int | None = None
     
     # SECTION: Setters
 
     # 2024-09-02 14-45 Gabe: TESTED.
-    def get_control_messages(self, user_id : int) -> List[int]:
+    def get_control_messages(self, user_id : int) -> List[str]:
         """
         Get messages to display during usual application loop.
         TODO: Finalise these!
@@ -308,9 +340,14 @@ class HardwareComponents:
         Args:
             user_id : int
                 ID of the currently logged-in user.
+        
+        Returns:
+            (List[str]): The messages to display to the user during
+                         the main application loop.
         """
         return ["b0: logout", "id: " + str(user_id)]
 
+    # 2024-09-13 08-31 Gabe: TESTED.
     def initialise_posture_graph(self, user_id : int) -> None:
         """
         Initialise self.posture_graph according to the provided user_id.
@@ -318,8 +355,6 @@ class HardwareComponents:
         Args:
             user_id : int
                 ID of the currently logged-in user.
-
-        WARNING: UNTESTED!
         """
         CONTROL_MESSAGES = self.get_control_messages(user_id)
         GRAPH_MIN_VALUE = 0
@@ -330,7 +365,13 @@ class HardwareComponents:
         LINE_WIDTH = 16 # characters
         
         # The posture graph will occupy space from the bottom (y = HEIGHT - 1) up to initialisation_y_value.
-        initialisation_y_value = len([CONTROL_MESSAGES[i : i + LINE_WIDTH] for i in range(0, len(CONTROL_MESSAGES), LINE_WIDTH)]) * LINE_HEIGHT
+        flatten = lambda xss: [x for xs in xss for x in xs]
+        it = flatten(map(
+            (lambda me: [me[i : i + LINE_WIDTH] for i in range(0, len(CONTROL_MESSAGES), LINE_WIDTH)]),
+            CONTROL_MESSAGES
+        ))
+        initialisation_y_value = len(it) * LINE_HEIGHT
+        self.posture_graph_from = initialisation_y_value
         self.posture_graph = self.display.graph2D(
             originX = 0, originY = HEIGHT - 1, 
             width = WIDTH, height = HEIGHT - initialisation_y_value, 

@@ -40,10 +40,10 @@ def ai_bros_face_recogniser(underlying_picture : int) -> Face: # TODO: Refine ty
     # :DEBUG
     if DEBUG_failed:
         return Face.make_failed()
-    if returned_user is None:
-        return Face.make_unmatched()
-    #return Face.make_matched(DEBUG_user_id.id_)
-    return Face.make_matched(returned_user.id_)
+    # if returned_user is None:             # DEBUG
+    #     return Face.make_unmatched()      # DEBUG
+    return Face.make_matched(DEBUG_user_id)
+    # return Face.make_matched(returned_user.id_) # DEBUG
 
 def ai_bros_posture_score(underlying_picture : "UNDERLYING_PICTURE") -> int: # TODO: Refine type signature
     """
