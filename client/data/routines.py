@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any, NamedTuple, Optional
 from importlib import resources
 
+import numpy as np
 from pydbml import PyDBML
 
 RESOURCES = resources.files("data.resources")
@@ -173,6 +174,16 @@ def get_user_postures(
         cursor = connection.cursor()
         result = cursor.execute(query, params)
         return [Posture(*record) for record in result.fetchall()]
+
+
+def register_faces(user_id: int, faces: list[np.ndarray]) -> None:
+    """Register faces for a user.
+
+    Args:
+        user_id: The user to register faces for.
+        faces: List of face arrays in the format HxWxC where channels are RGB
+    """
+    raise NotImplementedError()
 
 
 def get_schema_info() -> list[list[tuple[Any]]]:
