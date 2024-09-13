@@ -5,8 +5,8 @@ from PiicoDev_Switch import PiicoDev_Switch
 from PiicoDev_SSD1306 import *
 import threading
 from datetime import datetime
-# from client.data.routines import * # FIXME: This import doesn't resolve
-# from models.face_rec.routines import get_user_from_face # FIXME: This import doesn't resolve
+from data.routines import *
+# from models.face_rec.routines import get_user_from_face # TODO: Fix this import later...
 
 #from PiicoDev_Unified import sleep_ms
 
