@@ -46,5 +46,6 @@ class RaspCapturer(FrameCapturer):
                 if tries > 5: raise FileNotFoundError('No snapshot found')
                 time.sleep(0.05) 
             else:
+                tries = 0
                 finfo = os.stat('/tmp/snapshot.jpg')
                 return (array, finfo.st_mtime)
