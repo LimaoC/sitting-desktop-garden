@@ -48,6 +48,9 @@ class PostureProcess:
     def __init__(self, frame_capturer: Type[FrameCapturer] = OpenCVCapturer) -> None:
         """Create a new process which loads the MediaPipe Pose model and runs periodic posture
         tracking. This initializer blocks until the model is loaded.
+
+        Args:
+            frame_capturer: Class reference to capturer for child process to construct
         """
         self._parent_con, child_con = multp.Pipe()
 
@@ -82,6 +85,7 @@ class PostureTracker(PoseLandmarker):
 
     Attributes:
         user_id: Id for the user currently being tracked.
+        frame_capturer: Captures frames to be tracked by model.
     """
 
     def __init__(
@@ -91,6 +95,7 @@ class PostureTracker(PoseLandmarker):
         packet_callback: Callable[[Mapping[str, Packet]], None],
     ) -> None:
         super().__init__(graph_config, running_mode, packet_callback)
+        self.frame_capturer: Optional[FrameCapturer] = None
 
         self._user_id = NO_USER
 
@@ -98,8 +103,6 @@ class PostureTracker(PoseLandmarker):
         self._in_frames: list[bool] = []
         self._start_time = time.time()
         self._period_start = datetime.now()
-
-        self.frame_capturer: Optional[FrameCapturer] = None
 
     @property
     def user_id(self) -> int:
@@ -199,6 +202,9 @@ class DebugPostureTracker(PoseLandmarker):
 
 def create_posture_tracker(frame_capturer: FrameCapturer) -> PostureTracker:
     """Handles config of single image frame input and model loading.
+
+    Args:
+        frame_capturer: Interface for posture tracker to get frames for to feed into posture model.
 
     Returns:
         Tracker object which acts as context manager.
