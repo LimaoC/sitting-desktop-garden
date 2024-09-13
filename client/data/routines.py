@@ -6,12 +6,14 @@ from datetime import datetime
 from typing import Any, NamedTuple, Optional
 from importlib import resources
 
+import cv2
 import numpy as np
 from pydbml import PyDBML
 
 RESOURCES = resources.files("data.resources")
 DATABASE_DEFINITION = RESOURCES.joinpath("database.dbml")
 DATABASE_RESOURCE = RESOURCES.joinpath("database.db")
+FACES_FOLDER = RESOURCES.joinpath("faces")
 
 
 class User(NamedTuple):
@@ -183,7 +185,13 @@ def register_faces(user_id: int, faces: list[np.ndarray]) -> None:
         user_id: The user to register faces for.
         faces: List of face arrays in the format HxWxC where channels are RGB
     """
-    raise NotImplementedError()
+    with resources.as_file(FACES_FOLDER) as faces_folder:
+        faces_folder.mkdir(exist_ok=True)
+        user_folder = faces_folder / str(user_id)
+        user_folder.mkdir()
+        for i, image in enumerate(faces):
+            image_path = user_folder / f"{i}.png"
+            cv2.imwrite(str(image_path), image)
 
 
 def get_schema_info() -> list[list[tuple[Any]]]:
