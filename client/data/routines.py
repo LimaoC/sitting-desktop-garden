@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any, NamedTuple, Optional
 from importlib import resources
 
+import numpy as np
 from pydbml import PyDBML
 
 RESOURCES = resources.files("data.resources")
@@ -18,12 +19,9 @@ class User(NamedTuple):
 
     Attributes:
         id_: Unique id for the user. Should be set to None when user does not exist in DB.
-        face: Face associated with each user.
     """
 
     id_: Optional[int]
-    # Change datatype later
-    face: int
 
 
 class Posture(NamedTuple):
@@ -70,7 +68,7 @@ def destroy_database() -> None:
         database_file.unlink(missing_ok=True)
 
 
-def create_user(user: User) -> int:
+def create_user() -> int:
     """Creates a new user in the database.
 
     Returns:
@@ -78,9 +76,7 @@ def create_user(user: User) -> int:
     """
     with _connect() as connection:
         cursor = connection.cursor()
-        cursor.execute(
-            "INSERT INTO user VALUES (?, ?);",
-            user)
+        cursor.execute("INSERT INTO user DEFAULT VALUES;")
         result = cursor.execute("SELECT last_insert_rowid() FROM user;")
         user_id = result.fetchone()[0]
         connection.commit()
@@ -105,11 +101,6 @@ def save_posture(posture: Posture) -> None:
         )
         connection.commit()
 
-def get_user_from_face(face) -> User | None: 
-    with _connect() as connection:
-        cursor = connection.cursor()
-        result = cursor.execute("SELECT * FROM user WHERE face = ?", (face,))
-        return result.fetchone()
 
 def get_users(num: int = 10) -> list[User]:
     """
@@ -183,6 +174,16 @@ def get_user_postures(
         cursor = connection.cursor()
         result = cursor.execute(query, params)
         return [Posture(*record) for record in result.fetchall()]
+
+
+def register_faces(user_id: int, faces: list[np.ndarray]) -> None:
+    """Register faces for a user.
+
+    Args:
+        user_id: The user to register faces for.
+        faces: List of face arrays in the format HxWxC where channels are RGB
+    """
+    raise NotImplementedError()
 
 
 def get_schema_info() -> list[list[tuple[Any]]]:

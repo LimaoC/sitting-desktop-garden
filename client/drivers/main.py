@@ -248,8 +248,12 @@ def create_new_user(underlying_picture : int) -> int:
     TODO: Actually write to the local SQLite database, and properly determine the new user id.
     """
     # DEBUG:
-    DEBUG_new_user_id = -42
-    # new_user_id = create_user(User(None, underlying_picture)) # DEBUG
+    DEBUG_new_user_id = 0
+    new_user_id = create_user()
+    try:
+        register_faces(new_user_id, [underlying_picture])
+    except NotImplementedError:
+        pass
     # :DEBUG
     return DEBUG_new_user_id
     # return new_user_id # DEBUG
