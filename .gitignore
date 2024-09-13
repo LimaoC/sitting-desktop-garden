@@ -2,9 +2,10 @@ client/data/resources/*
 client/models/resources/*
 !client/data/resources/database.dbml
 docs/build/
-docs/source/generated/
+docs/source/api/
 .ipynb_checkpoints/
 __pycache__/
 *.task
 *.egg-info
 client/proof_of_concept/databasing.py
+.pylintrc
