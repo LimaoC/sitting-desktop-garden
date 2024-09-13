@@ -5,13 +5,15 @@ from PiicoDev_Switch import PiicoDev_Switch
 from PiicoDev_SSD1306 import *
 import threading
 from datetime import datetime
+# from client.data.routines import * # FIXME: This import doesn't resolve
+# from models.face_rec.routines import get_user_from_face # FIXME: This import doesn't resolve
 
 #from PiicoDev_Unified import sleep_ms
 
 from data_structures import ControlledData, HardwareComponents, Picture, Face
 
 
-def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face: # TODO: Refine type signature
+def ai_bros_face_recogniser(underlying_picture : int) -> Face: # TODO: Refine type signature
     """
     Recognise a face, powered by AI.
 
@@ -26,14 +28,22 @@ def ai_bros_face_recogniser(underlying_picture : "UNDERLYING_PICTURE") -> Face: 
     # DEBUG:
     print("<!> ai_bros_face_recogniser()")
     DEBUG_failed = False
-    DEBUG_matched = True
+    DEBUG_unmatched = None
     DEBUG_user_id = -42
+
+    # try:
+    #     returned_user = get_user_from_face(underlying_picture)
+    # except NotImplementedError:
+    #     returned_user = -1
+    #returned_user = DEBUG_unmatched
+
     # :DEBUG
     if DEBUG_failed:
         return Face.make_failed()
-    if not DEBUG_matched:
-        return Face.make_unmatched()
+    # if returned_user is None:             # DEBUG
+    #     return Face.make_unmatched()      # DEBUG
     return Face.make_matched(DEBUG_user_id)
+    # return Face.make_matched(returned_user.id_) # DEBUG
 
 def ai_bros_posture_score(underlying_picture : "UNDERLYING_PICTURE") -> int: # TODO: Refine type signature
     """
@@ -41,7 +51,7 @@ def ai_bros_posture_score(underlying_picture : "UNDERLYING_PICTURE") -> int: # T
         underlying_picture : UNDERLYING_PICTURE
             The picture of the person's posture
     Returns:
-        int: score represtning how good the posture currently is???
+        int: score representing how good the posture currently is???
     TODO: Convert this into an external API call. Currently returns debug data.
     NOTE: This will eventually be a database lookup. We're running the AI posture peeker
           asynchronously to the controller code.
