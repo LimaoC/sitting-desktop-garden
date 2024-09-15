@@ -94,6 +94,7 @@ def create_user() -> int:
     return user_id
 
 
+# 2024-09-15_17-24 Gabe: TESTED.
 def save_posture(posture: Posture) -> None:
     """Stores the posture record in the database.
 
@@ -127,6 +128,7 @@ def get_users(num: int = 10) -> list[User]:
         return [User(*record) for record in result.fetchall()]
 
 
+# 2024-09-15_17-24 Gabe: TESTED.
 def get_postures(num: int = 10) -> list[Posture]:
     """
     Args:

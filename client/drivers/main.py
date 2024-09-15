@@ -67,27 +67,21 @@ def main():
 
     # TESTING::
     init_database()
-    BIG = 1000
-    start = datetime.now()
-    for _ in range(BIG):
-        posture = Posture(
-            id_           = None, 
-            user_id       = 1, 
-            prop_good     = 0.5, 
-            prop_in_frame = 0.6, 
-            period_start  = datetime(year=2024, month=9, day=1, hour=12, minute=0, second=0),
-            period_end    = datetime(year=2024, month=9, day=1, hour=12, minute=1, second=0)
-        )
-        save_posture(posture)
-    end = datetime.now()
-    startx = datetime.now()
-    them = get_postures(num = BIG * 2)
-    endx = datetime.now()
-    print("<!> The postures atm:")
-    for posture in them:
-        print(f"\t<!> {posture=}")
-    print(f"<!> Saving {BIG} postures took {end - start}")
-    print(f"<!> Getting postures took {endx - startx}")
+    start1 = datetime.now()
+    them1 = get_user_postures(1, -1, None, None)
+    end1 = datetime.now()
+    start2 = datetime.now()
+    them2 = get_user_postures(2, -1, None, None)
+    end2 = datetime.now()
+    start3 = datetime.now()
+    them3 = get_user_postures(3, -1, None, None)
+    end3 = datetime.now()
+    print(f"<!> User id 1 has postures: {them1}")
+    print(f"<!> User id 2 has postures: {them2}")
+    print(f"<!> User id 3 has postures: {them3}")
+    print(f"<!> User 1 retrieval took time {end1 - start1}")
+    print(f"<!> User 2 retrieval took time {end2 - start2}")
+    print(f"<!> User 3 retrieval took time {end3 - start3}")
     print(f"<!> Terminating.")
     return None
     # ::TESTING
