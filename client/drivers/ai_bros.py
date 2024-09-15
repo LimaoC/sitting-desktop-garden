@@ -29,7 +29,7 @@ def ai_bros_face_recogniser(underlying_picture : int) -> Face: # TODO: Refine ty
     print("<!> ai_bros_face_recogniser()")
     DEBUG_failed = False
     DEBUG_unmatched = None
-    DEBUG_user_id = 2
+    DEBUG_user_id = 1
 
     # try:
     #     returned_user = get_user_from_face(underlying_picture)
