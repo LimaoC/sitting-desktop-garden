@@ -107,9 +107,6 @@ def wait_for_login_attempt() -> bool:
     """
     Waits until the user attempts to log in.
 
-    Args:
-        button0 : PiicoDev_Switch
-            Button to wait for press on
     Returns:
         (bool): True when the user attempts to log in.    
     """
