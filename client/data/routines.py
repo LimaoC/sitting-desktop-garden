@@ -44,12 +44,12 @@ class Posture(NamedTuple):
     period_end: datetime
 
 
+# 2024-09-15_16-50 Gabe: TESTED.
 def init_database() -> None:
     """Initialise SQLite database if it does not already exist"""
     # Check if database exists
     with resources.as_file(DATABASE_RESOURCE) as database_file:
         if database_file.is_file():
-            print("<!> Database exists already") # DEBUG
             return
 
     parsed = PyDBML(DATABASE_DEFINITION)
@@ -60,7 +60,6 @@ def init_database() -> None:
         cursor = connection.cursor()
         cursor.executescript(init_script)
         connection.commit()
-    print("<!> New database created") # DEBUG
 
 
 def destroy_database() -> None:

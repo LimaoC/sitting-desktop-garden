@@ -66,8 +66,10 @@ def main():
     hardware = initialise_hardware()
 
     # TESTING::
+    start = datetime.now()
     init_database()
-    print("<!> Initialised. Terminating.")
+    end = datetime.now()
+    print(f"<!> Built from scratch in {start - end} time. Terminating.")
     return None
     # ::TESTING
 
