@@ -37,6 +37,8 @@ class Posture(NamedTuple):
         prop_in_frame: Proportion of time the user is in the frame during the period.
         period_start: Start of the tracked period.
         period_end: End of the tracked period.
+    
+    FIXME: Double-check whether we want exactly this kind of data stored in the database.
     """
 
     id_: Optional[int]
@@ -47,9 +49,15 @@ class Posture(NamedTuple):
     period_end: datetime
 
 
+# 2024-09-15_16-55 Gabe: TESTED.
 def init_database() -> None:
-    """Initialise SQLite database if it does not already exist"""
+    """
+    Initialise SQLite database if it does not already exist
+    When the database does not exist, expect this operation to take
+    approximately one minute on the Raspberry Pi.
+    """
     # Check if database exists
+    # 2024-09-15_16-50 Gabe: This branch has been TESTED.
     with resources.as_file(DATABASE_RESOURCE) as database_file:
         if database_file.is_file():
             return
@@ -58,18 +66,21 @@ def init_database() -> None:
     init_script = parsed.sql
 
     # Run init script
+    # 2024-09-15_16-55 Gabe: This branch has been TESTED.
     with _connect() as connection:
         cursor = connection.cursor()
         cursor.executescript(init_script)
         connection.commit()
 
 
+# 2024-09-15_16-58 Gabe: TESTED.
 def destroy_database() -> None:
     """Delete the current database if it exists."""
     with resources.as_file(DATABASE_RESOURCE) as database_file:
         database_file.unlink(missing_ok=True)
 
 
+# 2024-09-15_17-07 Gabe: TESTED.
 def create_user() -> int:
     """Creates a new user in the database.
 
@@ -86,6 +97,7 @@ def create_user() -> int:
     return user_id
 
 
+# 2024-09-15_17-24 Gabe: TESTED.
 def save_posture(posture: Posture) -> None:
     """Stores the posture record in the database.
 
@@ -104,6 +116,7 @@ def save_posture(posture: Posture) -> None:
         connection.commit()
 
 
+# 2024-09-15_17-09 Gabe: TESTED.
 def get_users(num: int = 10) -> list[User]:
     """
     Args:
@@ -118,6 +131,7 @@ def get_users(num: int = 10) -> list[User]:
         return [User(*record) for record in result.fetchall()]
 
 
+# 2024-09-15_17-24 Gabe: TESTED.
 def get_postures(num: int = 10) -> list[Posture]:
     """
     Args:
@@ -132,6 +146,7 @@ def get_postures(num: int = 10) -> list[Posture]:
         return [Posture(*record) for record in result.fetchall()]
 
 
+# 2024-09-15_17-30 Gabe: TESTED.
 def get_user_postures(
     user_id: int,
     num: int = -1,
@@ -194,6 +209,7 @@ def register_faces(user_id: int, faces: list[np.ndarray]) -> None:
             cv2.imwrite(str(image_path), image)
 
 
+# 2024-09-15_17-00 Gabe: TESTED.
 def get_schema_info() -> list[list[tuple[Any]]]:
     """Column information on all tables in database.
 
@@ -215,6 +231,7 @@ def get_schema_info() -> list[list[tuple[Any]]]:
     return table_schemas
 
 
+# 2024-09-15_16-50 Gabe: TESTED.
 def _connect() -> sqlite3.Connection:
     with resources.as_file(DATABASE_RESOURCE) as database_file:
         return sqlite3.connect(

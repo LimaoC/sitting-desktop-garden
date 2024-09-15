@@ -65,7 +65,7 @@ def main():
     global hardware 
     hardware = initialise_hardware()
 
-    # init_database() # DEBUG: Commented out
+    init_database()
 
     # Top level control flow
     while True:
