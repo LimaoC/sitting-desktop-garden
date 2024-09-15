@@ -44,10 +44,11 @@ class Posture(NamedTuple):
     period_end: datetime
 
 
-# 2024-09-15_16-50 Gabe: TESTED.
+# 2024-09-15_16-55 Gabe: TESTED.
 def init_database() -> None:
     """Initialise SQLite database if it does not already exist"""
     # Check if database exists
+    # 2024-09-15_16-50 Gabe: This branch has been TESTED.
     with resources.as_file(DATABASE_RESOURCE) as database_file:
         if database_file.is_file():
             return
@@ -56,6 +57,7 @@ def init_database() -> None:
     init_script = parsed.sql
 
     # Run init script
+    # 2024-09-15_16-55 Gabe: This branch has been TESTED.
     with _connect() as connection:
         cursor = connection.cursor()
         cursor.executescript(init_script)

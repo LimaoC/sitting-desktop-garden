@@ -67,9 +67,9 @@ def main():
 
     # TESTING::
     start = datetime.now()
-    init_database()
+    destroy_database()
     end = datetime.now()
-    print(f"<!> Built from scratch in {start - end} time. Terminating.")
+    print("<!> Obliterated in {end - start} time. Terminating.")
     return None
     # ::TESTING
 
