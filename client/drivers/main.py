@@ -449,7 +449,6 @@ def handle_cushion_feedback(auspost : ControlledData) -> bool:
     """
     # DEBUG:
     print("<!> handle_cushion_feedback()")
-    DEBUG_should_vibrate = True
     # :DEBUG
 
     # Load posture records within the last HANDLE_CUSHION_FEEDBACK_TIMEOUT
