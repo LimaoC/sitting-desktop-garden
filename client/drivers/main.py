@@ -456,10 +456,12 @@ def handle_cushion_feedback(auspost : ControlledData) -> bool:
     if DEBUG_should_vibrate:
         buzzer_start_time = datetime.now()
         GPIO.output(8, GPIO.HIGH)
+        print("<!> buzzer on")
         while datetime.now() < buzzer_start_time + CUSHION_ACTIVE_INTERVAL:
             # Can add extra code here if necessary. This WILL halt execution of this thread.
             sleep_ms(100)
         GPIO.output(8, GPIO.LOW)
+        print("<!> buzzer off")
     # ::TESTING
 
     auspost.set_last_cushion_time(datetime.now())
