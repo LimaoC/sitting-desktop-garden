@@ -27,32 +27,46 @@ from data.routines import *
 
 ## SECTION: Global constants
 
-""" Number of milliseconds between each time the button is polled during wait_for_login_attempt(). """
+CUSHION_GPIO_PIN = 8
+""" Pin to which the vibration motor is attached. This is D8 on the PiicoDev header. """
+
 WAIT_FOR_LOGIN_POLLING_INTERVAL = 100
-""" Number of milliseconds between pictures taken for login attempts. """
+""" Number of milliseconds between each time the button is polled during wait_for_login_attempt(). """
 LOGIN_TAKE_PICTURE_INTERVAL = 1000
-""" Number of milliseconds between starting to attempt_login() and taking the first picture. """
+""" Number of milliseconds between pictures taken for login attempts. """
 START_LOGIN_ATTEMPTS_DELAY = 3000
-""" Number of milliseconds between each time the button is polled during ask_create_new_user(). """
+""" Number of milliseconds between starting to attempt_login() and taking the first picture. """
 ASK_CREATE_NEW_USER_POLLING_INTERVAL = 100
-""" Number of milliseconds between telling the user that login has completely failed and returning from attempt_login(). """
+""" Number of milliseconds between each time the button is polled during ask_create_new_user(). """
 FAIL_LOGIN_DELAY = 3000
-""" Number of milliseconds between telling the user that login has succeeded and beginning real functionality. """
+""" Number of milliseconds between telling the user that login has completely failed and returning from attempt_login(). """
 LOGIN_SUCCESS_DELAY = 3000
-""" Number of milliseconds between the user successfully logging out and returning to main(). """
+""" Number of milliseconds between telling the user that login has succeeded and beginning real functionality. """
+
 LOGOUT_SUCCESS_DELAY = 3000
-""" Minimum delay between reading posture data from the SQLite database, in do_everything(). """
+""" Number of milliseconds between the user successfully logging out and returning to main(). """
 GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds = 2000) # DEBUG: Change this value up to ~60000 later.
-""" Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback(). """
+""" Minimum delay between reading posture data from the SQLite database, in do_everything(). """
+PROPORTION_IN_FRAME_THRESHOLD = 0.3
+""" Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later. """
+
 HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds = 5000)
+""" Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback(). """
+CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds = 1000)
 """ Length of time for which the vibration motor should vibrate. Used in handle_cushion_feedback(). """
-CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=1000)
-""" Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback(). """
+CUSHION_PROPORTION_GOOD_THRESHOLD = 0.5
+"""
+Threshold for vibration cushion feedback. If the proportion of "good" sitting posture is below this, the cushion will vibrate. 
+"""
+
 HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds = 10000)
-""" Minimum delay between consecutive uses of the scent bottle-controlling servos. Used in handle_feedback(). """
+""" Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback(). """
+
 HANDLE_SNIFF_FEEDBACK_TIMEOUT = timedelta(milliseconds = 20000)
-""" DEBUG Number of milliseconds between each loop iteration in do_everything(). """
+""" Minimum delay between consecutive uses of the scent bottle-controlling servos. Used in handle_feedback(). """
+
 DEBUG_DO_EVERYTHING_INTERVAL = 1000
+""" DEBUG Number of milliseconds between each loop iteration in do_everything(). """
 
 
 
@@ -91,7 +105,7 @@ def initialise_hardware() -> HardwareComponents:
         button0 with address switches [0, 0, 0, 0]
         button1 with address switches [0, 0, 0, 1]
         OLED display with address switch off
-        Vibration motor attached to GPIO pin 8 (which is D8 on the PiicoDev header)
+        Vibration motor attached to GPIO pin BUZZER_GPIO_PIN
 
     Returns:
         (HardwareComponents): Object consisting of all hardware components connected to the Raspberry Pi.
@@ -104,9 +118,8 @@ def initialise_hardware() -> HardwareComponents:
     return_me.button0.was_pressed 
     return_me.button1.was_pressed
     # Set up GPIO pins
-    GPIO.setmode(GPIO.BCM) # use pin numbering convention as per the PiicoDev header
-    # Set data directions
-    GPIO.setup(8, GPIO.OUT)
+    GPIO.setmode(GPIO.BCM)  # Same pin numbering convention as the PiicoDev header
+    GPIO.setup(CUSHION_GPIO_PIN, GPIO.OUT)
 
     print("<!> initialise_hardware() FINISHED") # DEBUG
     return return_me
@@ -452,7 +465,6 @@ def handle_cushion_feedback(auspost : ControlledData) -> bool:
     #   Vibrate the buzzer for CUSHION_ACTIVE_INTERVAL time
     #   return True
     
-    # TESTING::
     # Load posture records within the last HANDLE_CUSHION_FEEDBACK_TIMEOUT
     now = datetime.now()
     recent_posture_data = get_user_postures(
@@ -461,9 +473,21 @@ def handle_cushion_feedback(auspost : ControlledData) -> bool:
         period_start = now - HANDLE_CUSHION_FEEDBACK_TIMEOUT, 
         period_end = now
     )
-    print(f"<!> {recent_posture_data=}")
+    
+    # 2024-09-15_19-47 Gabe: TESTED.
     if len(recent_posture_data) == 0:
-        print("<!> No data; exiting handle_cushion_feedback() early")
+        print("<!> Exiting handle_cushion_feedback() early: No data")
+        auspost.set_last_cushion_time(datetime.now())
+        return True
+    # TESTING::
+    average_prop_in_frame = sum([posture.prop_in_frame for posture in recent_posture_data]) / len(recent_posture_data)
+    if average_prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD:
+        print("<!> Exiting handle_cushion_feedback() early: Not in frame for a high enough proportion of time.")
+        auspost.set_last_cushion_time(datetime.now())
+        return True
+    average_prop_good = sum([posture.prop_good for posture in recent_posture_data]) / len(recent_posture_data)
+    if average_prop_good >= CUSHION_PROPORTION_GOOD_THRESHOLD:
+        print("<!> Exiting handle_cushion_feedback() early: You sat well :)")
         auspost.set_last_cushion_time(datetime.now())
         return True
     # ::TESTING
@@ -471,12 +495,12 @@ def handle_cushion_feedback(auspost : ControlledData) -> bool:
     # 2024-09-15_19-40 Gabe: TESTED.
     if DEBUG_should_vibrate:
         buzzer_start_time = datetime.now()
-        GPIO.output(8, GPIO.HIGH)
+        GPIO.output(CUSHION_GPIO_PIN, GPIO.HIGH)
         print("<!> buzzer on")
         while datetime.now() < buzzer_start_time + CUSHION_ACTIVE_INTERVAL:
             # Can add extra code here if necessary. This WILL halt execution of this thread.
             sleep_ms(100)
-        GPIO.output(8, GPIO.LOW)
+        GPIO.output(CUSHION_GPIO_PIN, GPIO.LOW)
         print("<!> buzzer off")
 
     auspost.set_last_cushion_time(datetime.now())
