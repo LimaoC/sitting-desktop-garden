@@ -75,6 +75,7 @@ def destroy_database() -> None:
         database_file.unlink(missing_ok=True)
 
 
+# 2024-09-15_17-07 Gabe: TESTED.
 def create_user() -> int:
     """Creates a new user in the database.
 

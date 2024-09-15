@@ -68,9 +68,11 @@ def main():
     # TESTING::
     init_database()
     start = datetime.now()
-    new_user_id = create_user()
+    them = get_users()
     end = datetime.now()
-    print(f"<!> {new_user_id=} which is based")
+    print(f"<!> {them=}")
+    for it in them:
+        print(f"<!> {it.id_=}")
     print(f"<!> Operation took {end - start} time. Terminating.")
     return None
     # ::TESTING
