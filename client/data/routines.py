@@ -46,7 +46,11 @@ class Posture(NamedTuple):
 
 # 2024-09-15_16-55 Gabe: TESTED.
 def init_database() -> None:
-    """Initialise SQLite database if it does not already exist"""
+    """
+    Initialise SQLite database if it does not already exist
+    When the database does not exist, expect this operation to take
+    approximately one minute on the Raspberry Pi.
+    """
     # Check if database exists
     # 2024-09-15_16-50 Gabe: This branch has been TESTED.
     with resources.as_file(DATABASE_RESOURCE) as database_file:
@@ -179,6 +183,7 @@ def get_user_postures(
         return [Posture(*record) for record in result.fetchall()]
 
 
+# 2024-09-15_17-00 Gabe: TESTED.
 def get_schema_info() -> list[list[tuple[Any]]]:
     """Column information on all tables in database.
 

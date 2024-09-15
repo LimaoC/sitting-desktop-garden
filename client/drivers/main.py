@@ -68,12 +68,10 @@ def main():
     # TESTING::
     init_database()
     start = datetime.now()
-    info = get_schema_info()
+    new_user_id = create_user()
     end = datetime.now()
-    print("<!> Schema info::")
-    print(info)
-    print("<!> ::Scheme info")
-    print(f"<!> operation took {end - start} time. Terminating.")
+    print(f"<!> {new_user_id=} which is based")
+    print(f"<!> Operation took {end - start} time. Terminating.")
     return None
     # ::TESTING
 
