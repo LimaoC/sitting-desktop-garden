@@ -143,6 +143,7 @@ def get_postures(num: int = 10) -> list[Posture]:
         return [Posture(*record) for record in result.fetchall()]
 
 
+# 2024-09-15_17-30 Gabe: TESTED.
 def get_user_postures(
     user_id: int,
     num: int = -1,
