@@ -453,6 +453,22 @@ def handle_cushion_feedback(auspost : ControlledData) -> bool:
     #   return True
     
     # TESTING::
+    # Load posture records within the last HANDLE_CUSHION_FEEDBACK_TIMEOUT
+    now = datetime.now()
+    recent_posture_data = get_user_postures(
+        auspost.get_user_id(), 
+        num = -1, 
+        period_start = now - HANDLE_CUSHION_FEEDBACK_TIMEOUT, 
+        period_end = now
+    )
+    print(f"<!> {recent_posture_data=}")
+    if len(recent_posture_data) == 0:
+        print("<!> No data; exiting handle_cushion_feedback() early")
+        auspost.set_last_cushion_time(datetime.now())
+        return True
+    # ::TESTING
+
+    # 2024-09-15_19-40 Gabe: TESTED.
     if DEBUG_should_vibrate:
         buzzer_start_time = datetime.now()
         GPIO.output(8, GPIO.HIGH)
@@ -462,7 +478,6 @@ def handle_cushion_feedback(auspost : ControlledData) -> bool:
             sleep_ms(100)
         GPIO.output(8, GPIO.LOW)
         print("<!> buzzer off")
-    # ::TESTING
 
     auspost.set_last_cushion_time(datetime.now())
     return True
