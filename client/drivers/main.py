@@ -67,36 +67,26 @@ def main():
 
     # TESTING::
     init_database()
-    posture1 = Posture(
-        id_           = None, 
-        user_id       = 1, 
-        prop_good     = 0.5, 
-        prop_in_frame = 0.6, 
-        period_start  = datetime(year=2024, month=9, day=1, hour=12, minute=0, second=0),
-        period_end    = datetime(year=2024, month=9, day=1, hour=12, minute=1, second=0)
-    )
-    posture2 = Posture(
-        id_           = None, 
-        user_id       = 1, 
-        prop_good     = 0.7, 
-        prop_in_frame = 0.6, 
-        period_start  = datetime(year=2024, month=9, day=1, hour=12, minute=1, second=0),
-        period_end    = datetime(year=2024, month=9, day=1, hour=12, minute=2, second=0)
-    )
-    start1 = datetime.now()
-    save_posture(posture1)
-    end1 = datetime.now()
-    start2 = datetime.now()
-    save_posture(posture2)
-    end2 = datetime.now()
+    BIG = 1000
+    start = datetime.now()
+    for _ in range(BIG):
+        posture = Posture(
+            id_           = None, 
+            user_id       = 1, 
+            prop_good     = 0.5, 
+            prop_in_frame = 0.6, 
+            period_start  = datetime(year=2024, month=9, day=1, hour=12, minute=0, second=0),
+            period_end    = datetime(year=2024, month=9, day=1, hour=12, minute=1, second=0)
+        )
+        save_posture(posture)
+    end = datetime.now()
     startx = datetime.now()
-    them = get_postures()
+    them = get_postures(num = BIG * 2)
     endx = datetime.now()
     print("<!> The postures atm:")
     for posture in them:
         print(f"\t<!> {posture=}")
-    print(f"<!> Saving first Posture took {end1 - start1}")
-    print(f"<!> Saving second Posture took {end2 - start2}")
+    print(f"<!> Saving {BIG} postures took {end - start}")
     print(f"<!> Getting postures took {endx - startx}")
     print(f"<!> Terminating.")
     return None
