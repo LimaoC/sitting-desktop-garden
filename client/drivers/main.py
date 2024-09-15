@@ -431,6 +431,7 @@ def handle_feedback(auspost : ControlledData) -> bool:
 
 ## SECTION: Feedback handling
 
+# 2024-09-15_20-18 Gabe: TESTED.
 def handle_cushion_feedback(auspost : ControlledData) -> bool:
     """
     Vibrate cushion (if necessary), and update the timestamp of when cushion feedback was last given.
@@ -451,20 +452,6 @@ def handle_cushion_feedback(auspost : ControlledData) -> bool:
     DEBUG_should_vibrate = True
     # :DEBUG
 
-    # Control flow:
-    #   Load posture records within the last HANDLE_CUSHION_FEEDBACK_TIMEOUT.
-    #   If we don't have any data to go off, return True* immediately
-    #   If the data we have to go off sees an average prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD,
-    #       return True immediately
-    #   If the data we have to go off sees an average prop_good < PROPORTION_GOOD_POSTURE_THRESHOLD,
-    #       Vibrate the buzzer for CUSHION_ACTIVE_INTERVAL time
-    #       return True
-    #   return True
-    # *all of these `return True`s should `auspost.set_last_cushion_time(datetime.now())` first.
-    # For now, just:
-    #   Vibrate the buzzer for CUSHION_ACTIVE_INTERVAL time
-    #   return True
-    
     # Load posture records within the last HANDLE_CUSHION_FEEDBACK_TIMEOUT
     now = datetime.now()
     recent_posture_data = get_user_postures(
@@ -474,34 +461,34 @@ def handle_cushion_feedback(auspost : ControlledData) -> bool:
         period_end = now
     )
     
+    # Conditions for exiting early
     # 2024-09-15_19-47 Gabe: TESTED.
     if len(recent_posture_data) == 0:
         print("<!> Exiting handle_cushion_feedback() early: No data")
         auspost.set_last_cushion_time(datetime.now())
         return True
-    # TESTING::
+    # 2024-09-15_20-18 Gabe: TESTED.
     average_prop_in_frame = sum([posture.prop_in_frame for posture in recent_posture_data]) / len(recent_posture_data)
     if average_prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD:
         print("<!> Exiting handle_cushion_feedback() early: Not in frame for a high enough proportion of time.")
         auspost.set_last_cushion_time(datetime.now())
         return True
+    # 2024-09-15_20-18 Gabe: TESTED.
     average_prop_good = sum([posture.prop_good for posture in recent_posture_data]) / len(recent_posture_data)
     if average_prop_good >= CUSHION_PROPORTION_GOOD_THRESHOLD:
         print("<!> Exiting handle_cushion_feedback() early: You sat well :)")
         auspost.set_last_cushion_time(datetime.now())
         return True
-    # ::TESTING
 
     # 2024-09-15_19-40 Gabe: TESTED.
-    if DEBUG_should_vibrate:
-        buzzer_start_time = datetime.now()
-        GPIO.output(CUSHION_GPIO_PIN, GPIO.HIGH)
-        print("<!> buzzer on")
-        while datetime.now() < buzzer_start_time + CUSHION_ACTIVE_INTERVAL:
-            # Can add extra code here if necessary. This WILL halt execution of this thread.
-            sleep_ms(100)
-        GPIO.output(CUSHION_GPIO_PIN, GPIO.LOW)
-        print("<!> buzzer off")
+    buzzer_start_time = datetime.now()
+    GPIO.output(CUSHION_GPIO_PIN, GPIO.HIGH)
+    print("<!> buzzer on")
+    while datetime.now() < buzzer_start_time + CUSHION_ACTIVE_INTERVAL:
+        # Can add extra code here if necessary. This WILL halt execution of this thread.
+        sleep_ms(100)
+    GPIO.output(CUSHION_GPIO_PIN, GPIO.LOW)
+    print("<!> buzzer off")
 
     auspost.set_last_cushion_time(datetime.now())
     return True
