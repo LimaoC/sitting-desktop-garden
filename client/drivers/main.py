@@ -65,7 +65,11 @@ def main():
     global hardware 
     hardware = initialise_hardware()
 
-    # init_database() # DEBUG: Commented out
+    # TESTING::
+    init_database()
+    print("<!> Initialised. Terminating.")
+    return None
+    # ::TESTING
 
     # Top level control flow
     while True:
