@@ -120,6 +120,8 @@ def initialise_hardware() -> HardwareComponents:
     # Set up GPIO pins
     GPIO.setmode(GPIO.BCM)  # Same pin numbering convention as the PiicoDev header
     GPIO.setup(CUSHION_GPIO_PIN, GPIO.OUT)
+    # Write low to stop buzzer from mistakenly buzzing, if necessary
+    GPIO.output(CUSHION_GPIO_PIN, GPIO.LOW)
 
     print("<!> initialise_hardware() FINISHED") # DEBUG
     return return_me
