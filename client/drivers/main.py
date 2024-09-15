@@ -65,26 +65,7 @@ def main():
     global hardware 
     hardware = initialise_hardware()
 
-    # TESTING::
     init_database()
-    start1 = datetime.now()
-    them1 = get_user_postures(1, -1, None, None)
-    end1 = datetime.now()
-    start2 = datetime.now()
-    them2 = get_user_postures(2, -1, None, None)
-    end2 = datetime.now()
-    start3 = datetime.now()
-    them3 = get_user_postures(3, -1, None, None)
-    end3 = datetime.now()
-    print(f"<!> User id 1 has postures: {them1}")
-    print(f"<!> User id 2 has postures: {them2}")
-    print(f"<!> User id 3 has postures: {them3}")
-    print(f"<!> User 1 retrieval took time {end1 - start1}")
-    print(f"<!> User 2 retrieval took time {end2 - start2}")
-    print(f"<!> User 3 retrieval took time {end3 - start3}")
-    print(f"<!> Terminating.")
-    return None
-    # ::TESTING
 
     # Top level control flow
     while True:
