@@ -13,6 +13,8 @@ from PiicoDev_Unified import sleep_ms
 from PiicoDev_Switch import *
 from PiicoDev_SSD1306 import *
 
+import RPi.GPIO as GPIO
+
 from typing import Tuple
 import threading
 from datetime import datetime, timedelta
@@ -43,6 +45,8 @@ LOGOUT_SUCCESS_DELAY = 3000
 GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds = 2000) # DEBUG: Change this value up to ~60000 later.
 """ Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback(). """
 HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds = 5000)
+""" Length of time for which the vibration motor should vibrate. Used in handle_cushion_feedback(). """
+CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=1000)
 """ Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback(). """
 HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds = 10000)
 """ Minimum delay between consecutive uses of the scent bottle-controlling servos. Used in handle_feedback(). """
@@ -83,7 +87,11 @@ def main():
 # 2024-09-01_15-29 Gabe: TESTED. for buttons and OLED display.
 def initialise_hardware() -> HardwareComponents:
     """
-    Set up hardware for use throughout the project.
+    Set up hardware for use throughout the project. We have:
+        button0 with address switches [0, 0, 0, 0]
+        button1 with address switches [0, 0, 0, 1]
+        OLED display with address switch off
+        Vibration motor attached to GPIO pin 8 (which is D8 on the PiicoDev header)
 
     Returns:
         (HardwareComponents): Object consisting of all hardware components connected to the Raspberry Pi.
@@ -95,6 +103,11 @@ def initialise_hardware() -> HardwareComponents:
     # Clear button queues
     return_me.button0.was_pressed 
     return_me.button1.was_pressed
+    # Set up GPIO pins
+    GPIO.setmode(GPIO.BCM) # use pin numbering convention as per the PiicoDev header
+    # Set data directions
+    GPIO.setup(8, GPIO.OUT)
+
     print("<!> initialise_hardware() FINISHED") # DEBUG
     return return_me
 
@@ -422,7 +435,33 @@ def handle_cushion_feedback(auspost : ControlledData) -> bool:
     """
     # DEBUG:
     print("<!> handle_cushion_feedback()")
+    DEBUG_should_vibrate = True
     # :DEBUG
+
+    # Control flow:
+    #   Load posture records within the last HANDLE_CUSHION_FEEDBACK_TIMEOUT.
+    #   If we don't have any data to go off, return True* immediately
+    #   If the data we have to go off sees an average prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD,
+    #       return True immediately
+    #   If the data we have to go off sees an average prop_good < PROPORTION_GOOD_POSTURE_THRESHOLD,
+    #       Vibrate the buzzer for CUSHION_ACTIVE_INTERVAL time
+    #       return True
+    #   return True
+    # *all of these `return True`s should `auspost.set_last_cushion_time(datetime.now())` first.
+    # For now, just:
+    #   Vibrate the buzzer for CUSHION_ACTIVE_INTERVAL time
+    #   return True
+    
+    # TESTING::
+    if DEBUG_should_vibrate:
+        buzzer_start_time = datetime.now()
+        GPIO.output(8, GPIO.HIGH)
+        while datetime.now() < buzzer_start_time + CUSHION_ACTIVE_INTERVAL:
+            # Can add extra code here if necessary. This WILL halt execution of this thread.
+            sleep_ms(100)
+        GPIO.output(8, GPIO.LOW)
+    # ::TESTING
+
     auspost.set_last_cushion_time(datetime.now())
     return True
 
