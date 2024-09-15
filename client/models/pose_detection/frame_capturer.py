@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
+import time
 import cv2
+import os
 
 
 class FrameCapturer(ABC):
@@ -30,3 +32,20 @@ class OpenCVCapturer(FrameCapturer):
     def release(self) -> None:
         """Release the camera."""
         self._cam.release()
+
+
+class RaspCapturer(FrameCapturer):
+    """FrameCapturer using a temp file to read from the camera.
+    File is created using client/drivers/camera_overlord.py"""
+    def get_frame(self) -> tuple[np.ndarray, int]:
+        tries = 0
+        while True:
+            array = cv2.imread('/tmp/snapshot.jpg')
+            if array is None:
+                tries += 1
+                if tries > 5: raise FileNotFoundError('No snapshot found')
+                time.sleep(0.05) 
+            else:
+                tries = 0
+                finfo = os.stat('/tmp/snapshot.jpg')
+                return (array, finfo.st_mtime)
