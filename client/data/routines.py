@@ -34,6 +34,8 @@ class Posture(NamedTuple):
         prop_in_frame: Proportion of time the user is in the frame during the period.
         period_start: Start of the tracked period.
         period_end: End of the tracked period.
+    
+    FIXME: Double-check whether we want exactly this kind of data stored in the database.
     """
 
     id_: Optional[int]
@@ -110,6 +112,7 @@ def save_posture(posture: Posture) -> None:
         connection.commit()
 
 
+# 2024-09-15_17-09 Gabe: TESTED.
 def get_users(num: int = 10) -> list[User]:
     """
     Args:
