@@ -64,6 +64,7 @@ def init_database() -> None:
         connection.commit()
 
 
+# 2024-09-15_16-58 Gabe: TESTED.
 def destroy_database() -> None:
     """Delete the current database if it exists."""
     with resources.as_file(DATABASE_RESOURCE) as database_file:
@@ -199,6 +200,7 @@ def get_schema_info() -> list[list[tuple[Any]]]:
     return table_schemas
 
 
+# 2024-09-15_16-50 Gabe: TESTED.
 def _connect() -> sqlite3.Connection:
     with resources.as_file(DATABASE_RESOURCE) as database_file:
         return sqlite3.connect(

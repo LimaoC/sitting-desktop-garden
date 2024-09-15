@@ -66,10 +66,14 @@ def main():
     hardware = initialise_hardware()
 
     # TESTING::
+    init_database()
     start = datetime.now()
-    destroy_database()
+    info = get_schema_info()
     end = datetime.now()
-    print("<!> Obliterated in {end - start} time. Terminating.")
+    print("<!> Schema info::")
+    print(info)
+    print("<!> ::Scheme info")
+    print(f"<!> operation took {end - start} time. Terminating.")
     return None
     # ::TESTING
 
