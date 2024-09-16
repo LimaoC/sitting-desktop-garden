@@ -1,18 +1,13 @@
 import logging
 
 import cv2
-
-from data.routines import destroy_database, init_database, register_faces
+from data.routines import register_faces
 
 logger = logging.getLogger(__name__)
 
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
-    logger.debug("Destroying db")
-    destroy_database()
-    logger.debug("Init db")
-    init_database()
 
     video = cv2.VideoCapture(0)
     faces = []
