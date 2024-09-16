@@ -37,12 +37,10 @@ class Posture(NamedTuple):
         id_: Unique id for the posture record. Should be set to None when record does not exist in
             DB.
         user_id: The user for which this posture applies to.
-        prop_good: Proportion of time the user is in the frame which the posture is good.
-        prop_in_frame: Proportion of time the user is in the frame during the period.
+        prop_good: Proportion of frames the user is aligned and their posture is good.
+        prop_in_frame: Proportion of frames where the user is aligned.
         period_start: Start of the tracked period.
         period_end: End of the tracked period.
-
-    FIXME: Double-check whether we want exactly this kind of data stored in the database.
     """
 
     id_: Optional[int]

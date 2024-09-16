@@ -10,10 +10,10 @@ Table posture {
     id INTEGER [primary key, unique, increment]
     user_id INTEGER [ref: > user.id]
     
-    // Proportion of time that posture is good within period 
+    // Proportion of frames where the user is aligned and posture is good. 
     prop_good REAL
 
-    // Proportion of time the user is in the frame
+    // Proportion of frames the user is aligned
     prop_in_frame REAL
 
     period_start TIMESTAMP
