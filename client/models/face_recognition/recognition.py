@@ -7,7 +7,7 @@ from deepface import DeepFace
 MODEL_NAME = "GhostFaceNet"
 
 
-def _path_to_user_id(path):
+def _path_to_user_id(path: str) -> str:
     return path.split("/")[-2]
 
 
@@ -15,7 +15,7 @@ def get_face_match(login_face: np.ndarray) -> int:
     """
     Matches the given face to one of the user ids in the database.
 
-    Parameters:
+    Args:
         login_face: Image of user's face as an array
 
     Returns:
