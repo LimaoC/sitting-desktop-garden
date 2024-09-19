@@ -124,20 +124,21 @@ You can build the documentation (without spinning up a server) with `make docs`,
 
 ## Raspberry Pi Setup
 ### Environment
-With a fresh install of Raspberry Pi OS, run the following command from the project's base directory.
+Flash up your Raspberry Pi Model 3 B with a fresh install of Raspberry Pi OS (64-bit). Turn on the Raspberry Pi and record its IP address `[Target IP]`.
+On your personal machine, clone into this Git repository. From the base directory, run the following command. 
 ```bash
 cd bootstrap && ./bootstrap.sh [Target IP] [Username]
 ```
 This will install python3.10 to the Pi and the dependencies for the project.
 ### Deployment
-To deploy a build to the Raspberry Pi use the `deploy.sh` script. This script will create a tarball of file listed in a text file, transfer it to
+To deploy a build to the Raspberry Pi, turn it on and run the `deploy.sh` script from your personal machine. This script will create a tarball of file listed in a text file, transfer it to
 a specified hostname and untar it there.
 
 To use the script execute it in the project's root directory with,
 ```bash
 ./deploy.sh [pathfile] [hostname] [username]
 ```
-For example, to deploy the files listed in `deploypaths.txt` to `testpi` (using username raspberry) the command would be
+For example, to deploy the files listed in `deploypaths.txt` to the target IP `testpi` (using username raspberry) the command would be
 ```bash
 ./deploy.sh deploypaths.txt testpi raspberry
 ```
