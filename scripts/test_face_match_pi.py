@@ -17,7 +17,7 @@ def main():
     logger.debug("Checking for a match")
     matched_id = get_face_match(face)
 
-    logger.debug("Matched user %d", matched_id)
+    logger.debug("Matched user %s", matched_id)
 
 
 if __name__ == "__main__":
