@@ -33,6 +33,7 @@ POSE_LANDMARKER_FILE = resources.files("models.resources").joinpath(
     "pose_landmarker_lite.task"
 )
 
+PERIOD_SECONDS = 10
 NO_USER = -1
 STOP_CHILD = -2
 
@@ -139,15 +140,15 @@ class PostureTracker(PoseLandmarker):
         self._save_period()
 
     def _save_period(self) -> None:
-        if time.time() - self._start_time <= 60:
+        if time.time() - self._start_time <= PERIOD_SECONDS:
             return
 
         period_end = datetime.now()
         posture = Posture(
             id_=None,
             user_id=self.user_id,
-            prop_good=statistics.mean(self._posture_scores),
-            prop_in_frame=statistics.mean(self._in_frames),
+            prop_good=_safe_mean(self._posture_scores),
+            prop_in_frame=_safe_mean(self._in_frames),
             period_start=self._period_start,
             period_end=period_end,
         )
@@ -257,3 +258,10 @@ def _run_posture(
                 tracker.user_id = parent_msg
 
             tracker.track_posture()
+
+
+def _safe_mean(data: list[bool]) -> float:
+    mean = 0.0
+    if len(data) != 0:
+        mean = statistics.mean(data)
+    return mean
