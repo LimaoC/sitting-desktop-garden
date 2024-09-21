@@ -85,7 +85,7 @@ fi
 SSH_GO="$SSH_PREFIX ssh $SSHUSER@$SSHTARGET"
 
 echo -e "$INFO Copying Tarball"
-if ! $SSH_PREFIX "scp -q $TARNAME $SSHUSER@$SSHTARGET:~/"; then
+if ! $SSH_PREFIX scp -q $TARNAME "$SSHUSER@$SSHTARGET:~/"; then
        echo -e "$ERROR Copy unsuccessful"
        cleanup
        exit 1
