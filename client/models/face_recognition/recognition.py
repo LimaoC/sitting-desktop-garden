@@ -27,5 +27,5 @@ def get_face_match(login_face: np.ndarray) -> int:
         except ValueError:
             return -1
         df = dfs[0]
-        user_id = _path_to_user_id(df.iloc[0]["identity"])
+        user_id = int(_path_to_user_id(df.iloc[0]["identity"]))
         return user_id
