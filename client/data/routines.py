@@ -7,10 +7,9 @@ Last tested:
 import sqlite3
 
 from datetime import datetime
-from typing import Any, NamedTuple, Optional
+from typing import Any, NamedTuple, Optional, Iterator
 from importlib import resources
 
-import cv2
 import numpy as np
 from pydbml import PyDBML
 
@@ -197,6 +196,13 @@ def register_face_embeddings(user_id: int, face_embeddings: list[np.ndarray]) ->
     with resources.as_file(FACES_FOLDER) as faces_folder:
         embedding_path = faces_folder / f"{user_id}.npy"
         np.save(embedding_path, faces)
+
+
+def iter_face_embeddings() -> Iterator[tuple[int, list[np.ndarray]]]:
+    with resources.as_file(FACES_FOLDER) as faces_folder:
+        for user_embeddings_path in faces_folder.iterdir():
+            user_id = int(user_embeddings_path.stem)
+            yield user_id, list(np.load(user_embeddings_path))
 
 
 def get_schema_info() -> list[list[tuple[Any]]]:
