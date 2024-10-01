@@ -2,8 +2,8 @@ import logging
 
 import cv2
 import numpy as np
-from data.routines import register_faces
-from models.face_recognition.recognition import get_face_match
+
+from models.face_recognition.recognition import get_face_match, register_faces
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +13,12 @@ def take_snapshot() -> np.ndarray:
     video = cv2.VideoCapture(0)
     _, frame = video.read()
     video.release()
+    logger.debug("Frame shape %s", str(frame.shape))
     return frame
 
 
 def main():
+    logging.basicConfig(level=logging.DEBUG)
     choice = input("(r)egister or (l)ogin: ")
 
     if choice == "r":
@@ -27,13 +29,15 @@ def main():
             frame = take_snapshot()
             faces.append(frame)
 
-        register_faces(user_id, faces)
+        logger.info("Registering face snapshots")
+        status = register_faces(user_id, faces)
+        logger.info("Registration status %d", status)
 
     elif choice == "l":
         input("Enter to login: ")
         frame = take_snapshot()
         match = get_face_match(frame)
-        print(f"Matched to user id {match}")
+        logger.info("Matched to user id %d", match)
 
 
 if __name__ == "__main__":

@@ -192,10 +192,10 @@ def register_face_embeddings(user_id: int, face_embeddings: list[np.ndarray]) ->
         user_id: The user to register faces for.
         faces: List of face embedding arrays.
     """
-    faces = np.concatenate(face_embeddings, axis=0)
+    stacked_faces = np.vstack(face_embeddings)
     with resources.as_file(FACES_FOLDER) as faces_folder:
         embedding_path = faces_folder / f"{user_id}.npy"
-        np.save(embedding_path, faces)
+        np.save(embedding_path, stacked_faces)
 
 
 def iter_face_embeddings() -> Iterator[tuple[int, list[np.ndarray]]]:
