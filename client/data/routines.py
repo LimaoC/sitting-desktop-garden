@@ -186,20 +186,17 @@ def get_user_postures(
         return [Posture(*record) for record in result.fetchall()]
 
 
-def register_faces(user_id: int, faces: list[np.ndarray]) -> None:
-    """Register faces for a user.
+def register_face_embeddings(user_id: int, face_embeddings: list[np.ndarray]) -> None:
+    """Register face embeddings for a user.
 
     Args:
         user_id: The user to register faces for.
-        faces: List of face arrays in the format HxWxC where channels are RGB
+        faces: List of face embedding arrays.
     """
+    faces = np.concatenate(face_embeddings, axis=0)
     with resources.as_file(FACES_FOLDER) as faces_folder:
-        faces_folder.mkdir(exist_ok=True)
-        user_folder = faces_folder / str(user_id)
-        user_folder.mkdir()
-        for i, image in enumerate(faces):
-            image_path = user_folder / f"{i}.png"
-            cv2.imwrite(str(image_path), image)
+        embedding_path = faces_folder / f"{user_id}.npy"
+        np.save(embedding_path, faces)
 
 
 def get_schema_info() -> list[list[tuple[Any]]]:
