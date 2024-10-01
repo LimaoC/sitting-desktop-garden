@@ -18,9 +18,6 @@ DATABASE_DEFINITION = RESOURCES.joinpath("database.dbml")
 DATABASE_RESOURCE = RESOURCES.joinpath("database.db")
 FACES_FOLDER = RESOURCES.joinpath("faces")
 
-with resources.as_file(FACES_FOLDER) as faces_folder:
-    faces_folder.mkdir(exist_ok=True)
-
 
 class User(NamedTuple):
     """Represents a user record in the SQLite database
@@ -202,6 +199,12 @@ def register_face_embeddings(user_id: int, face_embeddings: list[np.ndarray]) ->
 
 
 def iter_face_embeddings() -> Iterator[tuple[int, list[np.ndarray]]]:
+    """
+    Returns:
+        Generator which yields (user_id, face_embeddings) each iteration. Each iteration will give
+            a different user. face_embeddings is a list of numpy arrays which each represent an
+            embedded face for the user.
+    """
     with resources.as_file(FACES_FOLDER) as faces_folder:
         for user_embeddings_path in faces_folder.iterdir():
             user_id = int(user_embeddings_path.stem)
@@ -234,3 +237,11 @@ def _connect() -> sqlite3.Connection:
         return sqlite3.connect(
             database_file, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
         )
+
+
+def _init_faces_folder() -> None:
+    with resources.as_file(FACES_FOLDER) as faces_folder:
+        faces_folder.mkdir(exist_ok=True)
+
+
+_init_faces_folder()
