@@ -31,14 +31,14 @@ def get_face_match(login_face: np.ndarray) -> int:
     #     user_id = int(_path_to_user_id(df.iloc[0]["identity"]))
     #     return user_id
 
+    login_embeddings = face_recognition.face_encodings(login_face, model="small")
+
+    # Should only detect one face
+    if len(login_embeddings) != 1:
+        return -1
+    login_embedding = login_embeddings[0]
+
     for user_id, user_embeddings in iter_face_embeddings():
-        login_embeddings = face_recognition.face_encodings(login_face, model="small")
-
-        # Should only detect one face
-        if len(login_embeddings) != 1:
-            return -1
-
-        login_embedding = login_embeddings[0]
         matches = face_recognition.compare_faces(user_embeddings, login_embedding)
 
         if any(matches):

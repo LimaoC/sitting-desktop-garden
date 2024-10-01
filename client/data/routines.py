@@ -18,6 +18,9 @@ DATABASE_DEFINITION = RESOURCES.joinpath("database.dbml")
 DATABASE_RESOURCE = RESOURCES.joinpath("database.db")
 FACES_FOLDER = RESOURCES.joinpath("faces")
 
+with resources.as_file(FACES_FOLDER) as faces_folder:
+    faces_folder.mkdir(exist_ok=True)
+
 
 class User(NamedTuple):
     """Represents a user record in the SQLite database
