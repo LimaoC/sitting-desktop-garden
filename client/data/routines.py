@@ -7,10 +7,9 @@ Last tested:
 import sqlite3
 
 from datetime import datetime
-from typing import Any, NamedTuple, Optional
+from typing import Any, NamedTuple, Optional, Iterator
 from importlib import resources
 
-import cv2
 import numpy as np
 from pydbml import PyDBML
 
@@ -186,20 +185,30 @@ def get_user_postures(
         return [Posture(*record) for record in result.fetchall()]
 
 
-def register_faces(user_id: int, faces: list[np.ndarray]) -> None:
-    """Register faces for a user.
+def register_face_embeddings(user_id: int, face_embeddings: list[np.ndarray]) -> None:
+    """Register face embeddings for a user.
 
     Args:
         user_id: The user to register faces for.
-        faces: List of face arrays in the format HxWxC where channels are RGB
+        faces: List of face embedding arrays.
+    """
+    stacked_faces = np.vstack(face_embeddings)
+    with resources.as_file(FACES_FOLDER) as faces_folder:
+        embedding_path = faces_folder / f"{user_id}.npy"
+        np.save(embedding_path, stacked_faces)
+
+
+def iter_face_embeddings() -> Iterator[tuple[int, list[np.ndarray]]]:
+    """
+    Returns:
+        Generator which yields (user_id, face_embeddings) each iteration. Each iteration will give
+            a different user. face_embeddings is a list of numpy arrays which each represent an
+            embedded face for the user.
     """
     with resources.as_file(FACES_FOLDER) as faces_folder:
-        faces_folder.mkdir(exist_ok=True)
-        user_folder = faces_folder / str(user_id)
-        user_folder.mkdir()
-        for i, image in enumerate(faces):
-            image_path = user_folder / f"{i}.png"
-            cv2.imwrite(str(image_path), image)
+        for user_embeddings_path in faces_folder.iterdir():
+            user_id = int(user_embeddings_path.stem)
+            yield user_id, list(np.load(user_embeddings_path))
 
 
 def get_schema_info() -> list[list[tuple[Any]]]:
@@ -228,3 +237,11 @@ def _connect() -> sqlite3.Connection:
         return sqlite3.connect(
             database_file, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
         )
+
+
+def _init_faces_folder() -> None:
+    with resources.as_file(FACES_FOLDER) as faces_folder:
+        faces_folder.mkdir(exist_ok=True)
+
+
+_init_faces_folder()
