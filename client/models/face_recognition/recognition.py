@@ -1,12 +1,18 @@
+from enum import Enum
+
 import numpy as np
 import face_recognition
 
 from data.routines import register_face_embeddings, iter_face_embeddings
 
 MODEL_NAME = "small"
-TOO_MANY_FACES = -2
-NO_MATCH = -1
-OK = 0
+
+
+class Status(Enum):
+    NO_FACES = -3
+    TOO_MANY_FACES = -2
+    NO_MATCH = -1
+    OK = 0
 
 
 def get_face_match(login_face: np.ndarray) -> int:
@@ -17,13 +23,16 @@ def get_face_match(login_face: np.ndarray) -> int:
         login_face: Image of user's face as an array
 
     Returns:
-        Matching user id, -1 if no users matched, -2 if too many faces
+        Matching user id, or one of Status values.
     """
     login_embeddings = face_recognition.face_encodings(login_face, model=MODEL_NAME)
 
-    # Should only detect one face
-    if len(login_embeddings) != 1:
-        return TOO_MANY_FACES
+    # Should only detect exactly one face
+    if len(login_embeddings) == 0:
+        return Status.NO_FACES.value
+    if len(login_embeddings) > 1:
+        return Status.TOO_MANY_FACES.value
+
     login_embedding = login_embeddings[0]
 
     for user_id, user_embeddings in iter_face_embeddings():
@@ -32,7 +41,7 @@ def get_face_match(login_face: np.ndarray) -> int:
         if any(matches):
             return user_id
 
-    return NO_MATCH
+    return Status.NO_MATCH.value
 
 
 def register_faces(user_id: int, faces: list[np.ndarray]) -> int:
@@ -43,19 +52,21 @@ def register_faces(user_id: int, faces: list[np.ndarray]) -> int:
         faces: List of face images in the shape HxWxC where (C)hannels are in RGB
 
     Returns:
-        Status, -2 if too many faces in an image, 0 if registration was sucessful.
+        Registration status
     """
     face_embeddings = []
     for face in faces:
         all_faces_embed = face_recognition.face_encodings(face, model=MODEL_NAME)
 
-        # Should only detect one face
-        if len(all_faces_embed) != 1:
-            return TOO_MANY_FACES
+        # Should only detect exactly one face
+        if len(all_faces_embed) == 0:
+            return Status.NO_FACES.value
+        if len(all_faces_embed) > 1:
+            return Status.TOO_MANY_FACES.value
 
         face_embedding = all_faces_embed[0]
         face_embeddings.append(face_embedding)
 
     register_face_embeddings(user_id, face_embeddings)
 
-    return OK
+    return Status.OK.value
