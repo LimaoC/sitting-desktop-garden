@@ -198,6 +198,13 @@ def register_face_embeddings(user_id: int, face_embeddings: list[np.ndarray]) ->
         np.save(embedding_path, stacked_faces)
 
 
+def reset_registered_face_embeddings() -> None:
+    """Clear all registered user faces."""
+    with resources.as_file(FACES_FOLDER) as faces_folder:
+        for user_embeddings_path in faces_folder.iterdir():
+            user_embeddings_path.unlink()
+
+
 def iter_face_embeddings() -> Iterator[tuple[int, list[np.ndarray]]]:
     """
     Returns:
