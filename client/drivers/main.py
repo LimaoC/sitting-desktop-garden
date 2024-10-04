@@ -21,7 +21,6 @@ import threading
 from datetime import datetime, timedelta
 
 from data_structures import ControlledData, HardwareComponents, Picture, Face
-from ai_bros import *
 from data.routines import *
 
 
@@ -194,9 +193,7 @@ def attempt_login() -> ControlledData:
             hardware.display.show()
             sleep_ms(LOGIN_TAKE_PICTURE_INTERVAL)
             continue
-        face = ai_bros_face_recogniser(
-            picture.underlying_picture
-        )  # TODO: This should be an external API call.
+        face = Face.make_matched(1)
         if face.failed:
             print("<!> AI has failed us")  # DEBUG
             hardware.display.fill(0)
@@ -418,9 +415,7 @@ def handle_posture_monitoring(auspost: ControlledData) -> bool:
     if now > auspost.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT:
         # TODO: The ai_bros_get_posture_data() call might fail once it's implemented properly.
         #       If it does, we need to handle it properly.
-        auspost.accept_new_posture_data(
-            ai_bros_get_posture_data(auspost.get_last_snapshot_time())
-        )
+        auspost.accept_new_posture_data([])
         # DEBUG:
         auspost.accept_new_posture_data([auspost.DEBUG_get_next_posture_graph_value()])
         # :DEBUG
