@@ -473,6 +473,7 @@ class HardwareComponents:
 
         Args:
             message: Message to send to the user
+            message_time: Time to sleep for after displaying message.
         """
         self.display.fill(0)
         self.oled_display_text(message, 0, 0, 1)
