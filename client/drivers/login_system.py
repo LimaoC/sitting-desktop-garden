@@ -12,8 +12,9 @@ from drivers.data_structures import HardwareComponents, LEFT_BUTTON, RIGHT_BUTTO
 NUM_FACES = 5
 QUIT = -4
 BAD_STATUS_MESSAGES = {
-    Status.NO_FACES.value: "No face detected please try again",
-    Status.TOO_MANY_FACES.value: "Too many faces detected please try again",
+    Status.NO_FACES.value: "No face detected please",
+    Status.TOO_MANY_FACES.value: "Too many faces detected",
+    Status.NO_MATCH.value: "Could not match face",
 }
 QUIT_INSTRUCTIONS = "Right button to quit"
 
