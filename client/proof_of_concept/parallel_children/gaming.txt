@@ -1,0 +1,16 @@
+Script very long
+Narrow down (# characters), each with different angle of how to use product
+  The existence of characters is not a bad idea
+~> have more time to explain FEATURES in product
+Should talk more about FEATURES in the product.
+Product should appear in video!!
+
+
+2nd interim reflection ~> passed 1st; if no changes, will pass 2nd?
+  Sure
+  It's for feedback
+
+
+Technical report
+  README.md looks better
+  Product currently untested
