@@ -67,6 +67,11 @@ def register_faces(user_id: int, faces: list[np.ndarray]) -> int:
         face_embedding = all_faces_embed[0]
         face_embeddings.append(face_embedding)
 
+    # Ensure that all images contain the same face
+    matches = face_recognition.compare_faces(face_embeddings[1:], face_embeddings[0])
+    if not all(matches):
+        return Status.TOO_MANY_FACES.value
+
     register_face_embeddings(user_id, face_embeddings)
 
     return Status.OK.value
