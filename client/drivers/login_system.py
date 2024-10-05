@@ -2,6 +2,8 @@
 Login system
 """
 
+from typing import Callable
+
 import numpy as np
 
 from data.routines import next_user_id, create_user
@@ -18,6 +20,8 @@ BAD_STATUS_MESSAGES = {
 }
 QUIT_INSTRUCTIONS = "Right button to quit"
 
+Action = Callable[[HardwareComponents], int]
+
 
 def handle_authentication(hardware: HardwareComponents) -> int:
     """Run authentication loop until user either registers or logs in.
@@ -33,10 +37,10 @@ def handle_authentication(hardware: HardwareComponents) -> int:
         button = hardware.wait_for_button_press()
 
         if button == RIGHT_BUTTON:
-            status = handle_register(hardware)
+            status = _loop_action(hardware, _attempt_register)
 
         if button == LEFT_BUTTON:
-            status = handle_login(hardware)
+            status = _loop_action(hardware, _attempt_login)
 
         if _is_status_id(status):
             return status
@@ -47,36 +51,10 @@ def handle_authentication(hardware: HardwareComponents) -> int:
             raise error
 
 
-def handle_register(hardware: HardwareComponents) -> int:
-    """Tries to register a new user until successful.
-
-    Args:
-        hardware: Connected RPI hardware
-
-    Returns:
-        User id of new registered user or -4 if the user quits
-    """
+def _loop_action(hardware: HardwareComponents, action: Action) -> int:
+    """Loop action until appropriate status is returned"""
     while True:
-        status = _attempt_register(hardware)
-
-        if status == QUIT:
-            return QUIT
-
-        if _is_status_id(status):
-            return status
-
-
-def handle_login(hardware: HardwareComponents) -> int:
-    """Tries to login a new user until successful.
-
-    Args:
-        hardware: Connected RPI hardware
-
-    Returns:
-        User id of logged in user, -4 if the user quits.
-    """
-    while True:
-        status = _attempt_login(hardware)
+        status = action(hardware)
 
         if status == QUIT:
             return QUIT
@@ -92,31 +70,37 @@ def _attempt_login(hardware: HardwareComponents) -> int:
     button_pressed = hardware.wait_for_button_press()
     if button_pressed == LEFT_BUTTON:
         face, _ = capturer.get_frame()
+
     if button_pressed == RIGHT_BUTTON:
         return QUIT
 
     status = get_face_match(face)
-    _send_bad_status(hardware, status)
+    _handle_status_message(hardware, status)
 
     return status
 
 
 def _attempt_register(hardware: HardwareComponents) -> int:
     capturer = RaspCapturer()
+
+    # Capture NUM_FACES faces
     faces: list[np.ndarray] = []
     for i in range(NUM_FACES):
         hardware.send_message(
-            f"Press left button to take photo {i + 1}/{NUM_FACES}\n{QUIT_INSTRUCTIONS}"
+            f"Press left button to take photo {i + 1}/{NUM_FACES}\n"
+            f"{QUIT_INSTRUCTIONS}"
         )
 
         button_pressed = hardware.wait_for_button_press()
         if button_pressed == RIGHT_BUTTON:
             return QUIT
+
         if button_pressed == LEFT_BUTTON:
             frame, _ = capturer.get_frame()
             faces.append(frame)
 
-    hardware.send_message("Attempting register...")
+    # Try register faces
+    hardware.send_message("Registering face...")
     user_id = next_user_id()
     status = register_faces(user_id, faces)
 
@@ -125,7 +109,7 @@ def _attempt_register(hardware: HardwareComponents) -> int:
         hardware.send_message("Registration successful!")
         return user_id
 
-    _send_bad_status(hardware, status)
+    _handle_status_message(hardware, status)
 
     return status
 
@@ -134,6 +118,6 @@ def _is_status_id(status: int) -> bool:
     return status > 0
 
 
-def _send_bad_status(hardware: HardwareComponents, status: int) -> None:
+def _handle_status_message(hardware: HardwareComponents, status: int) -> None:
     if status in BAD_STATUS_MESSAGES:
         hardware.send_message(BAD_STATUS_MESSAGES[status])
