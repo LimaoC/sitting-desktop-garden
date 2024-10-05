@@ -486,12 +486,19 @@ class HardwareComponents:
         Returns:
             The number of the button pressed.
         """
+        self._clear_buttons()
         while True:
             if self.button0.was_pressed:
                 return LEFT_BUTTON
 
             if self.button1.was_pressed:
                 return RIGHT_BUTTON
+
+    def _clear_buttons(self) -> None:
+        self.button0.was_pressed
+        self.button1.was_pressed
+        self.button0.was_double_pressed
+        self.button1.was_double_pressed
 
 
 ## SECTION: Picture
