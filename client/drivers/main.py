@@ -4,11 +4,11 @@ Brief:
 File:
     sitting-desktop-garden/client/drivers/main.py
 Author:
-    Gabriel Field (47484306)
+    Gabriel Field (47484306), Mitchell Clark
 """
 
 ## SECTION: Imports
-
+import logging
 
 from PiicoDev_Unified import sleep_ms
 from PiicoDev_Switch import *
@@ -16,13 +16,12 @@ from PiicoDev_SSD1306 import *
 
 import RPi.GPIO as GPIO
 
-from typing import Tuple
-import threading
 from datetime import datetime, timedelta
 
-from data_structures import ControlledData, HardwareComponents, Picture, Face
+from drivers.data_structures import ControlledData, HardwareComponents, Picture
 from ai_bros import *
 from data.routines import *
+from drivers.login_system import handle_authentication
 
 
 ## SECTION: Global constants
@@ -70,6 +69,7 @@ HANDLE_SNIFF_FEEDBACK_TIMEOUT = timedelta(milliseconds=20000)
 DEBUG_DO_EVERYTHING_INTERVAL = 1000
 """ DEBUG Number of milliseconds between each loop iteration in do_everything(). """
 
+logger = logging.getLogger(__name__)
 
 ## SECTION: main()
 
@@ -78,23 +78,16 @@ def main():
     """
     Entry point for the control program.
     """
-    # DEBUG:
-    print("<!> main()")
-    # :DEBUG
-
-    global hardware
-    hardware = initialise_hardware()
+    logging.basicConfig(level=logging.DEBUG)
+    logger.debug("Running main")
 
     init_database()
 
-    # Top level control flow
     while True:
-        wait_for_login_attempt()
-        main_data = attempt_login()
-        if main_data.is_failed():
-            continue
-        print("<!> main(): Successful login")
-        do_everything(main_data)
+        user_id = handle_authentication(hardware)
+        user = ControlledData.make_empty(user_id)
+        logger.debug("Login successful")
+        do_everything(user)
 
 
 ## SECTION: Hardware initialisation
@@ -127,176 +120,6 @@ def initialise_hardware() -> HardwareComponents:
 
     print("<!> initialise_hardware() FINISHED")  # DEBUG
     return return_me
-
-
-## SECTION: Login handling
-
-
-# 2024-09-01_15-52 Gabe: TESTED.
-def wait_for_login_attempt() -> bool:
-    """
-    Waits until the user attempts to log in.
-
-    Returns:
-        (bool): True when the user attempts to log in.
-    """
-    print("<!> BEGIN wait_for_login_attempt()")
-
-    WAIT_FOR_LOGIN_OLED_MESSAGE = "Press button0 to log in!"
-    # Display to screen
-    hardware.display.fill(0)
-    hardware.oled_display_text(WAIT_FOR_LOGIN_OLED_MESSAGE, 0, 0, 1)
-    hardware.display.show()
-    # Clear button queue
-    hardware.button0.was_pressed
-
-    while True:
-        if hardware.button0.was_pressed:
-            # Clear the display
-            hardware.display.fill(0)
-            hardware.display.show()
-            print("<!> END wait_for_login_attempt()")  # DEBUG
-            return True
-        sleep_ms(WAIT_FOR_LOGIN_POLLING_INTERVAL)
-
-
-# 2024-09-01 17:06 Gabe: TESTED., assuming ai_bros_face_recogniser() does what it should do.
-def attempt_login() -> ControlledData:
-    """
-    Attempts to log in.
-
-    Returns:
-        (ControlledData): which is:
-            FAILED                 if the login is unsuccessful
-            EMPTY (but not failed) if the login is successful
-    """
-
-    # TODO: Finalise these messages
-    SMILE_FOR_CAMERA_MESSAGE = "LIS: Smile for the camera!"
-    PICTURE_FAILED_MESSAGE = "LIS: Picture failed T-T"
-    AI_FAILED_MESSAGE = "LIS: Failed to determine user T-T"
-    LOGIN_TOTALLY_FAILED_MESSAGE = "LIS: Failed to log in T-T"
-
-    hardware.display.fill(0)
-    hardware.oled_display_text(SMILE_FOR_CAMERA_MESSAGE, 0, 0, 1)
-    hardware.display.show()
-    sleep_ms(START_LOGIN_ATTEMPTS_DELAY)
-
-    while True:
-        hardware.display.fill(0)
-        hardware.oled_display_text(SMILE_FOR_CAMERA_MESSAGE, 0, 0, 1)
-        hardware.display.show()
-        picture = take_picture()
-        if picture.failed:
-            print("<!> Picture Failed")  # DEBUG
-            hardware.display.fill(0)
-            hardware.oled_display_text(PICTURE_FAILED_MESSAGE, 0, 0, 1)
-            hardware.display.show()
-            sleep_ms(LOGIN_TAKE_PICTURE_INTERVAL)
-            continue
-        face = ai_bros_face_recogniser(
-            picture.underlying_picture
-        )  # TODO: This should be an external API call.
-        if face.failed:
-            print("<!> AI has failed us")  # DEBUG
-            hardware.display.fill(0)
-            hardware.oled_display_text(AI_FAILED_MESSAGE, 0, 0, 1)
-            hardware.display.show()
-            sleep_ms(LOGIN_TAKE_PICTURE_INTERVAL)
-            continue
-        if face.matched:
-            print("<!> Mega W for AI")  # DEBUG
-            return ControlledData.make_empty(face.user_id)
-        elif ask_create_new_user():
-            return ControlledData.make_empty(
-                create_new_user(picture.underlying_picture)
-            )
-        # Tell the user the login failed
-        print("<!> attempt_login(): Totally failed lol")  # DEBUG
-        hardware.display.fill(0)
-        hardware.oled_display_text(LOGIN_TOTALLY_FAILED_MESSAGE, 0, 0, 1)
-        hardware.display.show()
-        sleep_ms(FAIL_LOGIN_DELAY)
-        return ControlledData.make_failed()
-
-
-def take_picture() -> Picture:
-    """
-    Takes a picture from the camera, and returns a (failable) picture object.
-
-    TODO: Actually write this function. Currently prints a debug message and returns a failed picture.
-    """
-    # DEBUG:
-    print("<!> take_picture()")
-    DEBUG_return_value = Picture.make_valid("DEBUG_picture_goes_here")
-    # :DEBUG
-    return DEBUG_return_value
-
-
-# 2024-09-01 17:06 Gabe: TESTED.
-def ask_create_new_user() -> bool:
-    """
-    Ask the user whether they would like to create a new user profile based on the previous picture.
-
-    Returns:
-        (bool): True iff the user would like to create a new user profile
-    TODO: Make this go out to hardware peripherals. It should have:
-        Two buttons (yes / no)
-        The LED display ("Unmatched face. Create new user?")
-    """
-    print("<!> BEGIN ask_create_new_user()")
-
-    CREATE_NEW_USER_MESSAGES = [
-        "No face matched.",
-        "Create new user?",
-        "button0: no",
-        "button1: yes",
-    ]
-    # Display to screen
-    hardware.display.fill(0)
-    hardware.oled_display_texts(CREATE_NEW_USER_MESSAGES, 0, 0, 1)
-    hardware.display.show()
-    # Clear button queue
-    hardware.button0.was_pressed
-    hardware.button1.was_pressed
-
-    while True:
-        if hardware.button0.was_pressed:
-            # Clear the display
-            hardware.display.fill(0)
-            hardware.display.show()
-            print("<!> END ask_create_new_user(): do NOT create new user")  # DEBUG
-            return False
-        if hardware.button1.was_pressed:
-            # Clear the display
-            hardware.display.fill(0)
-            hardware.display.show()
-            print("<!> END ask_create_new_user(): DO create new user")  # DEBUG
-            return True
-        sleep_ms(ASK_CREATE_NEW_USER_POLLING_INTERVAL)
-
-
-def create_new_user(underlying_picture: int) -> int:
-    """
-    Create a new user based on the given picture, and return their user id.
-
-    Args:
-        underlying_picture : UNDERLYING_PICTURE
-            Picture to associate with the new user profile
-    Returns:
-        (int): The new user's user id
-    TODO: Actually write to the local SQLite database, and properly determine the new user id.
-    """
-    # DEBUG:
-    DEBUG_new_user_id = 0
-    # new_user_id = create_user()
-    # try:
-    #     register_faces(new_user_id, [underlying_picture])
-    # except NotImplementedError:
-    #     pass
-    # :DEBUG
-    return DEBUG_new_user_id
-    # return new_user_id # DEBUG
 
 
 ## SECTION: Control for the logged-in user
@@ -575,6 +398,7 @@ def handle_sniff_feedback(auspost: ControlledData) -> bool:
 
 
 ## LAUNCH
+hardware = initialise_hardware()
 
 if __name__ == "__main__":
     main()
