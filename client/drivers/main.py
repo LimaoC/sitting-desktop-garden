@@ -18,7 +18,7 @@ import RPi.GPIO as GPIO
 
 from datetime import datetime, timedelta
 
-from drivers.data_structures import ControlledData, HardwareComponents, Picture
+from drivers.data_structures import ControlledData, HardwareComponents
 from ai_bros import *
 from data.routines import *
 from drivers.login_system import handle_authentication
