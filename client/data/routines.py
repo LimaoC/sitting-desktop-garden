@@ -93,6 +93,19 @@ def create_user() -> int:
     return user_id
 
 
+def next_user_id() -> int:
+    """
+    Returns:
+        The id that would be assigned to a new user if one was created
+    """
+    with _connect() as connection:
+        cursor = connection.cursor()
+        result = cursor.execute("SELECT last_insert_rowid() FROM user;")
+        ids = result.fetchone()
+        last_user_id = 0 if ids is None else ids[0]
+    return last_user_id + 1
+
+
 def save_posture(posture: Posture) -> None:
     """Stores the posture record in the database.
 
