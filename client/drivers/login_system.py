@@ -69,7 +69,7 @@ def _loop_action(hardware: HardwareComponents, action: Action) -> int:
 def _attempt_login(hardware: HardwareComponents) -> int:
     capturer = RaspCapturer()
     message = f"Press left button to take photo\n{QUIT_INSTRUCTIONS}"
-    _log_and_send(hardware, message)
+    _log_and_send(hardware, message, message_time=0)
 
     button_pressed = hardware.wait_for_button_press()
     if button_pressed == LEFT_BUTTON:
@@ -94,7 +94,7 @@ def _attempt_register(hardware: HardwareComponents) -> int:
             f"Press left button to take photo {i + 1}/{NUM_FACES}\n"
             f"{QUIT_INSTRUCTIONS}"
         )
-        _log_and_send(hardware, message)
+        _log_and_send(hardware, message, message_time=0)
 
         button_pressed = hardware.wait_for_button_press()
         if button_pressed == RIGHT_BUTTON:
@@ -128,6 +128,8 @@ def _handle_status_message(hardware: HardwareComponents, status: int) -> None:
         _log_and_send(hardware, BAD_STATUS_MESSAGES[status])
 
 
-def _log_and_send(hardware: HardwareComponents, message: str) -> None:
+def _log_and_send(
+    hardware: HardwareComponents, message: str, message_time: int = 1
+) -> None:
     logger.debug(message)
-    hardware.send_message(message)
+    hardware.send_message(message, message_time=message_time)
