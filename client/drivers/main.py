@@ -427,10 +427,13 @@ def handle_posture_monitoring_new(auspost : ControlledData) -> bool:
         # I'm assuming prop_good is between 0 and 1?
         DEBUG_MULTIPLIER_CONSTANT = 60
 
+        new_prop_good_data = []
         # Enqueue the average good posture for the graph to use
         for posture_list in split_posture_lists:
             average_prop_good = sum([posture.prop_good for posture in posture_list]) / len(posture_list)
-            auspost.accept_new_posture_data(average_prop_good * DEBUG_MULTIPLIER_CONSTANT) 
+            print(f"<!> Avg prop_good is {average_prop_good}")
+            new_prop_good_data.append(average_prop_good * DEBUG_MULTIPLIER_CONSTANT) 
+        auspost.accept_new_posture_data(new_prop_good_data)
 
         auspost.set_last_snapshot_time(now)
 
