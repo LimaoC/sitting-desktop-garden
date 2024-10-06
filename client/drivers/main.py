@@ -20,6 +20,7 @@ import RPi.GPIO as GPIO
 from drivers.data_structures import ControlledData, HardwareComponents
 from drivers.login_system import handle_authentication
 from models.pose_detection.routines import PostureProcess
+from models.pose_detection.frame_capturer import RaspCapturer
 
 from data.routines import *
 
@@ -87,7 +88,7 @@ def main():
     init_database()
 
     logger.debug("Initialising posture tracking process")
-    posture_process = PostureProcess()
+    posture_process = PostureProcess(frame_capturer=RaspCapturer)
 
     while True:
         user_id = handle_authentication(hardware)
