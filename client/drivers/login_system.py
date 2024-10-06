@@ -2,6 +2,7 @@
 Login system
 """
 
+import logging
 from typing import Callable
 
 import numpy as np
@@ -22,6 +23,8 @@ QUIT_INSTRUCTIONS = "Right button to quit"
 
 Action = Callable[[HardwareComponents], int]
 
+logger = logging.getLogger(__name__)
+
 
 def handle_authentication(hardware: HardwareComponents) -> int:
     """Run authentication loop until user either registers or logs in.
@@ -33,7 +36,7 @@ def handle_authentication(hardware: HardwareComponents) -> int:
         id of logged in user.
     """
     while True:
-        hardware.send_message("Left button to login\nRight button to register")
+        _log_and_send(hardware, "Left button to login\nRight button to register")
         button = hardware.wait_for_button_press()
 
         if button == RIGHT_BUTTON:
@@ -65,7 +68,8 @@ def _loop_action(hardware: HardwareComponents, action: Action) -> int:
 
 def _attempt_login(hardware: HardwareComponents) -> int:
     capturer = RaspCapturer()
-    hardware.send_message(f"Press left button to take photo\n{QUIT_INSTRUCTIONS}")
+    message = f"Press left button to take photo\n{QUIT_INSTRUCTIONS}"
+    _log_and_send(hardware, message)
 
     button_pressed = hardware.wait_for_button_press()
     if button_pressed == LEFT_BUTTON:
@@ -86,10 +90,11 @@ def _attempt_register(hardware: HardwareComponents) -> int:
     # Capture NUM_FACES faces
     faces: list[np.ndarray] = []
     for i in range(NUM_FACES):
-        hardware.send_message(
+        message = (
             f"Press left button to take photo {i + 1}/{NUM_FACES}\n"
             f"{QUIT_INSTRUCTIONS}"
         )
+        _log_and_send(hardware, message)
 
         button_pressed = hardware.wait_for_button_press()
         if button_pressed == RIGHT_BUTTON:
@@ -100,13 +105,13 @@ def _attempt_register(hardware: HardwareComponents) -> int:
             faces.append(frame)
 
     # Try register faces
-    hardware.send_message("Registering face...")
+    _log_and_send(hardware, "Registering...")
     user_id = next_user_id()
     status = register_faces(user_id, faces)
 
     if status == Status.OK.value:
         create_user()
-        hardware.send_message("Registration successful!")
+        _log_and_send(hardware, "Registration successful!")
         return user_id
 
     _handle_status_message(hardware, status)
@@ -120,4 +125,9 @@ def _is_status_id(status: int) -> bool:
 
 def _handle_status_message(hardware: HardwareComponents, status: int) -> None:
     if status in BAD_STATUS_MESSAGES:
-        hardware.send_message(BAD_STATUS_MESSAGES[status])
+        _log_and_send(hardware, BAD_STATUS_MESSAGES[status])
+
+
+def _log_and_send(hardware: HardwareComponents, message: str) -> None:
+    logger.debug(message)
+    hardware.send_message(message)
