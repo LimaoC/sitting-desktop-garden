@@ -102,7 +102,7 @@ def next_user_id() -> int:
         cursor = connection.cursor()
         result = cursor.execute("SELECT last_insert_rowid() FROM user;")
         ids = result.fetchone()
-        last_user_id = 0 if len(ids) == 0 else ids[0]
+        last_user_id = 0 if ids is None else ids[0]
     return last_user_id + 1
 
 
