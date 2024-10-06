@@ -93,6 +93,19 @@ def create_user() -> int:
     return user_id
 
 
+def next_user_id() -> int:
+    """
+    Returns:
+        The id that would be assigned to a new user if one was created
+    """
+    with _connect() as connection:
+        cursor = connection.cursor()
+        result = cursor.execute("SELECT last_insert_rowid() FROM user;")
+        ids = result.fetchone()
+        last_user_id = 0 if ids is None else ids[0]
+    return last_user_id + 1
+
+
 def save_posture(posture: Posture) -> None:
     """Stores the posture record in the database.
 
@@ -196,6 +209,13 @@ def register_face_embeddings(user_id: int, face_embeddings: list[np.ndarray]) ->
     with resources.as_file(FACES_FOLDER) as faces_folder:
         embedding_path = faces_folder / f"{user_id}.npy"
         np.save(embedding_path, stacked_faces)
+
+
+def reset_registered_face_embeddings() -> None:
+    """Clear all registered user faces."""
+    with resources.as_file(FACES_FOLDER) as faces_folder:
+        for user_embeddings_path in faces_folder.iterdir():
+            user_embeddings_path.unlink()
 
 
 def iter_face_embeddings() -> Iterator[tuple[int, list[np.ndarray]]]:
