@@ -8,3 +8,5 @@ __pycache__/
 *.task
 *.egg-info
 .pylintrc
+client/proof_of_concept/databasing.py
+.vscode/settings.json

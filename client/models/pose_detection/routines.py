@@ -50,6 +50,9 @@ class PostureProcess:
         """Create a new process which loads the MediaPipe Pose model and runs periodic posture
         tracking. This initializer blocks until the model is loaded.
 
+        WARNING: The default `frame_capturer` is `OpenCVCapturer`, which doesn't work on the
+        Raspberry Pi! Use `RaspCapturer` on the Raspberry Pi instead.
+
         Args:
             frame_capturer: Class reference to capturer for child process to construct
         """
@@ -143,6 +146,12 @@ class PostureTracker(PoseLandmarker):
         if time.time() - self._start_time <= PERIOD_SECONDS:
             return
 
+        # DEBUG::
+        print("<!> ======== DATABASE POWERED BY AI ========")
+        # FIXME: I'm not convinced that this is writing to the database on the rpi.
+        # It's probably a camera alignment issue. But I'm not gonna test that on the
+        # `posture_graphing_impossible_to_test` branch lol
+        # ::DEBUG
         period_end = datetime.now()
         posture = Posture(
             id_=None,
