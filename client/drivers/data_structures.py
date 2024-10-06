@@ -473,7 +473,7 @@ class HardwareComponents:
 
         Args:
             message: Message to send to the user
-            message_time: Time to sleep for after displaying message.
+            message_time: Time (seconds) to sleep for after displaying message.
         """
         self.display.fill(0)
         self.oled_display_text(message, 0, 0, 1)
@@ -495,6 +495,7 @@ class HardwareComponents:
                 return RIGHT_BUTTON
 
     def _clear_buttons(self) -> None:
+        """Clear pressed status from all buttons."""
         self.button0.was_pressed
         self.button1.was_pressed
         self.button0.was_double_pressed

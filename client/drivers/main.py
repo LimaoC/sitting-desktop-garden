@@ -398,7 +398,7 @@ def handle_sniff_feedback(auspost: ControlledData) -> bool:
 
 
 ## LAUNCH
-hardware = initialise_hardware()
 
 if __name__ == "__main__":
+    hardware = initialise_hardware()
     main()
