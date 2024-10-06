@@ -43,9 +43,11 @@ FAIL_LOGIN_DELAY = 3000
 LOGIN_SUCCESS_DELAY = 3000
 """ Number of milliseconds between telling the user that login has succeeded and beginning real functionality. """
 
+POSTURE_GRAPH_WIDTH = 5
+
 LOGOUT_SUCCESS_DELAY = 3000
 """ Number of milliseconds between the user successfully logging out and returning to main(). """
-GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds = 2000) # DEBUG: Change this value up to ~60000 later.
+GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds = 5000) # DEBUG: Change this value up to ~60000 later.
 """ Minimum delay between reading posture data from the SQLite database, in do_everything(). """
 PROPORTION_IN_FRAME_THRESHOLD = 0.3
 """ Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later. """
@@ -333,13 +335,9 @@ def do_everything(auspost : ControlledData) -> None:
             print("<!> END do_everything()")
             return 
         
-        # Probably should run individual threads for each of these
-        # TODO: Move the threading to a more reasonable location. main() is probably best.
-        # posture_monitoring_thread = threading.Thread(handle_posture_monitoring, args=(auspost))
-        # posture_monitoring_thread.start()
-
         update_display_screen(auspost)
-        handle_posture_monitoring(auspost)
+        # handle_posture_monitoring(auspost)
+        handle_posture_monitoring_new(auspost)
         handle_feedback(auspost)
 
         sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
@@ -367,11 +365,75 @@ def update_display_screen(auspost : ControlledData) -> bool:
     hardware.display.fill(0)
     hardware.oled_display_texts(hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1)
     if not auspost.get_posture_data().empty():
-        hardware.display.updateGraph2D(hardware.posture_graph, auspost.get_posture_data().get_nowait())
+        for _ in range(POSTURE_GRAPH_WIDTH):
+            hardware.display.updateGraph2D(hardware.posture_graph, auspost.get_posture_data().get_nowait())
     # Render
     hardware.display.show()
 
     print("<!> END update_display_screen()")
+    return True
+
+def handle_posture_monitoring_new(auspost : ControlledData) -> bool:
+    
+    # DEBUG:
+    print("<!> handle_posture_monitoring_new()")
+    # :DEBUG
+
+    now = datetime.now()
+
+    if (now > auspost.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT):
+        # Get the most recent posture data for the user
+        recent_posture_data = get_user_postures(
+            auspost.get_user_id(), 
+            num = -1, 
+            period_start = now - GET_POSTURE_DATA_TIMEOUT, 
+            period_end = now
+        )
+
+        # Exit if not enough data
+        if len(recent_posture_data) <= POSTURE_GRAPH_WIDTH:
+            print("<!> Exiting handle_posture_monitoring_new() early: Not enough data")
+            # auspost.set_last_snapshot_time(datetime.now())
+            return True
+        
+        # Exit if not in frame enough
+        average_prop_in_frame = sum([posture.prop_in_frame for posture in recent_posture_data]) / len(recent_posture_data)
+        if average_prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD:
+            print("<!> Exiting handle_posturing_monitoring_new() early: Not in frame for a high enough proportion of time.")
+            auspost.set_last_snapshot_time(datetime.now())
+            return True
+        
+        # Sort the list by period_start
+        recent_posture_data = sorted(recent_posture_data, key=lambda posture: posture.period_start)
+
+        # Calculate total time span
+        start_time = recent_posture_data[0].period_start
+        end_time = recent_posture_data[-1].period_start
+        total_time = end_time - start_time
+
+        # Calculate the interval length
+        interval = total_time / POSTURE_GRAPH_WIDTH
+
+        # Setup a sublist each representing 1 pixel on the graph
+        split_posture_lists : list[list[Posture]]
+        split_posture_lists = [[] for _ in range(POSTURE_GRAPH_WIDTH)]
+
+        # Sublists will be split by period_start
+        for posture in recent_posture_data:
+            index = int((posture.period_start - start_time) // interval)
+            split_posture_lists[index].append(posture)
+
+        # Currently related to the height in the initialise_graph function.
+        # I'm assuming prop_good is between 0 and 1?
+        DEBUG_MULTIPLIER_CONSTANT = 60
+
+        # Enqueue the average good posture for the graph to use
+        for posture_list in split_posture_lists:
+            average_prop_good = sum([posture.prop_good for posture in posture_list]) / len(posture_list)
+            auspost.accept_new_posture_data(average_prop_good * DEBUG_MULTIPLIER_CONSTANT) 
+
+        auspost.set_last_snapshot_time(now)
+
     return True
 
 def handle_posture_monitoring(auspost : ControlledData) -> bool:
