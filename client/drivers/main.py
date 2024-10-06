@@ -7,21 +7,18 @@ Author:
     Gabriel Field (47484306), Mitchell Clark
 """
 
+import argparse
 ## SECTION: Imports
 import logging
 from datetime import datetime, timedelta
 
-from PiicoDev_Unified import sleep_ms
-from PiicoDev_Switch import *
-from PiicoDev_SSD1306 import *
-
 import RPi.GPIO as GPIO
-
+from data.routines import *
 from drivers.data_structures import ControlledData, HardwareComponents
 from drivers.login_system import handle_authentication
-from models.pose_detection.routines import PostureProcess
-
-from data.routines import *
+from PiicoDev_SSD1306 import *
+from PiicoDev_Switch import *
+from PiicoDev_Unified import sleep_ms
 
 ## SECTION: Global constants
 
@@ -77,24 +74,33 @@ def main():
     """
     Entry point for the control program.
     """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--no-posture-model", action="store_true")
+    args = parser.parse_args()
+
     logging.basicConfig(level=logging.DEBUG)
     logger.debug("Running main")
 
     logger.debug("Initialising database")
     init_database()
 
-    logger.debug("Initialising posture tracking process")
-    posture_process = PostureProcess()
+    if not args.no_posture_model:
+        from models.pose_detection.routines import PostureProcess
+
+        logger.debug("Initialising posture tracking process")
+        posture_process = PostureProcess()
 
     while True:
         user_id = handle_authentication(hardware)
         user = ControlledData.make_empty(user_id)
-        posture_process.track_user(user_id)
+        if not args.no_posture_model:
+            posture_process.track_user(user_id)
         logger.debug("Login successful")
 
         do_everything(user)
 
-        posture_process.untrack_user()
+        if not args.no_posture_model:
+            posture_process.untrack_user()
 
 
 ## SECTION: Hardware initialisation
