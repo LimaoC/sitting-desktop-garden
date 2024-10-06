@@ -43,11 +43,12 @@ FAIL_LOGIN_DELAY = 3000
 LOGIN_SUCCESS_DELAY = 3000
 """ Number of milliseconds between telling the user that login has succeeded and beginning real functionality. """
 
-POSTURE_GRAPH_WIDTH = 5
+POSTURE_GRAPH_DATUM_WIDTH = 5
+""" Width (in pixels) of each individual entry on the posture graph. (One pixel is hard to read.) """
 
 LOGOUT_SUCCESS_DELAY = 3000
 """ Number of milliseconds between the user successfully logging out and returning to main(). """
-GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds = 10000) # DEBUG: Change this value up to ~60000 later.
+GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds = 10000)
 """ Minimum delay between reading posture data from the SQLite database, in do_everything(). """
 PROPORTION_IN_FRAME_THRESHOLD = 0.3
 """ Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later. """
@@ -59,11 +60,13 @@ CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds = 1000)
 CUSHION_PROPORTION_GOOD_THRESHOLD = 0.5
 """
 Threshold for vibration cushion feedback. If the proportion of "good" sitting posture is below this, the cushion will vibrate. 
+FIXME: Fine-tune this value later.
 """
 
 HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds = 10000)
 """ Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback(). """
 
+# KILLME:
 HANDLE_SNIFF_FEEDBACK_TIMEOUT = timedelta(milliseconds = 20000)
 """ Minimum delay between consecutive uses of the scent bottle-controlling servos. Used in handle_feedback(). """
 
@@ -320,8 +323,9 @@ def do_everything(auspost : ControlledData) -> None:
     # Clear button queues
     hardware.button0.was_pressed
     hardware.button1.was_pressed
-    # Clear display
+    # Set up initial display
     hardware.display.fill(0)
+    hardware.oled_display_texts(hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1)
     hardware.display.show()
 
     while True:
@@ -362,13 +366,11 @@ def update_display_screen(auspost : ControlledData) -> bool:
     """
     print("<!> BEGIN update_display_screen()")
 
-    if not auspost.get_posture_data().empty():
+    while not auspost.get_posture_data().empty(): # NOTE: This is much more robust than getting a fixed number of things out of the queue
         hardware.display.fill(0)
         hardware.oled_display_texts(hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1)
-        for _ in range(POSTURE_GRAPH_WIDTH):
-            hardware.display.updateGraph2D(hardware.posture_graph, auspost.get_posture_data().get_nowait())
-        print(f"<!> {auspost.get_posture_data().qsize()=}") # DEBUG 2024-10-06_20-26 Gabe: wanna see the queue size
-        hardware.display.show() # Render
+        hardware.display.updateGraph2D(hardware.posture_graph, auspost.get_posture_data().get_nowait())
+        hardware.display.show()
     
     print("<!> END update_display_screen()")
     return True
@@ -391,7 +393,7 @@ def handle_posture_monitoring_new(auspost : ControlledData) -> bool:
         )
 
         # Exit if not enough data
-        if len(recent_posture_data) <= POSTURE_GRAPH_WIDTH:
+        if len(recent_posture_data) <= POSTURE_GRAPH_DATUM_WIDTH:
             print("<!> Exiting handle_posture_monitoring_new() early: Not enough data")
             # auspost.set_last_snapshot_time(datetime.now())
             return True
@@ -412,23 +414,16 @@ def handle_posture_monitoring_new(auspost : ControlledData) -> bool:
         total_time = end_time - start_time
 
         # Calculate the interval length
-        interval = total_time / POSTURE_GRAPH_WIDTH
+        interval = total_time / POSTURE_GRAPH_DATUM_WIDTH
 
         # Setup a sublist each representing 1 pixel on the graph
         split_posture_lists : list[list[Posture]]
-        split_posture_lists = [[] for _ in range(POSTURE_GRAPH_WIDTH)]
+        split_posture_lists = [[] for _ in range(POSTURE_GRAPH_DATUM_WIDTH)]
 
         # Sublists will be split by period_start
         for posture in recent_posture_data:
-            index = min(POSTURE_GRAPH_WIDTH - 1, int((posture.period_start - start_time) // interval))
+            index = min(POSTURE_GRAPH_DATUM_WIDTH - 1, int((posture.period_start - start_time) // interval))
             split_posture_lists[index].append(posture)
-
-        # TODO: Kill these comments
-        # Currently related to the height in the initialise_graph function.
-        # I'm assuming prop_good is between 0 and 1?
-        # This should be the posture graph height; or equivalently, turn the posture graph logical height down to
-        #  1 and kill off this variable
-        DEBUG_MULTIPLIER_CONSTANT = 1 # DEBUG: 2024-10-06_20-23 Gabe: tuned this a bit more; 60 is way too big
 
         new_prop_good_data = []
         # Enqueue the average good posture for the graph to use
@@ -438,14 +433,15 @@ def handle_posture_monitoring_new(auspost : ControlledData) -> bool:
             # KILLME:
             # print(f"<!> {average_prop_good=}")
             # auspost.accept_new_posture_data([average_prop_good] * DEBUG_MULTIPLIER_CONSTANT) # DEBUG: 2024-10-06_20-16 Gabe: Fixed the typing by wrapping into a singleton list
-            print(f"<!> Avg prop_good is {average_prop_good}")
-            new_prop_good_data.append(average_prop_good * DEBUG_MULTIPLIER_CONSTANT) 
+            # print(f"<!> Avg prop_good is {average_prop_good}")
+            new_prop_good_data += [average_prop_good] * POSTURE_GRAPH_DATUM_WIDTH
         auspost.accept_new_posture_data(new_prop_good_data)
 
         auspost.set_last_snapshot_time(now)
 
     return True
 
+# KILLME:
 def handle_posture_monitoring(auspost : ControlledData) -> bool:
     """
     Take a snapshot monitoring the user, and update the given ControlledData if necessary.

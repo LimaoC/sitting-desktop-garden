@@ -358,9 +358,7 @@ class HardwareComponents:
         """
         CONTROL_MESSAGES = self.get_control_messages(user_id)
         GRAPH_MIN_VALUE = 0
-        GRAPH_MAX_VALUE = 1    # TODO: 2024-09-02 07-53 Gabe:
-                                #       This needs to be a real value for the underlying data that we expect to be shown. 
-                                #       From memory, this is probably `60` for "number of the last 60 seconds spent sitting well"
+        GRAPH_MAX_VALUE = 1
         LINE_HEIGHT = 15 # pixels
         LINE_WIDTH = 16 # characters
         
