@@ -9,6 +9,7 @@ Author:
 
 ## SECTION: Imports
 import logging
+from datetime import datetime, timedelta
 
 from PiicoDev_Unified import sleep_ms
 from PiicoDev_Switch import *
@@ -16,12 +17,11 @@ from PiicoDev_SSD1306 import *
 
 import RPi.GPIO as GPIO
 
-from datetime import datetime, timedelta
-
 from drivers.data_structures import ControlledData, HardwareComponents
-from data.routines import *
 from drivers.login_system import handle_authentication
+from models.pose_detection.routines import PostureProcess
 
+from data.routines import *
 
 ## SECTION: Global constants
 
@@ -80,13 +80,21 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
     logger.debug("Running main")
 
+    logger.debug("Initialising database")
     init_database()
+
+    logger.debug("Initialising posture tracking process")
+    posture_process = PostureProcess()
 
     while True:
         user_id = handle_authentication(hardware)
         user = ControlledData.make_empty(user_id)
+        posture_process.track_user(user_id)
         logger.debug("Login successful")
+
         do_everything(user)
+
+        posture_process.untrack_user()
 
 
 ## SECTION: Hardware initialisation
