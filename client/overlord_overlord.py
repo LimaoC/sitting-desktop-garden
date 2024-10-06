@@ -38,9 +38,9 @@ def main():
     pi_overlord_exit_code = os.waitstatus_to_exit_code(pi_overlord_wait_status)
     logger.info(f"Reaped pi overlord with exit code {pi_overlord_exit_code}")
 
-    os.kill(camera_overlord.camerad, signal.SIGINT)
-    _, camera_overlord_wait_status = os.waitcamerad(camera_overlord.camerad, 0)
-    camera_overlord_exit_code = os.waitstatus_to_exit_code(camera_overlord_wait_status)
+    os.kill(camera_overlord.pid, signal.SIGINT)
+    _, camera_overlord_wait_status = os.waitcamerad(camera_overlord.pid, 0)
+    camera_overlord_exit_code = os.waitstatus_to_exitcode(camera_overlord_wait_status)
     logger.info(f"Reaped camera overlord with exit code {camera_overlord_exit_code}")
 
     logger.info("Exiting")
