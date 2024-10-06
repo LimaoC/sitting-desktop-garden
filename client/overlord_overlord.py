@@ -2,6 +2,7 @@
 One overlord to rule them all...
 """
 
+import argparse
 import logging
 import multiprocessing
 import os
@@ -16,12 +17,18 @@ def spawn_camera_overlord():
     subprocess.run([PYTHON_CAMERA, "drivers/camera_overlord.py"])
 
 
-def spawn_pi_overlord():
-    subprocess.run([PYTHON_DEFAULT, "drivers/main.py"])
+def spawn_pi_overlord(no_posture_model):
+    cmd = [PYTHON_DEFAULT, "drivers/main.py"]
+    if no_posture_model:
+        cmd.append("--no-posture-model")
+    subprocess.run(cmd)
 
 
 def main():
     logger = logging.getLogger(__name__)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--no-posture-model", action="store_true")
+    args = parser.parse_args()
 
     # Spawn a new process to run the camera indefinitely
     camera_overlord = multiprocessing.Process(target=spawn_camera_overlord, args=())
@@ -29,7 +36,9 @@ def main():
     camera_overlord.start()
 
     # Spawn a new process to run the Raspberry Pi code
-    pi_overlord = multiprocessing.Process(target=spawn_pi_overlord, args=())
+    pi_overlord = multiprocessing.Process(
+        target=spawn_pi_overlord, args=(args.no_posture_model,)
+    )
     logger.info("Starting pi overlord")
     pi_overlord.start()
 
