@@ -19,7 +19,6 @@ import RPi.GPIO as GPIO
 from datetime import datetime, timedelta
 
 from drivers.data_structures import ControlledData, HardwareComponents
-from ai_bros import *
 from data.routines import *
 from drivers.login_system import handle_authentication
 
@@ -241,9 +240,7 @@ def handle_posture_monitoring(auspost: ControlledData) -> bool:
     if now > auspost.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT:
         # TODO: The ai_bros_get_posture_data() call might fail once it's implemented properly.
         #       If it does, we need to handle it properly.
-        auspost.accept_new_posture_data(
-            ai_bros_get_posture_data(auspost.get_last_snapshot_time())
-        )
+        auspost.accept_new_posture_data([])
         # DEBUG:
         auspost.accept_new_posture_data([auspost.DEBUG_get_next_posture_graph_value()])
         # :DEBUG
