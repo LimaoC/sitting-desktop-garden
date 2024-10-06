@@ -420,7 +420,7 @@ def handle_posture_monitoring_new(auspost : ControlledData) -> bool:
 
         # Sublists will be split by period_start
         for posture in recent_posture_data:
-            index = int((posture.period_start - start_time) // interval)
+            index = min(POSTURE_GRAPH_WIDTH - 1, int((posture.period_start - start_time) // interval))
             split_posture_lists[index].append(posture)
 
         # Currently related to the height in the initialise_graph function.
