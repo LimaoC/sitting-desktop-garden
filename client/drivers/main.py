@@ -47,7 +47,7 @@ POSTURE_GRAPH_WIDTH = 5
 
 LOGOUT_SUCCESS_DELAY = 3000
 """ Number of milliseconds between the user successfully logging out and returning to main(). """
-GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds = 5000) # DEBUG: Change this value up to ~60000 later.
+GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds = 10000) # DEBUG: Change this value up to ~60000 later.
 """ Minimum delay between reading posture data from the SQLite database, in do_everything(). """
 PROPORTION_IN_FRAME_THRESHOLD = 0.3
 """ Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later. """
@@ -362,14 +362,14 @@ def update_display_screen(auspost : ControlledData) -> bool:
     """
     print("<!> BEGIN update_display_screen()")
 
-    hardware.display.fill(0)
-    hardware.oled_display_texts(hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1)
     if not auspost.get_posture_data().empty():
+        hardware.display.fill(0)
+        hardware.oled_display_texts(hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1)
         for _ in range(POSTURE_GRAPH_WIDTH):
             hardware.display.updateGraph2D(hardware.posture_graph, auspost.get_posture_data().get_nowait())
-    # Render
-    hardware.display.show()
-
+        print(f"<!> {auspost.get_posture_data().qsize()=}") # DEBUG 2024-10-06_20-26 Gabe: wanna see the queue size
+        hardware.display.show() # Render
+    
     print("<!> END update_display_screen()")
     return True
 
@@ -423,14 +423,19 @@ def handle_posture_monitoring_new(auspost : ControlledData) -> bool:
             index = min(POSTURE_GRAPH_WIDTH - 1, int((posture.period_start - start_time) // interval))
             split_posture_lists[index].append(posture)
 
+        # TODO: Kill these comments
         # Currently related to the height in the initialise_graph function.
         # I'm assuming prop_good is between 0 and 1?
-        DEBUG_MULTIPLIER_CONSTANT = 60
+        # This should be the posture graph height; or equivalently, turn the posture graph logical height down to
+        #  1 and kill off this variable
+        DEBUG_MULTIPLIER_CONSTANT = 2 # DEBUG: 2024-10-06_20-23 Gabe: tuned this a bit more; 60 is way too big
 
         # Enqueue the average good posture for the graph to use
         for posture_list in split_posture_lists:
+            print(f"<!> {posture_list=}")
             average_prop_good = sum([posture.prop_good for posture in posture_list]) / len(posture_list)
-            auspost.accept_new_posture_data(average_prop_good * DEBUG_MULTIPLIER_CONSTANT) 
+            print(f"<!> {average_prop_good=}")
+            auspost.accept_new_posture_data([average_prop_good] * DEBUG_MULTIPLIER_CONSTANT) # DEBUG: 2024-10-06_20-16 Gabe: Fixed the typing by wrapping into a singleton list
 
         auspost.set_last_snapshot_time(now)
 
