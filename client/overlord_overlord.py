@@ -35,7 +35,7 @@ def main():
 
     # If the Pi process ever terminates, gracefully terminate the camera process
     _, pi_overlord_wait_status = os.waitpid(pi_overlord.pid, 0)
-    pi_overlord_exit_code = os.waitstatus_to_exit_code(pi_overlord_wait_status)
+    pi_overlord_exit_code = os.waitstatus_to_exitcode(pi_overlord_wait_status)
     logger.info(f"Reaped pi overlord with exit code {pi_overlord_exit_code}")
 
     os.kill(camera_overlord.pid, signal.SIGINT)
