@@ -428,14 +428,19 @@ def handle_posture_monitoring_new(auspost : ControlledData) -> bool:
         # I'm assuming prop_good is between 0 and 1?
         # This should be the posture graph height; or equivalently, turn the posture graph logical height down to
         #  1 and kill off this variable
-        DEBUG_MULTIPLIER_CONSTANT = 2 # DEBUG: 2024-10-06_20-23 Gabe: tuned this a bit more; 60 is way too big
+        DEBUG_MULTIPLIER_CONSTANT = 1 # DEBUG: 2024-10-06_20-23 Gabe: tuned this a bit more; 60 is way too big
 
+        new_prop_good_data = []
         # Enqueue the average good posture for the graph to use
         for posture_list in split_posture_lists:
             print(f"<!> {posture_list=}")
             average_prop_good = sum([posture.prop_good for posture in posture_list]) / len(posture_list)
-            print(f"<!> {average_prop_good=}")
-            auspost.accept_new_posture_data([average_prop_good] * DEBUG_MULTIPLIER_CONSTANT) # DEBUG: 2024-10-06_20-16 Gabe: Fixed the typing by wrapping into a singleton list
+            # KILLME:
+            # print(f"<!> {average_prop_good=}")
+            # auspost.accept_new_posture_data([average_prop_good] * DEBUG_MULTIPLIER_CONSTANT) # DEBUG: 2024-10-06_20-16 Gabe: Fixed the typing by wrapping into a singleton list
+            print(f"<!> Avg prop_good is {average_prop_good}")
+            new_prop_good_data.append(average_prop_good * DEBUG_MULTIPLIER_CONSTANT) 
+        auspost.accept_new_posture_data(new_prop_good_data)
 
         auspost.set_last_snapshot_time(now)
 
