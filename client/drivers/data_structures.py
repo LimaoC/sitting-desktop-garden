@@ -387,7 +387,6 @@ class HardwareComponents:
         self.plant_height : int = 0
         self.plant_mover.speed = 0  # Stop the plant mover from spinning.
         self.unwind_plant()
-        self.wind_plant_to_lowest_safe_height()
 
     # SECTION: Setters
 
@@ -482,6 +481,9 @@ class HardwareComponents:
                 Height to which to drive the I. Jensen Plant Mover 10000
         """
         self.plant_mover.speed = 0
+        # DEBUG::
+        print(f"<!> set_plant_height: {self.plant_height=}, {new_height=}")
+        # ::DEBUG
         distance = new_height - self.plant_height
         distance = distance if distance > 0 else (-1) * distance
         if new_height == self.plant_height:

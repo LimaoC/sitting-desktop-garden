@@ -61,7 +61,7 @@ Threshold for vibration cushion feedback. If the proportion of "good" sitting po
 FIXME: Fine-tune this value later.
 """
 
-HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=10000)
+HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=2000) # DEBUG: used to be 10000
 """ Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback(). """
 PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
 """
