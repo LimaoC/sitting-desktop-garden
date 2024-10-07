@@ -146,12 +146,6 @@ class PostureTracker(PoseLandmarker):
         if time.time() - self._start_time <= PERIOD_SECONDS:
             return
 
-        # DEBUG::
-        print("<!> ======== DATABASE POWERED BY AI ========")
-        # FIXME: I'm not convinced that this is writing to the database on the rpi.
-        # It's probably a camera alignment issue. But I'm not gonna test that on the
-        # `posture_graphing_impossible_to_test` branch lol
-        # ::DEBUG
         period_end = datetime.now()
         posture = Posture(
             id_=None,
