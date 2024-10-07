@@ -508,6 +508,8 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
             sleep_ms(hardware._PLANT_MOVER_PERIOD)
             hardware.plant_mover.speed = 0
         # Otherwise, go down one disc.
+        # WARNING: The current code will damage the product. We can't screw the screw in tighter than 
+        #          the tightest without putting strain somewhere it shouldn't be.
         else:
             hardware.plant_mover.speed = -1
             sleep_ms(hardware._PLANT_MOVER_PERIOD)
