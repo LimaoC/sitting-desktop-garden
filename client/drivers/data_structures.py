@@ -30,6 +30,7 @@ EMPTY_USER_ID = -1
 
 LEFT_BUTTON = 0
 RIGHT_BUTTON = 1
+DOUBLE_RIGHT_BUTTON = 2
 
 
 ## SECTION: ControlledData
@@ -425,9 +426,9 @@ class HardwareComponents:
         CONTROL_MESSAGES = self.get_control_messages(user_id)
         GRAPH_MIN_VALUE = 0
         GRAPH_MAX_VALUE = 1
-        LINE_HEIGHT = 15 # pixels
-        LINE_WIDTH = 16 # characters
-        
+        LINE_HEIGHT = 15  # pixels
+        LINE_WIDTH = 16  # characters
+
         # The posture graph will occupy space from the bottom (y = HEIGHT - 1) up to initialisation_y_value.
         flatten = lambda xss: [x for xs in xss for x in xs]
         it = flatten(
@@ -593,11 +594,21 @@ class HardwareComponents:
         """
         self._clear_buttons()
         while True:
-            if self.button0.was_pressed:
-                return LEFT_BUTTON
+            pressed_button = -1
 
-            if self.button1.was_pressed:
-                return RIGHT_BUTTON
+            # Checking double press first as double press implies single press
+            if self.button1.was_double_pressed:
+                pressed_button = DOUBLE_RIGHT_BUTTON
+            elif self.button0.was_pressed:
+                pressed_button = LEFT_BUTTON
+            elif self.button1.was_pressed:
+                pressed_button = RIGHT_BUTTON
+
+            if pressed_button != -1:
+                self._clear_buttons()
+                return pressed_button
+            
+            time.sleep(0.5) # DEBUG
 
     def _clear_buttons(self) -> None:
         """Clear pressed status from all buttons."""

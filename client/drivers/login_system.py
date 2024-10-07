@@ -10,10 +10,16 @@ import numpy as np
 from data.routines import next_user_id, create_user
 from models.pose_detection.frame_capturer import RaspCapturer
 from models.face_recognition.recognition import register_faces, get_face_match, Status
-from drivers.data_structures import HardwareComponents, LEFT_BUTTON, RIGHT_BUTTON
+from drivers.data_structures import (
+    HardwareComponents,
+    LEFT_BUTTON,
+    RIGHT_BUTTON,
+    DOUBLE_RIGHT_BUTTON,
+)
 
 NUM_FACES = 5
 QUIT = -4
+RESET = -5
 BAD_STATUS_MESSAGES = {
     Status.NO_FACES.value: "No face detected please",
     Status.TOO_MANY_FACES.value: "Too many faces detected",
@@ -36,7 +42,12 @@ def handle_authentication(hardware: HardwareComponents) -> int:
         id of logged in user.
     """
     while True:
-        _log_and_send(hardware, "Left button to login\nRight button to register")
+        _log_and_send(
+            hardware,
+            "Left button to login\n"
+            "Right button to register\n"
+            "Double press right button to reset data",
+        )
         button = hardware.wait_for_button_press()
 
         if button == RIGHT_BUTTON:
@@ -44,6 +55,9 @@ def handle_authentication(hardware: HardwareComponents) -> int:
 
         if button == LEFT_BUTTON:
             status = _loop_action(hardware, _attempt_login)
+
+        if button == DOUBLE_RIGHT_BUTTON:
+            return RESET
 
         if _is_status_id(status):
             return status
@@ -78,6 +92,7 @@ def _attempt_login(hardware: HardwareComponents) -> int:
     if button_pressed == RIGHT_BUTTON:
         return QUIT
 
+    _log_and_send("Trying login...")
     status = get_face_match(face)
     _handle_status_message(hardware, status)
 
