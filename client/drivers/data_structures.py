@@ -349,13 +349,20 @@ class HardwareComponents:
     TODO: Check this value against what happens when we put the plant mover on it.
     NOTE: This is NON-LINEAR with the `.speed` attribute, for whatever reason.
     """
-    _FULL_SPEED_UPWARDS = 0.1
+    _BASE_FULL_SPEED = 0.1
+    """Top speed for the `PiicoDev_Servo` in our application."""
+    _FULL_SPEED_UPWARDS = _BASE_FULL_SPEED * (4 / 7)
     """
     Value for the `PiicoDev_Servo`'s `.speed` attribute when moving the plant up.
     TODO: Check this value indeed drives the plant UP, not down.
+    NOTE: This is asymmetric with `_FULL_SPEED_DOWNWARDS`. I don't know why.
     """
-    _FULL_SPEED_DOWNWARDS = (-1) * _FULL_SPEED_UPWARDS
-    """Value for the `PiicoDev_Servo`'s `.speed` attribute when moving the plant down."""
+    _FULL_SPEED_DOWNWARDS = (-1) * _BASE_FULL_SPEED * (4 / 5)
+    """
+    Value for the `PiicoDev_Servo`'s `.speed` attribute when moving the plant down.
+    TODO: Check this value indeed drives the plant UP, not down.
+    NOTE: This is asymmetric with `_FULL_SPEED_DOWNWARDS`. I don't know why.
+    """
 
     # SECTION: Constructors
 
