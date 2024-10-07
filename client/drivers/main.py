@@ -504,9 +504,9 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
         
         # TODO: Track ABSOLUTE position of the Plant Mover 10000, and ensure that we
         #       don't go above or below the bounds.
-        
+
         # If posture is good over half the time, go up one disc. 
-        if average_prop_good > 0.5:
+        if average_prop_good > 0.5: # TODO: Pull this into a tunable constant
             hardware.plant_mover.speed = 1
             sleep_ms(hardware._PLANT_MOVER_PERIOD)
             hardware.plant_mover.speed = 0
