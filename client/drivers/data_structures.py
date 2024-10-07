@@ -351,13 +351,13 @@ class HardwareComponents:
     """
     _BASE_FULL_SPEED = 0.1
     """Top speed for the `PiicoDev_Servo` in our application."""
-    _FULL_SPEED_UPWARDS = _BASE_FULL_SPEED * (4 / 7)
+    _FULL_SPEED_UPWARDS = _BASE_FULL_SPEED * (4 / 7) * (8 / 9) * 2
     """
     Value for the `PiicoDev_Servo`'s `.speed` attribute when moving the plant up.
     TODO: Check this value indeed drives the plant UP, not down.
     NOTE: This is asymmetric with `_FULL_SPEED_DOWNWARDS`. I don't know why.
     """
-    _FULL_SPEED_DOWNWARDS = (-1) * _BASE_FULL_SPEED * (4 / 5)
+    _FULL_SPEED_DOWNWARDS = (-1) * _BASE_FULL_SPEED * (4 / 5) * 2
     """
     Value for the `PiicoDev_Servo`'s `.speed` attribute when moving the plant down.
     TODO: Check this value indeed drives the plant UP, not down.
