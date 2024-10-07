@@ -338,7 +338,7 @@ class HardwareComponents:
     To obtain `x` full rotations of the plant-moving shaft, make `x * _PLANT_GEAR_RATIO` full rotations of the
      `plant_mover`.
     """
-    _PLANT_MOVER_PERIOD : float = 1000 * 60 / 22
+    _PLANT_MOVER_PERIOD : float = 1000 * 60 / 55
     """
     Period (in milliseconds) for one full turn of the continuous rotation servo.
     To make a full turn of the continuous rotation servo, set its `.speed` to `_FULL_SPEED_UPWARDS` or
@@ -347,7 +347,7 @@ class HardwareComponents:
     TODO: Check this value against what happens when we put the plant mover on it.
     NOTE: This is NON-LINEAR with the `.speed` attribute, for whatever reason.
     """
-    _FULL_SPEED_UPWARDS = 0.05
+    _FULL_SPEED_UPWARDS = 0.1
     """
     Value for the `PiicoDev_Servo`'s `.speed` attribute when moving the plant up.
     TODO: Check this value indeed drives the plant UP, not down.
