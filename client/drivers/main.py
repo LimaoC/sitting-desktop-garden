@@ -61,6 +61,12 @@ FIXME: Fine-tune this value later.
 
 HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=10000)
 """ Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback(). """
+PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
+"""
+Threshold for I. Jensen Plant Mover 10000 feedback. If the proportion of "good" sitting posture is below this,
+the plant will move down.
+FIXME: Fine-tune this value later.
+"""
 
 # KILLME:
 HANDLE_SNIFF_FEEDBACK_TIMEOUT = timedelta(milliseconds=20000)
@@ -506,8 +512,8 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
         #       don't go above or below the bounds.
 
         # If posture is good over half the time, go up one disc. 
-        if average_prop_good > 0.5: # TODO: Pull this into a tunable constant
-            hardware.plant_mover.speed = 1
+        if average_prop_good >= PLANT_PROPORTION_GOOD_THRESHOLD:
+            hardware.plant_mover.speed = hardware._FULL_SPEED_UPWARDS
             sleep_ms(hardware._PLANT_MOVER_PERIOD)
             hardware.plant_mover.speed = 0
         # Otherwise, go down one disc.
@@ -515,7 +521,7 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
         # WARNING: The current code will damage the product. We can't screw the screw in tighter than 
         #          the tightest without putting strain somewhere it shouldn't be.
         else:
-            hardware.plant_mover.speed = -1
+            hardware.plant_mover.speed = hardware._FULL_SPEED_DOWNWARDS
             sleep_ms(hardware._PLANT_MOVER_PERIOD)
             hardware.plant_mover.speed = 0
         
