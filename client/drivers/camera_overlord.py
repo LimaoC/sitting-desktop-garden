@@ -41,8 +41,18 @@ if __name__ == "__main__":
         f.close()
     except FileExistsError:
         print("Snapshot already exists")
+    
+    try:
+        f = open("/tmp/big_brother.jpg", "x")
+        f.close()
+    except FileExistsError:
+        print("Big Brother already exists")
+    
 
     while True:
-        picam2.capture_file("/tmp/snapshot2.jpg")
-        os.replace("/tmp/snapshot2.jpg", "/tmp/snapshot.jpg")
-        time.sleep(0.5)
+        for _ in range(2 * 3):
+            picam2.capture_file("/tmp/snapshot2.jpg")
+            os.replace("/tmp/snapshot2.jpg", "/tmp/snapshot.jpg")
+            time.sleep(0.5)
+        picam2.capture_file("/tmp/snapshot3.jpg")
+        os.replace("/tmp/snapshot3.jpg", "/tmp/big_brother.jpg")
