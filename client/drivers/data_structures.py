@@ -487,15 +487,19 @@ class HardwareComponents:
         """
         self._clear_buttons()
         while True:
+            pressed_button = -1
+
             # Checking double press first as double press implies single press
             if self.button1.was_double_pressed:
-                return DOUBLE_RIGHT_BUTTON
+                pressed_button = DOUBLE_RIGHT_BUTTON
+            elif self.button0.was_pressed:
+                pressed_button = LEFT_BUTTON
+            elif self.button1.was_pressed:
+                pressed_button = RIGHT_BUTTON
 
-            if self.button0.was_pressed:
-                return LEFT_BUTTON
-
-            if self.button1.was_pressed:
-                return RIGHT_BUTTON
+            if pressed_button != -1:
+                self._clear_buttons()
+                return pressed_button
 
     def _clear_buttons(self) -> None:
         """Clear pressed status from all buttons."""
