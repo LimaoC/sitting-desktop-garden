@@ -469,7 +469,52 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
     # DEBUG:
     print("<!> handle_plant_feedback()")
     # :DEBUG
-    auspost.set_last_plant_time(datetime.now())
+
+    now = datetime.now()
+
+    if now > auspost.get_last_snapshot_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
+        # Get the most recent posture data for the user
+        recent_posture_data = get_user_postures(
+            auspost.get_user_id(),
+            num=-1,
+            period_start=now - GET_POSTURE_DATA_TIMEOUT,
+            period_end=now,
+        )
+
+        # Conditions for exiting early
+        if len(recent_posture_data) == 0:
+            print("<!> Exiting handle_plant_feedback() early: No data")
+            auspost.set_last_plant_time(datetime.now())
+            return True
+        
+        average_prop_in_frame = sum(
+            [posture.prop_in_frame for posture in recent_posture_data]
+        ) / len(recent_posture_data)
+        if average_prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD:
+            print(
+                "<!> Exiting handle_plant_feedback() early: Not in frame for a high enough proportion of time."
+            )
+            auspost.set_last_cushion_time(datetime.now())
+            return True
+        
+        # Calculate average proportion
+        average_prop_good = sum(
+            [posture.prop_good for posture in recent_posture_data]
+        ) / len(recent_posture_data)
+        
+        # If posture is good over half the time, go up one disc. 
+        if average_prop_good > 0.5:
+            hardware.plant_mover.speed = 1
+            sleep_ms(hardware._PLANT_MOVER_PERIOD)
+            hardware.plant_mover.speed = 0
+        # Otherwise, go down one disc.
+        else:
+            hardware.plant_mover.speed = -1
+            sleep_ms(hardware._PLANT_MOVER_PERIOD)
+            hardware.plant_mover.speed = 0
+        
+        auspost.set_last_plant_time(datetime.now())
+        
     return True
 
 

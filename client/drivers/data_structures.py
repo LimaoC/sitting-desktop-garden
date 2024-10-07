@@ -12,6 +12,7 @@ import time
 from typing import List
 from PiicoDev_Switch import PiicoDev_Switch
 from PiicoDev_SSD1306 import *
+from PiicoDev_Servo import PiicoDev_Servo, PiicoDev_Servo_Driver
 
 from datetime import datetime
 from queue import Queue
@@ -321,6 +322,31 @@ class HardwareComponents:
     """
     posture_graph_from: int | None
     """y-coordinate from which the posture graph begins, or `None` if no posture graph is active."""
+    
+    plant_mover : PiicoDev_Servo
+    """
+    Continuous rotation servo driving the I. Jensen Plant Mover 9000.
+    Its `midpoint_us` is `1600`.
+    """
+    _PLANT_SHAFT_TURNS : int = 13
+    """Maximum number of turns that can be made on the plant-moving shaft before damaging the product."""
+    _PLANT_SHAFT_SAFETY_BUFFER_TURNS : int = 3
+    """Number of turns on the plant-moving shaft to leave as a buffer, to ensure we don't damage the product."""
+    _PLANT_GEAR_RATIO : float = 2
+    """
+    Gear ratio between the plant-moving shaft and the continuous servo controlled by this HardwareComponents.
+    To obtain `x` full rotations of the plant-moving shaft, make `x * _PLANT_GEAR_RATIO` full rotations of the
+     `plant_mover`.
+    """
+    _PLANT_MOVER_PERIOD : float = 1000 * 60 / 130
+    """
+    Period (in milliseconds) for one full turn of the continuous rotation servo.
+    To make a full turn of the continuous rotation servo, set its `.speed` to `1` or `-1` and wait 
+     `_PLANT_MOVER_PERIOD` milliseconds.
+    WARNING: This value may be different once we put some load on the plant mover!
+    TODO: Check this value against what happens when we put the plant mover on it.
+    NOTE: This is NON-LINEAR with the `.speed` attribute, for whatever reason.
+    """
 
     # SECTION: Constructors
 
@@ -339,14 +365,16 @@ class HardwareComponents:
                 id=[0, 0, 0, 1], double_press_duration=DOUBLE_PRESS_DURATION
             ),  # WARNING: 2024-09-01 17:12 Gabe: I think this produces an "I2C is not enabled" warning. No idea why.
             create_PiicoDev_SSD1306(),  # This is the constructor; ignore the "is not defined" error message.
+            PiicoDev_Servo(PiicoDev_Servo_Driver(), 1, midpoint_us=1600, range_us=1800)
         )
 
-    def __init__(self, button0, button1, display):
+    def __init__(self, button0, button1, display, plant_mover):
         self.button0: PiicoDev_Switch = button0
         self.button1: PiicoDev_Switch = button1
         self.display: PiicoDev_SSD1306 = display
         self.posture_graph: PiicoDev_SSD1306.graph2D | None = None
         self.posture_graph_from: int | None = None
+        self.plant_mover : PiicoDev_Servo = plant_mover
 
     # SECTION: Setters
 
