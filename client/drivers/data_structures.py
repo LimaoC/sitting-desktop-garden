@@ -500,6 +500,8 @@ class HardwareComponents:
             if pressed_button != -1:
                 self._clear_buttons()
                 return pressed_button
+            
+            time.sleep(0.5) # DEBUG
 
     def _clear_buttons(self) -> None:
         """Clear pressed status from all buttons."""

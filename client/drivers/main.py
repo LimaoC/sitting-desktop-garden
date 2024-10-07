@@ -508,12 +508,18 @@ def handle_sniff_feedback(auspost: ControlledData) -> bool:
 
 def _reset_garden() -> None:
     """Reset data, faces and hardware."""
+    print("<!> Burning the garden to the ground...")
+
     global hardware
 
     destroy_database()
+    print("\t<!> initialising database anew...")
     init_database()
+    print("\t<!> resetting face embeddings...")
     reset_registered_face_embeddings()
+    print("\t<!> initialising hardware...")
     hardware = initialise_hardware()
+    print("\t<!> Like a phoenex, the Sitting Desktop Garden rises anew")
 
 
 ## LAUNCH
