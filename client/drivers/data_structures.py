@@ -464,7 +464,7 @@ class HardwareComponents:
         time.sleep(16 * self._PLANT_MOVER_PERIOD * self._PLANT_GEAR_RATIO / 1000)
         self.plant_mover.speed = 0
     
-    def wind_plant_to_lowest_safe_height(self) -> None:
+    def wind_plant_safe(self) -> None:
         """
         Wind the plant down to its minimum (safe) height.
         Will also reset the `plant_height` to `0`.

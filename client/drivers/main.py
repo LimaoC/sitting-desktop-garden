@@ -173,7 +173,7 @@ def do_everything(auspost: ControlledData) -> None:
     hardware.initialise_posture_graph(auspost.get_user_id())
 
     # Wind plant down all the way
-    hardware.wind_plant_to_lowest_safe_height()
+    hardware.wind_plant_safe()
 
     # Display message to user
     hardware.display.fill(0)
