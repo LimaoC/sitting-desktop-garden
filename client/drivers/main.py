@@ -7,19 +7,20 @@ Author:
     Gabriel Field (47484306), Mitchell Clark
 """
 
-import argparse
 ## SECTION: Imports
+import argparse
 import logging
 from datetime import datetime, timedelta
 
 import RPi.GPIO as GPIO
+from PiicoDev_SSD1306 import *
+from PiicoDev_Switch import *
+from PiicoDev_Unified import sleep_ms
+
 from models.pose_detection.frame_capturer import RaspCapturer
 from data.routines import *
 from drivers.data_structures import ControlledData, HardwareComponents
 from drivers.login_system import handle_authentication
-from PiicoDev_SSD1306 import *
-from PiicoDev_Switch import *
-from PiicoDev_Unified import sleep_ms
 
 ## SECTION: Global constants
 
