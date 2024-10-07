@@ -49,7 +49,7 @@ GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds=10000)
 PROPORTION_IN_FRAME_THRESHOLD = 0.3
 """ Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later. """
 
-HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=5000)
+HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=10000) # DEBUG
 """ Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback(). """
 CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=1000)
 """ Length of time for which the vibration motor should vibrate. Used in handle_cushion_feedback(). """
@@ -252,8 +252,11 @@ def handle_posture_monitoring_new(auspost: ControlledData) -> bool:
             period_end=now,
         )
 
+        # DEBUG::
         # Exit if not enough data
-        if len(recent_posture_data) <= POSTURE_GRAPH_DATUM_WIDTH:
+        # if len(recent_posture_data) <= POSTURE_GRAPH_DATUM_WIDTH:
+        if len(recent_posture_data) == 0:
+        # ::DEBUG
             print("<!> Exiting handle_posture_monitoring_new() early: Not enough data")
             # auspost.set_last_snapshot_time(datetime.now())
             return True
@@ -276,8 +279,8 @@ def handle_posture_monitoring_new(auspost: ControlledData) -> bool:
 
         # Calculate total time span
         start_time = recent_posture_data[0].period_start
-        end_time = recent_posture_data[-1].period_start
-        total_time = end_time - start_time
+        end_time = recent_posture_data[-1].period_end    # DEBUG: Used to be period_start
+        total_time = end_time - start_time # BUG: This calculation sometimes results in `0`, which gets divided by later...
 
         # Calculate the interval length
         interval = total_time / POSTURE_GRAPH_DATUM_WIDTH
@@ -297,6 +300,8 @@ def handle_posture_monitoring_new(auspost: ControlledData) -> bool:
         new_prop_good_data = []
         # Enqueue the average good posture for the graph to use
         for posture_list in split_posture_lists:
+            if len(posture_list) == 0:
+                continue
             print(f"<!> {posture_list=}")
             average_prop_good = sum(
                 [posture.prop_good for posture in posture_list]
