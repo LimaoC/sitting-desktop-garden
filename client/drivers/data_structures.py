@@ -375,6 +375,7 @@ class HardwareComponents:
         self.posture_graph: PiicoDev_SSD1306.graph2D | None = None
         self.posture_graph_from: int | None = None
         self.plant_mover : PiicoDev_Servo = plant_mover
+        self.plant_mover.speed = 0  # Stop the plant mover from spinning.
 
     # SECTION: Setters
 
