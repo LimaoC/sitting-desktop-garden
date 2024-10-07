@@ -502,6 +502,9 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
             [posture.prop_good for posture in recent_posture_data]
         ) / len(recent_posture_data)
         
+        # TODO: Track ABSOLUTE position of the Plant Mover 10000, and ensure that we
+        #       don't go above or below the bounds.
+        
         # If posture is good over half the time, go up one disc. 
         if average_prop_good > 0.5:
             hardware.plant_mover.speed = 1
