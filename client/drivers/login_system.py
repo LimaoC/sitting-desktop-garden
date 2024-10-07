@@ -92,6 +92,7 @@ def _attempt_login(hardware: HardwareComponents) -> int:
     if button_pressed == RIGHT_BUTTON:
         return QUIT
 
+    _log_and_send("Trying login...")
     status = get_face_match(face)
     _handle_status_message(hardware, status)
 
