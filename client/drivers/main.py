@@ -18,9 +18,15 @@ from PiicoDev_Switch import *
 from PiicoDev_Unified import sleep_ms
 
 from models.pose_detection.frame_capturer import RaspCapturer
-from data.routines import *
+from data.routines import (
+    init_database,
+    destroy_database,
+    reset_registered_face_embeddings,
+    get_user_postures,
+    Posture,
+)
 from drivers.data_structures import ControlledData, HardwareComponents
-from drivers.login_system import handle_authentication
+from drivers.login_system import handle_authentication, RESET
 
 ## SECTION: Global constants
 
@@ -97,11 +103,19 @@ def main():
 
     while True:
         user_id = handle_authentication(hardware)
+
+        # Handle reset
+        if user_id == RESET:
+            _reset_garden()
+            continue
+
+        # Create user session data
         user = ControlledData.make_empty(user_id)
         if not args.no_posture_model:
             posture_process.track_user(user_id)
         logger.debug("Login successful")
 
+        # Run user session
         do_everything(user)
 
         if not args.no_posture_model:
@@ -490,6 +504,16 @@ def handle_sniff_feedback(auspost: ControlledData) -> bool:
     # :DEBUG
     auspost.set_last_sniff_time(datetime.now())
     return True
+
+
+def _reset_garden() -> None:
+    """Reset data, faces and hardware."""
+    global hardware
+
+    destroy_database()
+    init_database()
+    reset_registered_face_embeddings()
+    hardware = initialise_hardware()
 
 
 ## LAUNCH
