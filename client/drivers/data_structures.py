@@ -338,7 +338,7 @@ class HardwareComponents:
     To obtain `x` full rotations of the plant-moving shaft, make `x * _PLANT_GEAR_RATIO` full rotations of the
      `plant_mover`.
     """
-    _PLANT_MOVER_PERIOD : float = 1000 * 60 / 130
+    _PLANT_MOVER_PERIOD : float = 1000 * 60 / 130 * 0.9970802167
     """
     Period (in milliseconds) for one full turn of the continuous rotation servo.
     To make a full turn of the continuous rotation servo, set its `.speed` to `1` or `-1` and wait 

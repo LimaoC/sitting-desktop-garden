@@ -11,6 +11,7 @@ Author:
 import argparse
 import logging
 from datetime import datetime, timedelta
+import time
 
 import RPi.GPIO as GPIO
 from PiicoDev_SSD1306 import *
@@ -515,16 +516,30 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
         # If posture is good over half the time, go up one disc. 
         if average_prop_good >= PLANT_PROPORTION_GOOD_THRESHOLD:
             hardware.plant_mover.speed = hardware._FULL_SPEED_UPWARDS
-            sleep_ms(hardware._PLANT_MOVER_PERIOD)
+            # NOTE: Both this polling-based approach and the approach of just calling `sleep_ms()`
+            #       are unreliable and don't produce exactly the desired amount of time.
+            # FIXME: Slow down the servo so that we can tolerate small errors introduced by this
+            #        delay code.
+            start = time.time()
+            while (time.time() - start) * 1000 < hardware._PLANT_MOVER_PERIOD:
+                # sleep_ms(hardware._PLANT_MOVER_PERIOD)
+                sleep_ms(1)
             hardware.plant_mover.speed = 0
+            end = time.time()
+            print(f"<!> ~~~~~~~~~~~~~ took: {end - start} seconds")
         # Otherwise, go down one disc.
         # FIXME: vv
         # WARNING: The current code will damage the product. We can't screw the screw in tighter than 
         #          the tightest without putting strain somewhere it shouldn't be.
         else:
             hardware.plant_mover.speed = hardware._FULL_SPEED_DOWNWARDS
-            sleep_ms(hardware._PLANT_MOVER_PERIOD)
+            start = time.time()
+            while (time.time() - start) * 1000 < hardware._PLANT_MOVER_PERIOD:
+                # sleep_ms(hardware._PLANT_MOVER_PERIOD)
+                sleep_ms(1)
             hardware.plant_mover.speed = 0
+            end = time.time()
+            print(f"<!> ~~~~~~~~~~~~~ took: {end - start} seconds")
         
         auspost.set_last_plant_time(datetime.now())
         
