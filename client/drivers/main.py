@@ -483,7 +483,7 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
 
     now = datetime.now()
 
-    if now > auspost.get_last_snapshot_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
+    if now > auspost.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
         # Get the most recent posture data for the user
         recent_posture_data = get_user_postures(
             auspost.get_user_id(),
