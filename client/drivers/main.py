@@ -172,6 +172,9 @@ def do_everything(auspost: ControlledData) -> None:
     # Initialise posture graph for the current session
     hardware.initialise_posture_graph(auspost.get_user_id())
 
+    # Wind plant down all the way
+    hardware.wind_plant_to_lowest_safe_height()
+
     # Display message to user
     hardware.display.fill(0)
     hardware.oled_display_text(LOGIN_MESSAGE, 0, 0, 1)
@@ -510,36 +513,11 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
             [posture.prop_good for posture in recent_posture_data]
         ) / len(recent_posture_data)
         
-        # TODO: Track ABSOLUTE position of the Plant Mover 10000, and ensure that we
-        #       don't go above or below the bounds.
-
-        # If posture is good over half the time, go up one disc. 
+        # Judge.
         if average_prop_good >= PLANT_PROPORTION_GOOD_THRESHOLD:
-            hardware.plant_mover.speed = hardware._FULL_SPEED_UPWARDS
-            # NOTE: Both this polling-based approach and the approach of just calling `sleep_ms()`
-            #       are unreliable and don't produce exactly the desired amount of time.
-            # FIXME: Slow down the servo so that we can tolerate small errors introduced by this
-            #        delay code.
-            start = time.time()
-            while (time.time() - start) * 1000 < hardware._PLANT_MOVER_PERIOD:
-                # sleep_ms(hardware._PLANT_MOVER_PERIOD)
-                sleep_ms(1)
-            hardware.plant_mover.speed = 0
-            end = time.time()
-            print(f"<!> ~~~~~~~~~~~~~ took: {end - start} seconds")
-        # Otherwise, go down one disc.
-        # FIXME: vv
-        # WARNING: The current code will damage the product. We can't screw the screw in tighter than 
-        #          the tightest without putting strain somewhere it shouldn't be.
+            hardware.set_plant_height(hardware.plant_height + 1)
         else:
-            hardware.plant_mover.speed = hardware._FULL_SPEED_DOWNWARDS
-            start = time.time()
-            while (time.time() - start) * 1000 < hardware._PLANT_MOVER_PERIOD:
-                # sleep_ms(hardware._PLANT_MOVER_PERIOD)
-                sleep_ms(1)
-            hardware.plant_mover.speed = 0
-            end = time.time()
-            print(f"<!> ~~~~~~~~~~~~~ took: {end - start} seconds")
+            hardware.set_plant_height(hardware.plant_height - 1)
         
         auspost.set_last_plant_time(datetime.now())
         

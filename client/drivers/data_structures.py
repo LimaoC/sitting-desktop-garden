@@ -325,9 +325,11 @@ class HardwareComponents:
     
     plant_mover : PiicoDev_Servo
     """
-    Continuous rotation servo driving the I. Jensen Plant Mover 9000.
+    Continuous rotation servo driving the I. Jensen Plant Mover 10000.
     Its `midpoint_us` is `1600`.
     """
+    plant_height : int
+    """Height of the plant, With a maximum given by (_PLANT_SHAFT_TURNS - _PLANT_SHAFT_SAFETY_BUFFER_TURNS - 1)."""
     _PLANT_SHAFT_TURNS : int = 13
     """Maximum number of turns that can be made on the plant-moving shaft before damaging the product."""
     _PLANT_SHAFT_SAFETY_BUFFER_TURNS : int = 3
@@ -342,7 +344,7 @@ class HardwareComponents:
     """
     Period (in milliseconds) for one full turn of the continuous rotation servo.
     To make a full turn of the continuous rotation servo, set its `.speed` to `_FULL_SPEED_UPWARDS` or
-     `_FULL_SPEED_DOWNWARDS` and wait `_PLANT_MOVER_PERIOD` milliseconds.
+     `_FULL_SPEED_DOWNWARDS` and wait `_PLANT_MOVER_PERIOD * _PLANT_GEAR_RATIO` milliseconds.
     WARNING: This value may be different once we put some load on the plant mover!
     TODO: Check this value against what happens when we put the plant mover on it.
     NOTE: This is NON-LINEAR with the `.speed` attribute, for whatever reason.
@@ -382,7 +384,10 @@ class HardwareComponents:
         self.posture_graph: PiicoDev_SSD1306.graph2D | None = None
         self.posture_graph_from: int | None = None
         self.plant_mover : PiicoDev_Servo = plant_mover
+        self.plant_height : int = 0
         self.plant_mover.speed = 0  # Stop the plant mover from spinning.
+        self.unwind_plant()
+        self.wind_plant_to_lowest_safe_height()
 
     # SECTION: Setters
 
@@ -444,6 +449,63 @@ class HardwareComponents:
         )
 
     # SECTION: Using peripherals
+
+    def unwind_plant(self) -> None:
+        """
+        Unwind the plant to its maximum height, by making 16 full turns (we have 13 turns total).
+        """
+        self.plant_mover.speed = self._FULL_SPEED_UPWARDS
+        time.sleep(16 * self._PLANT_MOVER_PERIOD * self._PLANT_GEAR_RATIO / 1000)
+        self.plant_mover.speed = 0
+    
+    def wind_plant_to_lowest_safe_height(self) -> None:
+        """
+        Wind the plant down to its minimum (safe) height.
+        Will also reset the `plant_height` to `0`.
+        """
+        self.plant_mover.speed = self._FULL_SPEED_DOWNWARDS
+        time.sleep(
+            (self._PLANT_SHAFT_TURNS - self._PLANT_SHAFT_SAFETY_BUFFER_TURNS)
+            * self._PLANT_MOVER_PERIOD
+            * self._PLANT_GEAR_RATIO
+            / 1000
+        )
+        self.plant_mover.speed = 0
+        self.plant_height = 0
+    
+    def set_plant_height(self, new_height: int) -> None:
+        """
+        Move the plant to a desired height.
+
+        Args:
+            new_height : int
+                Height to which to drive the I. Jensen Plant Mover 10000
+        """
+        self.plant_mover.speed = 0
+        distance = new_height - self.plant_height
+        distance = distance if distance > 0 else (-1) * distance
+        if new_height == self.plant_height:
+            self.plant_mover.speed = 0
+            return
+        if new_height > self._PLANT_SHAFT_TURNS - self._PLANT_SHAFT_SAFETY_BUFFER_TURNS - 1:
+            print("<!> Plant mover not schmovin': can't get that high mate, that's just unsafe")
+            self.plant_mover.speed = 0
+            return
+        if new_height < 0:
+            print("<!> Plant mover not schmovin': can't get that low mate, that's just dirty")
+            self.plant_mover.speed = 0
+            return
+        if new_height > self.plant_height:
+            self.plant_mover.speed = self._FULL_SPEED_UPWARDS
+            time.sleep(distance * self._PLANT_MOVER_PERIOD * self._PLANT_GEAR_RATIO / 1000)
+            self.plant_mover.speed = 0
+            self.plant_height = new_height
+            return
+        self.plant_mover.speed = self._FULL_SPEED_DOWNWARDS
+        time.sleep(distance * self._PLANT_MOVER_PERIOD * self._PLANT_GEAR_RATIO / 1000)
+        self.plant_mover.speed = 0
+        self.plant_height = new_height
+        return
 
     # 2024-09-01 16:57 Gabe: TESTED.
     def oled_display_text(self, text: str, x: int, y: int, colour: int = 1) -> int:
