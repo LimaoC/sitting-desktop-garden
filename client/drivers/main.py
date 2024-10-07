@@ -494,7 +494,7 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
             print(
                 "<!> Exiting handle_plant_feedback() early: Not in frame for a high enough proportion of time."
             )
-            auspost.set_last_cushion_time(datetime.now())
+            auspost.set_last_plant_time(datetime.now())
             return True
         
         # Calculate average proportion
