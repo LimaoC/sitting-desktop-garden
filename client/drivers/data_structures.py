@@ -201,6 +201,24 @@ class ControlledData:
         """
         self._last_plant_time = time
 
+    def accept_new_posture_data(
+        self, posture_data: List[float]
+    ) -> None:  # TODO: Refine type signature
+        """
+        Update the internal store of posture data for the OLED display.
+
+        Args:
+            posture_data : List[float]
+                New posture data to accept and merge with the current state of this object.
+
+        TODO: Implement me!
+        """
+        # DEBUG:
+        print("<!> accept_new_posture_data()")
+        # :DEBUG
+        for datum in posture_data:
+            self._posture_data.put_nowait(datum)
+
 
 ## SECTION: Hardware packaged together
 

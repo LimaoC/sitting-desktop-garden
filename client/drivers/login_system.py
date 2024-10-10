@@ -25,7 +25,7 @@ BAD_STATUS_MESSAGES = {
     Status.TOO_MANY_FACES.value: "Too many faces detected",
     Status.NO_MATCH.value: "Could not match face",
 }
-QUIT_INSTRUCTIONS = "Right button to quit"
+QUIT_INSTRUCTIONS = "Right: quit"
 
 Action = Callable[[HardwareComponents], int]
 
@@ -44,9 +44,9 @@ def handle_authentication(hardware: HardwareComponents) -> int:
     while True:
         _log_and_send(
             hardware,
-            ["Left button to login",
-            "Right button to register",
-            "Double press right button to reset data"]
+            ["Left: login",
+            "Right: register",
+            "Double press right: reset data"]
         )
         button = hardware.wait_for_button_press()
 
@@ -82,7 +82,7 @@ def _loop_action(hardware: HardwareComponents, action: Action) -> int:
 
 def _attempt_login(hardware: HardwareComponents) -> int:
     capturer = RaspCapturer()
-    messages = ["Press left button to take photo", f"{QUIT_INSTRUCTIONS}"]
+    messages = ["Left: take photo", f"{QUIT_INSTRUCTIONS}"]
     _log_and_send(hardware, messages, message_time=0)
 
     button_pressed = hardware.wait_for_button_press()
@@ -106,7 +106,7 @@ def _attempt_register(hardware: HardwareComponents) -> int:
     faces: list[np.ndarray] = []
     for i in range(NUM_FACES):
         messages = [
-            f"Press left button to take photo {i + 1}/{NUM_FACES}",
+            f"Left: take photo {i + 1}/{NUM_FACES}",
             f"{QUIT_INSTRUCTIONS}"
         ]
         _log_and_send(hardware, messages, message_time=0)
