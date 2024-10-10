@@ -6,16 +6,12 @@ import logging
 from typing import Callable
 
 import numpy as np
-
-from data.routines import next_user_id, create_user
+from data.routines import create_user, next_user_id
+from drivers.data_structures import (DOUBLE_RIGHT_BUTTON, LEFT_BUTTON,
+                                     RIGHT_BUTTON, HardwareComponents)
+from models.face_recognition.recognition import (Status, get_face_match,
+                                                 register_faces)
 from models.pose_detection.frame_capturer import RaspCapturer
-from models.face_recognition.recognition import register_faces, get_face_match, Status
-from drivers.data_structures import (
-    HardwareComponents,
-    LEFT_BUTTON,
-    RIGHT_BUTTON,
-    DOUBLE_RIGHT_BUTTON,
-)
 
 NUM_FACES = 5
 QUIT = -4
