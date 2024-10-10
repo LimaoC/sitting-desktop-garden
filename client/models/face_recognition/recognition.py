@@ -72,6 +72,11 @@ def register_faces(user_id: int, faces: list[np.ndarray]) -> int:
     if not all(matches):
         return Status.TOO_MANY_FACES.value
 
+    # Ensure user is not already registered
+    for _, other_user_embeddings in iter_face_embeddings():
+        for embedding in face_embeddings:
+            matches = face_recognition.compare_faces(other_user_embeddings, embedding)
+
     register_face_embeddings(user_id, face_embeddings)
 
     return Status.OK.value
