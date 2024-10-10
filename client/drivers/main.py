@@ -10,27 +10,20 @@ Author:
 ## SECTION: Imports
 import argparse
 import logging
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
 
 import RPi.GPIO as GPIO
+from data.routines import (Posture, destroy_database, get_user_postures,
+                           init_database, reset_registered_face_embeddings)
+from drivers.data_structures import ControlledData, HardwareComponents
+from drivers.login_system import RESET, handle_authentication
+from models.pose_detection.frame_capturer import RaspCapturer
 from PiicoDev_SSD1306 import *
 from PiicoDev_Switch import *
 from PiicoDev_Unified import sleep_ms
 
-from models.pose_detection.frame_capturer import RaspCapturer
-from data.routines import (
-    init_database,
-    destroy_database,
-    reset_registered_face_embeddings,
-    get_user_postures,
-    Posture,
-)
-from drivers.data_structures import ControlledData, HardwareComponents
-from drivers.login_system import handle_authentication, RESET
-
-## SECTION: Global constants
-
+#: Pin to which the vibration motor is attached. This is D8 on the PiicoDev header.
 CUSHION_GPIO_PIN = 8
 """ Pin to which the vibration motor is attached. This is D8 on the PiicoDev header. """
 

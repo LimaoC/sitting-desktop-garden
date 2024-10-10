@@ -9,21 +9,14 @@ Author:
 
 ## SECTION: Imports
 import time
-from typing import List
-from PiicoDev_Switch import PiicoDev_Switch
-from PiicoDev_SSD1306 import *
-from PiicoDev_Servo import PiicoDev_Servo, PiicoDev_Servo_Driver
-
 from datetime import datetime
+from math import pi, sin
 from queue import Queue
+from typing import List
 
-# DEBUG:
-from math import sin, pi
-
-# :DEBUG
-
-
-## SECTION: Constants
+from PiicoDev_Servo import PiicoDev_Servo, PiicoDev_Servo_Driver
+from PiicoDev_SSD1306 import *
+from PiicoDev_Switch import PiicoDev_Switch
 
 """ Sentinel value for an invalid user. """
 EMPTY_USER_ID = -1
