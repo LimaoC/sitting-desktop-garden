@@ -47,8 +47,6 @@ class ControlledData:
     _last_snapshot_time: datetime
     _last_cushion_time: datetime
     _last_plant_time: datetime
-    """Time of the last successful scent feedback event."""
-    _last_sniff_time: datetime
 
     # SECTION: Constructors
 
@@ -62,7 +60,6 @@ class ControlledData:
         self._last_snapshot_time = datetime.now()
         self._last_cushion_time = datetime.now()
         self._last_plant_time = datetime.now()
-        self._last_sniff_time = datetime.now()
         self._DEBUG_current_graph_list_index = 0
         self._DEBUG_current_graph_function = lambda x: 30 * (
             1 + sin(2 * pi * x / WIDTH)
@@ -83,7 +80,6 @@ class ControlledData:
         return_me._last_snapshot_time = datetime.now()
         return_me._last_cushion_time = datetime.now()
         return_me._last_plant_time = datetime.now()
-        return_me._last_sniff_time = datetime.now()
         print("<!> Made a new empty ControlledData() with user_id", return_me._user_id)
         return return_me
 
@@ -99,7 +95,6 @@ class ControlledData:
         return_me._last_snapshot_time = datetime.now()
         return_me._last_cushion_time = datetime.now()
         return_me._last_plant_time = datetime.now()
-        return_me._last_sniff_time = datetime.now()
         return return_me
 
     # SECTION: Getters/Setters
@@ -173,19 +168,6 @@ class ControlledData:
         """
         self._last_plant_time = time
 
-    def get_last_sniff_time(self) -> datetime:
-        """
-        Returns the last time that the user was provided olfactory feedback.
-        """
-        return self._last_cushion_time
-
-    def set_last_sniff_time(self, time: datetime) -> None:
-        """
-        Args:
-            time: the last time that the user was provided olfactory feedback.
-        """
-        self._last_sniff_time = time
-
     def accept_new_posture_data(
         self, posture_data: List[float]
     ) -> None:  # TODO: Refine type signature
@@ -223,17 +205,6 @@ class ControlledData:
         TODO: Implement this.
         """
         print("<!> WARNING: get_plant_posture_data() not implemented!")
-        return None
-
-    def get_sniff_posture_data(
-        self,
-    ) -> "SNIFF_POSTURE_DATA":  # TODO: Decide what this type looks like
-        """
-        Returns posture data necessary for scent feedback.
-
-        TODO: Implement this.
-        """
-        print("<!> WARNING: get_sniff_posture_data() not implemented!")
         return None
 
 

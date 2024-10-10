@@ -66,10 +66,6 @@ HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=2000)  # DEBUG: used to b
 #: FIXME: Fine-tune this value later.
 PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
 
-# KILLME:
-#: Minimum delay between consecutive uses of the scent bottle-controlling servos. Used in handle_feedback().
-HANDLE_SNIFF_FEEDBACK_TIMEOUT = timedelta(milliseconds=20000)
-
 #: DEBUG Number of milliseconds between each loop iteration in do_everything().
 DEBUG_DO_EVERYTHING_INTERVAL = 1000
 
@@ -388,9 +384,6 @@ def handle_feedback(auspost: ControlledData) -> bool:
     if datetime.now() > auspost.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
         if not handle_plant_feedback(auspost):
             return False
-    if datetime.now() > auspost.get_last_sniff_time() + HANDLE_SNIFF_FEEDBACK_TIMEOUT:
-        if not handle_sniff_feedback(auspost):
-            return False
 
     return True
 
@@ -515,30 +508,6 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
 
         auspost.set_last_plant_time(datetime.now())
 
-    return True
-
-
-def handle_sniff_feedback(auspost: ControlledData) -> bool:
-    """
-    Dispense olfactory reward (if necessary), and update the timestamp of when olfactory
-    feedback was last given.
-
-    Args:
-        auspost: Data encapsulating the current state of the program.
-
-    Returns:
-        True, always. If you get a False return value, then something has gone VERY wrong.
-
-    Requires:
-        ! auspost.is_failed()
-
-    Ensures:
-        ! auspost.is_failed()
-    """
-    # DEBUG:
-    print("<!> handle_sniff_feedback()")
-    # :DEBUG
-    auspost.set_last_sniff_time(datetime.now())
     return True
 
 
