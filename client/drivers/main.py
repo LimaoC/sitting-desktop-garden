@@ -139,6 +139,8 @@ def initialise_hardware() -> HardwareComponents:
 
     Returns:
         (HardwareComponents): Object consisting of all hardware components connected to the Raspberry Pi.
+
+    TODO: Complete the function with all of the hardware peripherals (incrementally, as they get integrated).
     """
     return_me = HardwareComponents.make_fresh()
     # Clear button queues
@@ -328,6 +330,32 @@ def handle_posture_graph(auspost: ControlledData) -> bool:
 
     return True
 
+def handle_feedback(auspost: ControlledData) -> bool:
+    """
+    Provide feedback to the user if necessary.
+
+    Args:
+        (auspost : ControlledData): Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! auspost.is_failed()
+    Ensures:
+        ! auspost.is_failed()
+    """
+    if (
+        datetime.now()
+        > auspost.get_last_cushion_time() + HANDLE_CUSHION_FEEDBACK_TIMEOUT
+    ):
+        if not handle_cushion_feedback(auspost):
+            return False
+    if datetime.now() > auspost.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
+        if not handle_plant_feedback(auspost):
+            return False
+
+    return True
+
+
 ## SECTION: Feedback handling
 
 
@@ -345,6 +373,10 @@ def handle_cushion_feedback(auspost: ControlledData) -> bool:
     Ensures:
         ! auspost.is_failed()
     """
+    # DEBUG:
+    print("<!> handle_cushion_feedback()")
+    # :DEBUG
+
     # Load posture records within the last HANDLE_CUSHION_FEEDBACK_TIMEOUT
     now = datetime.now()
     recent_posture_data = get_user_postures(
@@ -360,7 +392,6 @@ def handle_cushion_feedback(auspost: ControlledData) -> bool:
         print("<!> Exiting handle_cushion_feedback() early: No data")
         auspost.set_last_cushion_time(datetime.now())
         return True
-    
     # 2024-09-15_20-18 Gabe: TESTED.
     average_prop_in_frame = sum(
         [posture.prop_in_frame for posture in recent_posture_data]
@@ -410,6 +441,10 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
 
     TODO: Implement this method. Currently prints a debug statement and updates the time.
     """
+    # DEBUG:
+    print("<!> handle_plant_feedback()")
+    # :DEBUG
+
     now = datetime.now()
 
     if now > auspost.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
@@ -451,6 +486,30 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
         auspost.set_last_plant_time(datetime.now())
         
     return True
+
+
+def handle_sniff_feedback(auspost: ControlledData) -> bool:
+    """
+    Dispense olfactory reward (if necessary), and update the timestamp of when olfactory feedback
+    was last given.
+
+    Args:
+        (auspost : ControlledData): Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! auspost.is_failed()
+    Ensures:
+        ! auspost.is_failed()
+
+    TODO: Implement this method. Currently prints a debug statement and updates the time.
+    """
+    # DEBUG:
+    print("<!> handle_sniff_feedback()")
+    # :DEBUG
+    auspost.set_last_sniff_time(datetime.now())
+    return True
+
 
 def _reset_garden() -> None:
     """Reset data, faces and hardware."""
