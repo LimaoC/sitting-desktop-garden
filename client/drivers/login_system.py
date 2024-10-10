@@ -17,12 +17,13 @@ from models.face_recognition.recognition import Status, get_face_match, register
 from models.pose_detection.frame_capturer import RaspCapturer
 
 NUM_FACES = 5
-QUIT = -4
+QUIT = -6
 RESET = -5
 BAD_STATUS_MESSAGES = {
     Status.NO_FACES.value: "No face detected please",
     Status.TOO_MANY_FACES.value: "Too many faces detected",
     Status.NO_MATCH.value: "Could not match face",
+    Status.ALREADY_REGISTERED.value: "Face already registered",
 }
 QUIT_INSTRUCTIONS = "Right button to quit"
 

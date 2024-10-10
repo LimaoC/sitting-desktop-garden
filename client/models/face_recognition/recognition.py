@@ -9,6 +9,7 @@ MODEL_NAME = "small"
 
 
 class Status(Enum):
+    ALREADY_REGISTERED = -4
     NO_FACES = -3
     TOO_MANY_FACES = -2
     NO_MATCH = -1
@@ -76,6 +77,9 @@ def register_faces(user_id: int, faces: list[np.ndarray]) -> int:
     for _, other_user_embeddings in iter_face_embeddings():
         for embedding in face_embeddings:
             matches = face_recognition.compare_faces(other_user_embeddings, embedding)
+
+            if any(matches):
+                return Status.ALREADY_REGISTERED.value
 
     register_face_embeddings(user_id, face_embeddings)
 
