@@ -135,21 +135,6 @@ class ControlledData:
 
     # SECTION: Getters/Setters
 
-    def DEBUG_get_next_posture_graph_value(self) -> int:
-        """
-        Get next thing to put on the DEBUG graph.
-
-        Returns:
-            (int): Next thing to put on the DEBUG graph.
-
-        TODO: Remove this method
-        """
-        return_me = self._DEBUG_current_graph_function(
-            self._DEBUG_current_graph_list_index
-        )
-        self._DEBUG_current_graph_list_index += 1
-        return return_me
-
     def is_failed(self) -> bool:
         """
         Returns:
@@ -215,80 +200,6 @@ class ControlledData:
                 The last time that the user was provided plant feedback.
         """
         self._last_plant_time = time
-
-    def get_last_sniff_time(self) -> datetime:
-        """
-        Returns:
-            (datetime): The last time that the user was provided olfactory feedback.
-        """
-        return self._last_cushion_time
-
-    def set_last_sniff_time(self, time: datetime) -> None:
-        """
-        Args:
-            time : datetime
-                The last time that the user was provided olfactory feedback.
-        """
-        self._last_sniff_time = time
-
-    def accept_new_posture_data(
-        self, posture_data: List[float]
-    ) -> None:  # TODO: Refine type signature
-        """
-        Update the internal store of posture data for the OLED display.
-
-        Args:
-            posture_data : List[float]
-                New posture data to accept and merge with the current state of this object.
-
-        TODO: Implement me!
-        """
-        # DEBUG:
-        print("<!> accept_new_posture_data()")
-        # :DEBUG
-        for datum in posture_data:
-            self._posture_data.put_nowait(datum)
-
-    # SECTION: Posture data mapping
-
-    def get_cushion_posture_data(
-        self,
-    ) -> "CUSHION_POSTURE_DATA":  # TODO: Decide what this type looks like
-        """
-        Returns:
-            (CUSHION_POSTURE_DATA): Posture data necessary for cushion feedback.
-        TODO: Implement this.
-        """
-        # DEBUG:
-        print("<!> WARNING: get_cushion_posture_data() not implemented!")
-        # :DEBUG
-        return None
-
-    def get_plant_posture_data(
-        self,
-    ) -> "PLANT_POSTURE_DATA":  # TODO: Decide what this type looks like
-        """
-        Returns:
-            (PLANT_POSTURE_DATA) Posture data necessary for plant feedback.
-        TODO: Implement this.
-        """
-        # DEBUG:
-        print("<!> WARNING: get_plant_posture_data() not implemented!")
-        # :DEBUG
-        return None
-
-    def get_sniff_posture_data(
-        self,
-    ) -> "SNIFF_POSTURE_DATA":  # TODO: Decide what this type looks like
-        """
-        Returns:
-            (SNIFF_POSTURE_DATA): Posture data necessary for scent feedback.
-        TODO: Implement this.
-        """
-        # DEBUG:
-        print("<!> WARNING: get_sniff_posture_data() not implemented!")
-        # :DEBUG
-        return None
 
 
 ## SECTION: Hardware packaged together
@@ -574,7 +485,7 @@ class HardwareComponents:
             )
         return display_height_offset
 
-    def send_message(self, message: str, message_time: int = 1) -> None:
+    def send_message(self, messages: List[str], message_time: int = 1) -> None:
         """Clear the screen and display message
 
         Args:
@@ -582,7 +493,11 @@ class HardwareComponents:
             message_time: Time (seconds) to sleep for after displaying message.
         """
         self.display.fill(0)
-        self.oled_display_text(message, 0, 0, 1)
+        display_height_offset = 0
+        for text in messages:
+            display_height_offset = self.oled_display_text(
+                text, 0, 0 + display_height_offset, 1
+            )
         self.display.show()
         time.sleep(message_time)
 
