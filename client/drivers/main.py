@@ -11,8 +11,13 @@ import time
 from datetime import datetime, timedelta
 
 import RPi.GPIO as GPIO
-from data.routines import (Posture, destroy_database, get_user_postures,
-                           init_database, reset_registered_face_embeddings)
+from data.routines import (
+    init_database,
+    destroy_database,
+    reset_registered_face_embeddings,
+    get_user_postures,
+    Posture,
+)
 from drivers.data_structures import ControlledData, HardwareComponents
 from drivers.login_system import RESET, handle_authentication
 from models.pose_detection.frame_capturer import RaspCapturer
