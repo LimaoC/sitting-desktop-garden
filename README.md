@@ -14,6 +14,8 @@
     - [Environment](#environment)
     - [Deployment](#deployment)
 
+**Go straight to [Raspberry Pi Setup](#raspberry-pi-setup) for instructions on setting up the Raspberry Pi if you are a user!**
+
 ## Library Overview
 ```
 .
