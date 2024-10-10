@@ -1,7 +1,5 @@
-"""Module for interacting with SQLite database
-
-Last tested:
-    15-09 all functions tested by Gabe
+"""
+Module for interacting with SQLite database
 """
 
 import sqlite3
