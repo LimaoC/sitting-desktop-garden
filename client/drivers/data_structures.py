@@ -29,21 +29,23 @@ class ControlledData:
 
     There should only ever be one object of this class at a time.
 
+    Attributes:
+        _failed: True if this data is incomplete.
+        _user_id: ID of current user.
+        _posture_data: Data updated through ML models, used for feedback
+        _last_snapshot_time: Time of the last successful pull of posture data from the SQLite database
+        _last_cushion_time: Time of the last successful cushion feedback event.
+        _last_plant_time: Time of the last successful plant feedback event.
+
     Class invariant:
         self._failed ==> (all other variables are default values)
     """
 
-    """True if this data is incomplete."""
     _failed: bool
-    """ID of current user."""
     _user_id: int
-    """Data updated through ML models, used for feedback."""
     _posture_data: Queue[float]
-    """Time of the last successful pull of posture data from the SQLite database"""
     _last_snapshot_time: datetime
-    """Time of the last successful cushion feedback event."""
     _last_cushion_time: datetime
-    """Time of the last successful plant feedback event."""
     _last_plant_time: datetime
     """Time of the last successful scent feedback event."""
     _last_sniff_time: datetime
@@ -238,61 +240,63 @@ class ControlledData:
 class HardwareComponents:
     """
     Hardware components packaged together into a class.
+
+    Attributes:
+        button0: A button with address switches set to [0, 0, 0, 0]
+        button1: A button with address switches set to [0, 0, 0, 1]
+        display: OLED SSD1306 Display with default address
+        posture_graph: Graph object for rendering on self.display. NOT INITIALISED by
+                       default; i.e. None until initialised. Should get initialised ONCE
+                       THE USER IS LOGGED IN because the graph will look different for
+                       each user.
+        posture_graph_from: y-coordinate from which the posture graph begins, or `None`
+                            if no posture graph is active.
+
+        plant_mover: Continuous rotation servo driving the I. Jensen Plant Mover 10000.
+                     Its `midpoint_us` is `1600`.
+        plant_height: Height of the plant, With a maximum given by
+                      (_PLANT_SHAFT_TURNS - _PLANT_SHAFT_SAFETY_BUFFER_TURNS - 1).
+        _PLANT_SHAFT_TURNS: Maximum number of turns that can be made on the plant-moving
+                            shaft before damaging the product.
+        _PLANT_SHAFT_SAFETY_BUFFER_TURNS: Number of turns on the plant-moving shaft to
+                                          leave as a buffer, to ensure we don't damage
+                                          the product.
+        _PLANT_GEAR_RATIO: Gear ratio between the plant-moving shaft and the continuous
+                           servo controlled by this HardwareComponents. To obtain `x`
+                           full rotations of the plant-moving shaft, make
+                           `x * _PLANT_GEAR_RATIO` full rotations of the `plant_mover`.
+        _PLANT_MOVER_PERIOD: Period (in milliseconds) for one full turn of the
+                             continuous rotation servo. To make a full turn of the
+                             continuous rotation servo, set its `.speed` to
+                             `_FULL_SPEED_UPWARDS` or `_FULL_SPEED_DOWNWARDS` and wait
+                             `_PLANT_MOVER_PERIOD * _PLANT_GEAR_RATIO` milliseconds.
+                            WARNING: This value may be different once we put some load on the plant mover!
+                            TODO: Check this value against what happens when we put the plant mover on it.
+                            NOTE: This is NON-LINEAR with the `.speed` attribute, for whatever reason.
+        _BASE_FULL_SPEED: Top speed for the `PiicoDev_Servo` in our application.
+        _FULL_SPEED_UPWARDS: Value for the `PiicoDev_Servo`'s `.speed` attribute when
+                             moving the plant up.
+                             TODO: Check this value indeed drives the plant UP, not down.
+                             NOTE: This is asymmetric with `_FULL_SPEED_DOWNWARDS`. I don't know why.
+        _FULL_SPEED_DOWNWARDS: Value for the `PiicoDev_Servo`'s `.speed` attribute when
+                               moving the plant down.
+                               TODO: Check this value indeed drives the plant DOWN, not UP.
     """
 
-    """A button with address switches set to [0, 0, 0, 0]"""
     button0: PiicoDev_Switch
-    """A button with address switches set to [0, 0, 0, 1]"""
     button1: PiicoDev_Switch
-    """OLED SSD1306 Display with default address"""
     display: PiicoDev_SSD1306
-    """
-    Graph object for rendering on self.display. NOT INITIALISED by default; i.e. None until initialised.
-    Should get initialised ONCE THE USER IS LOGGED IN because the graph will look different for each user.
-    """
     posture_graph: PiicoDev_SSD1306.graph2D | None
-    """y-coordinate from which the posture graph begins, or `None` if no posture graph is active."""
     posture_graph_from: int | None
 
-    """
-    Continuous rotation servo driving the I. Jensen Plant Mover 10000.
-    Its `midpoint_us` is `1600`.
-    """
     plant_mover: PiicoDev_Servo
-    """Height of the plant, With a maximum given by (_PLANT_SHAFT_TURNS - _PLANT_SHAFT_SAFETY_BUFFER_TURNS - 1)."""
     plant_height: int
-    """Maximum number of turns that can be made on the plant-moving shaft before damaging the product."""
     _PLANT_SHAFT_TURNS: int = 13
-    """Number of turns on the plant-moving shaft to leave as a buffer, to ensure we don't damage the product."""
     _PLANT_SHAFT_SAFETY_BUFFER_TURNS: int = 3
-    """
-    Gear ratio between the plant-moving shaft and the continuous servo controlled by this HardwareComponents.
-    To obtain `x` full rotations of the plant-moving shaft, make `x * _PLANT_GEAR_RATIO` full rotations of the
-     `plant_mover`.
-    """
     _PLANT_GEAR_RATIO: float = 2
-    """
-    Period (in milliseconds) for one full turn of the continuous rotation servo.
-    To make a full turn of the continuous rotation servo, set its `.speed` to `_FULL_SPEED_UPWARDS` or
-     `_FULL_SPEED_DOWNWARDS` and wait `_PLANT_MOVER_PERIOD * _PLANT_GEAR_RATIO` milliseconds.
-    WARNING: This value may be different once we put some load on the plant mover!
-    TODO: Check this value against what happens when we put the plant mover on it.
-    NOTE: This is NON-LINEAR with the `.speed` attribute, for whatever reason.
-    """
     _PLANT_MOVER_PERIOD: float = 1000 * 60 / 55
-    """Top speed for the `PiicoDev_Servo` in our application."""
     _BASE_FULL_SPEED = 0.1
-    """
-    Value for the `PiicoDev_Servo`'s `.speed` attribute when moving the plant up.
-    TODO: Check this value indeed drives the plant UP, not down.
-    NOTE: This is asymmetric with `_FULL_SPEED_DOWNWARDS`. I don't know why.
-    """
     _FULL_SPEED_UPWARDS = _BASE_FULL_SPEED * (4 / 7) * (8 / 9) * 2
-    """
-    Value for the `PiicoDev_Servo`'s `.speed` attribute when moving the plant down.
-    TODO: Check this value indeed drives the plant UP, not down.
-    NOTE: This is asymmetric with `_FULL_SPEED_DOWNWARDS`. I don't know why.
-    """
     _FULL_SPEED_DOWNWARDS = (-1) * _BASE_FULL_SPEED * (4 / 5) * 2
 
     # SECTION: Constructors
@@ -341,7 +345,6 @@ class HardwareComponents:
         """
         return ["b0: logout", "id: " + str(user_id)]
 
-    # 2024-09-13 08-31 Gabe: TESTED.
     def initialise_posture_graph(self, user_id: int) -> None:
         """
         Initialise self.posture_graph according to the provided user_id.
