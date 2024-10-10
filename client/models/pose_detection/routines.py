@@ -33,7 +33,7 @@ POSE_LANDMARKER_FILE = resources.files("models.resources").joinpath(
     "pose_landmarker_lite.task"
 )
 
-PERIOD_SECONDS = 10
+PERIOD_SECONDS = 5 # DEBUG
 NO_USER = -1
 STOP_CHILD = -2
 
@@ -146,12 +146,6 @@ class PostureTracker(PoseLandmarker):
         if time.time() - self._start_time <= PERIOD_SECONDS:
             return
 
-        # DEBUG::
-        print("<!> ======== DATABASE POWERED BY AI ========")
-        # FIXME: I'm not convinced that this is writing to the database on the rpi.
-        # It's probably a camera alignment issue. But I'm not gonna test that on the
-        # `posture_graphing_impossible_to_test` branch lol
-        # ::DEBUG
         period_end = datetime.now()
         posture = Posture(
             id_=None,
@@ -163,6 +157,13 @@ class PostureTracker(PoseLandmarker):
         )
         save_posture(posture)
         self._new_period()
+        # DEBUG::
+        print("<!> ======== DATABASE POWERED BY AI ========")
+        # FIXME: I'm not convinced that this is writing to the database on the rpi.
+        # It's probably a camera alignment issue. But I'm not gonna test that on the
+        # `posture_graphing_impossible_to_test` branch lol
+        print(f"<!> {posture=}")
+        # ::DEBUG
 
     def _new_period(self) -> None:
         self._posture_scores = []

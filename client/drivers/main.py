@@ -11,6 +11,7 @@ Author:
 import argparse
 import logging
 from datetime import datetime, timedelta
+import time
 
 import RPi.GPIO as GPIO
 from PiicoDev_SSD1306 import *
@@ -56,7 +57,7 @@ GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds=10000)
 PROPORTION_IN_FRAME_THRESHOLD = 0.3
 """ Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later. """
 
-HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=5000)
+HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=10000) # DEBUG
 """ Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback(). """
 CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=1000)
 """ Length of time for which the vibration motor should vibrate. Used in handle_cushion_feedback(). """
@@ -66,8 +67,14 @@ Threshold for vibration cushion feedback. If the proportion of "good" sitting po
 FIXME: Fine-tune this value later.
 """
 
-HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=10000)
+HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=2000) # DEBUG: used to be 10000
 """ Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback(). """
+PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
+"""
+Threshold for I. Jensen Plant Mover 10000 feedback. If the proportion of "good" sitting posture is below this,
+the plant will move down.
+FIXME: Fine-tune this value later.
+"""
 
 # KILLME:
 HANDLE_SNIFF_FEEDBACK_TIMEOUT = timedelta(milliseconds=20000)
@@ -179,6 +186,9 @@ def do_everything(auspost: ControlledData) -> None:
     # Initialise posture graph for the current session
     hardware.initialise_posture_graph(auspost.get_user_id())
 
+    # Wind plant down all the way
+    hardware.wind_plant_safe()
+
     # Display message to user
     hardware.display.fill(0)
     hardware.oled_display_text(LOGIN_MESSAGE, 0, 0, 1)
@@ -267,8 +277,11 @@ def handle_posture_monitoring_new(auspost: ControlledData) -> bool:
             period_end=now,
         )
 
+        # DEBUG::
         # Exit if not enough data
-        if len(recent_posture_data) <= POSTURE_GRAPH_DATUM_WIDTH:
+        # if len(recent_posture_data) <= POSTURE_GRAPH_DATUM_WIDTH:
+        if len(recent_posture_data) == 0:
+        # ::DEBUG
             print("<!> Exiting handle_posture_monitoring_new() early: Not enough data")
             # auspost.set_last_snapshot_time(datetime.now())
             return True
@@ -291,8 +304,8 @@ def handle_posture_monitoring_new(auspost: ControlledData) -> bool:
 
         # Calculate total time span
         start_time = recent_posture_data[0].period_start
-        end_time = recent_posture_data[-1].period_start
-        total_time = end_time - start_time
+        end_time = recent_posture_data[-1].period_end    # DEBUG: Used to be period_start
+        total_time = end_time - start_time # BUG: This calculation sometimes results in `0`, which gets divided by later...
 
         # Calculate the interval length
         interval = total_time / POSTURE_GRAPH_DATUM_WIDTH
@@ -312,6 +325,8 @@ def handle_posture_monitoring_new(auspost: ControlledData) -> bool:
         new_prop_good_data = []
         # Enqueue the average good posture for the graph to use
         for posture_list in split_posture_lists:
+            if len(posture_list) == 0:
+                continue
             print(f"<!> {posture_list=}")
             average_prop_good = sum(
                 [posture.prop_good for posture in posture_list]
@@ -479,7 +494,47 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
     # DEBUG:
     print("<!> handle_plant_feedback()")
     # :DEBUG
-    auspost.set_last_plant_time(datetime.now())
+
+    now = datetime.now()
+
+    if now > auspost.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
+        # Get the most recent posture data for the user
+        recent_posture_data = get_user_postures(
+            auspost.get_user_id(),
+            num=-1,
+            period_start=now - GET_POSTURE_DATA_TIMEOUT,
+            period_end=now,
+        )
+
+        # Conditions for exiting early
+        if len(recent_posture_data) == 0:
+            print("<!> Exiting handle_plant_feedback() early: No data")
+            auspost.set_last_plant_time(datetime.now())
+            return True
+        
+        average_prop_in_frame = sum(
+            [posture.prop_in_frame for posture in recent_posture_data]
+        ) / len(recent_posture_data)
+        if average_prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD:
+            print(
+                "<!> Exiting handle_plant_feedback() early: Not in frame for a high enough proportion of time."
+            )
+            auspost.set_last_plant_time(datetime.now())
+            return True
+        
+        # Calculate average proportion
+        average_prop_good = sum(
+            [posture.prop_good for posture in recent_posture_data]
+        ) / len(recent_posture_data)
+        
+        # Judge.
+        if average_prop_good >= PLANT_PROPORTION_GOOD_THRESHOLD:
+            hardware.set_plant_height(hardware.plant_height + 1)
+        else:
+            hardware.set_plant_height(hardware.plant_height - 1)
+        
+        auspost.set_last_plant_time(datetime.now())
+        
     return True
 
 
