@@ -2,6 +2,5 @@
 # deploy.sh will preserve the source directory layout so imports between files
 # should still work if all files are copied in
 client/
-scripts/
 pyproject.toml
 poetry.lock

@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo swapoff /swapfile 
-sudo fallocate -l 2G /swapfile 
-sudo mkswap /swapfile 
-sudo swapon /swapfile 
+sudo swapoff /var/swap 
+sudo fallocate -l 2G /var/swap 
+sudo mkswap /var/swap 
+sudo swapon /var/swap 
