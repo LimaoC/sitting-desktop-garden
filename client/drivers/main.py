@@ -65,6 +65,11 @@ HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=2000)  # DEBUG: used to b
 #: the plant will move down.
 #: FIXME: Fine-tune this value later.
 PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
+"""
+Threshold for I. Jensen Plant Mover 10000 feedback. If the proportion of "good" sitting posture is below this,
+the plant will move down.
+FIXME: Fine-tune this value later.
+"""
 
 #: DEBUG Number of milliseconds between each loop iteration in do_everything().
 DEBUG_DO_EVERYTHING_INTERVAL = 1000
@@ -169,8 +174,6 @@ def do_everything(auspost: ControlledData) -> None:
     Requires:
         ! auspost.is_failed()
     """
-    print("<!> BEGIN do_everything()")
-
     LOGIN_MESSAGE = "Logged in with user id: " + str(auspost.get_user_id())
     LOGOUT_MESSAGE = "Logged out user id " + str(auspost.get_user_id())
 
@@ -197,7 +200,6 @@ def do_everything(auspost: ControlledData) -> None:
     hardware.display.show()
 
     while True:
-        # Loop invariant: ! auspost.is_failed()
         # Check for user logout
         if hardware.button0.was_pressed:
             hardware.display.fill(0)
@@ -208,8 +210,7 @@ def do_everything(auspost: ControlledData) -> None:
             return
 
         update_display_screen(auspost)
-        # handle_posture_monitoring(auspost)
-        handle_posture_monitoring_new(auspost)
+        handle_posture_graph(auspost)
         handle_feedback(auspost)
 
         sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
@@ -235,8 +236,6 @@ def update_display_screen(auspost: ControlledData) -> bool:
     Ensures:
         ! auspost.is_failed()
     """
-    print("<!> BEGIN update_display_screen()")
-
     while (
         not auspost.get_posture_data().empty()
     ):  # NOTE: This is much more robust than getting a fixed number of things out of the queue
@@ -249,14 +248,25 @@ def update_display_screen(auspost: ControlledData) -> bool:
         )
         hardware.display.show()
 
-    print("<!> END update_display_screen()")
     return True
 
 
-def handle_posture_monitoring_new(auspost: ControlledData) -> bool:
+def handle_posture_graph(auspost: ControlledData) -> bool:
+    """
+    Get a snapshot of the user's posture data.
+    Use this information to update the data for the posture graph.
 
-    print("<!> handle_posture_monitoring_new()")
+    Args:
+        (auspost : ControlledData): Data encapsulating the current state of the program.
+    Returns:
+        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+    Requires:
+        ! auspost.is_failed()
+    Ensures:
+        ! auspost.is_failed()
 
+    TODO: Check this
+    """
     now = datetime.now()
 
     if now > auspost.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT:
@@ -268,14 +278,12 @@ def handle_posture_monitoring_new(auspost: ControlledData) -> bool:
             period_end=now,
         )
 
-        # Exit if not enough data
-        # if len(recent_posture_data) <= POSTURE_GRAPH_DATUM_WIDTH:
+        # Exit if no data
         if len(recent_posture_data) == 0:
             print("<!> Exiting handle_posture_monitoring_new() early: Not enough data")
-            # auspost.set_last_snapshot_time(datetime.now())
             return True
 
-        # Exit if not in frame enough
+        # Exit if person not in frame enough
         average_prop_in_frame = sum(
             [posture.prop_in_frame for posture in recent_posture_data]
         ) / len(recent_posture_data)
@@ -301,11 +309,12 @@ def handle_posture_monitoring_new(auspost: ControlledData) -> bool:
         # Calculate the interval length
         interval = total_time / POSTURE_GRAPH_DATUM_WIDTH
 
-        # Setup a sublist each representing 1 pixel on the graph
+        # Setup sublists, where each sublist is a portion of the overall data 
         split_posture_lists: list[list[Posture]]
         split_posture_lists = [[] for _ in range(POSTURE_GRAPH_DATUM_WIDTH)]
 
-        # Sublists will be split by period_start
+        # What is in each sublist is determined by period_start
+        # We want an approximately equal amount of data in each sublist
         for posture in recent_posture_data:
             index = min(
                 POSTURE_GRAPH_DATUM_WIDTH - 1,
@@ -322,43 +331,12 @@ def handle_posture_monitoring_new(auspost: ControlledData) -> bool:
             average_prop_good = sum(
                 [posture.prop_good for posture in posture_list]
             ) / len(posture_list)
-            # KILLME:
-            # print(f"<!> {average_prop_good=}")
-            # auspost.accept_new_posture_data([average_prop_good] * DEBUG_MULTIPLIER_CONSTANT) # DEBUG: 2024-10-06_20-16 Gabe: Fixed the typing by wrapping into a singleton list
-            # print(f"<!> Avg prop_good is {average_prop_good}")
             new_prop_good_data += [average_prop_good] * POSTURE_GRAPH_DATUM_WIDTH
         auspost.accept_new_posture_data(new_prop_good_data)
 
         auspost.set_last_snapshot_time(now)
 
     return True
-
-
-# SECTION: Feedback handling
-def handle_posture_monitoring(auspost: ControlledData) -> bool:
-    """
-    Take a snapshot monitoring the user, and update the given ControlledData if necessary.
-
-    Args:
-        auspost: Data encapsulating the current state of the program.
-
-    Returns:
-        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
-
-    Requires:
-        ! auspost.is_failed()
-
-    Ensures:
-        ! auspost.is_failed()
-    """
-    print("<!> handle_posture_monitoring()")
-    now = datetime.now()
-    if now > auspost.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT:
-        auspost.accept_new_posture_data([])
-        auspost.accept_new_posture_data([auspost.DEBUG_get_next_posture_graph_value()])
-        auspost.set_last_snapshot_time(now)
-    return True
-
 
 def handle_feedback(auspost: ControlledData) -> bool:
     """
