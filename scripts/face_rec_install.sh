@@ -1,4 +1,6 @@
 #!/bin/bash
+ERROR="deploy[\033[1;31mERROR\033[0m]"
+
 sudo apt-get install build-essential \
     cmake \
     gfortran \
@@ -24,4 +26,7 @@ sudo apt-get install build-essential \
 mkdir -p dlib
 git clone https://github.com/davisking/dlib.git dlib/
 cd ./dlib
-sudo python3.10 setup.py install --compiler-flags "-O3"
+if ! sudo python3.10 setup.py install --compiler-flags "-O3"; then
+    echo -e "$ERROR Error building dlib"
+    exit 1;
+fi
