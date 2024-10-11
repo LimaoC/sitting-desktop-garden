@@ -1,14 +1,11 @@
-"""Module for interacting with SQLite database
-
-Last tested:
-    15-09 all functions tested by Gabe
+"""
+Module for interacting with SQLite database
 """
 
 import sqlite3
-
 from datetime import datetime
-from typing import Any, NamedTuple, Optional, Iterator
 from importlib import resources
+from typing import Any, Iterator, NamedTuple, Optional
 
 import numpy as np
 from pydbml import PyDBML

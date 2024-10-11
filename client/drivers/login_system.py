@@ -6,24 +6,24 @@ import logging
 from typing import Callable
 
 import numpy as np
-
-from data.routines import next_user_id, create_user
-from models.pose_detection.frame_capturer import RaspCapturer
-from models.face_recognition.recognition import register_faces, get_face_match, Status
+from data.routines import create_user, next_user_id
 from drivers.data_structures import (
     HardwareComponents,
     LEFT_BUTTON,
     RIGHT_BUTTON,
     DOUBLE_RIGHT_BUTTON,
 )
+from models.face_recognition.recognition import Status, get_face_match, register_faces
+from models.pose_detection.frame_capturer import RaspCapturer
 
 NUM_FACES = 5
-QUIT = -4
+QUIT = -6
 RESET = -5
 BAD_STATUS_MESSAGES = {
     Status.NO_FACES.value: "No face detected please",
     Status.TOO_MANY_FACES.value: "Too many faces detected",
     Status.NO_MATCH.value: "Could not match face",
+    Status.ALREADY_REGISTERED.value: "Face already registered",
 }
 QUIT_INSTRUCTIONS = "Right: quit"
 

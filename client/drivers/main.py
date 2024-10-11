@@ -1,24 +1,16 @@
 """
-Brief:
-    Entry point for the Sitting Desktop Garden Raspberry Pi Pot Client.
-File:
-    sitting-desktop-garden/client/drivers/main.py
+Entry point for the Sitting Desktop Garden Raspberry Pi Pot Client.
+
 Author:
     Gabriel Field (47484306), Mitchell Clark
 """
 
-## SECTION: Imports
 import argparse
 import logging
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
 
 import RPi.GPIO as GPIO
-from PiicoDev_SSD1306 import *
-from PiicoDev_Switch import *
-from PiicoDev_Unified import sleep_ms
-
-from models.pose_detection.frame_capturer import RaspCapturer
 from data.routines import (
     init_database,
     destroy_database,
@@ -27,48 +19,51 @@ from data.routines import (
     Posture,
 )
 from drivers.data_structures import ControlledData, HardwareComponents
-from drivers.login_system import handle_authentication, RESET
+from drivers.login_system import RESET, handle_authentication
+from models.pose_detection.frame_capturer import RaspCapturer
+from PiicoDev_SSD1306 import *
+from PiicoDev_Switch import *
+from PiicoDev_Unified import sleep_ms
 
-## SECTION: Global constants
-
+#: Pin to which the vibration motor is attached. This is D8 on the PiicoDev header.
 CUSHION_GPIO_PIN = 8
-""" Pin to which the vibration motor is attached. This is D8 on the PiicoDev header. """
 
+#: Number of milliseconds between each time the button is polled during wait_for_login_attempt().
 WAIT_FOR_LOGIN_POLLING_INTERVAL = 100
-""" Number of milliseconds between each time the button is polled during wait_for_login_attempt(). """
+#: Number of milliseconds between pictures taken for login attempts.
 LOGIN_TAKE_PICTURE_INTERVAL = 1000
-""" Number of milliseconds between pictures taken for login attempts. """
+#: Number of milliseconds between starting to attempt_login() and taking the first picture.
 START_LOGIN_ATTEMPTS_DELAY = 3000
-""" Number of milliseconds between starting to attempt_login() and taking the first picture. """
+#: Number of milliseconds between each time the button is polled during ask_create_new_user().
 ASK_CREATE_NEW_USER_POLLING_INTERVAL = 100
-""" Number of milliseconds between each time the button is polled during ask_create_new_user(). """
+#: Number of milliseconds between telling the user that login has completely failed and returning from attempt_login().
 FAIL_LOGIN_DELAY = 3000
-""" Number of milliseconds between telling the user that login has completely failed and returning from attempt_login(). """
+#: Number of milliseconds between telling the user that login has succeeded and beginning real functionality.
 LOGIN_SUCCESS_DELAY = 3000
-""" Number of milliseconds between telling the user that login has succeeded and beginning real functionality. """
 
+#: Width (in pixels) of each individual entry on the posture graph. (One pixel is hard to read.)
 POSTURE_GRAPH_DATUM_WIDTH = 5
-""" Width (in pixels) of each individual entry on the posture graph. (One pixel is hard to read.) """
 
+#: Number of milliseconds between the user successfully logging out and returning to main().
 LOGOUT_SUCCESS_DELAY = 3000
-""" Number of milliseconds between the user successfully logging out and returning to main(). """
+#: Minimum delay between reading posture data from the SQLite database, in do_everything().
 GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds=10000)
-""" Minimum delay between reading posture data from the SQLite database, in do_everything(). """
+#: Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later.
 PROPORTION_IN_FRAME_THRESHOLD = 0.3
-""" Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later. """
 
-HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=10000) # DEBUG
-""" Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback(). """
+#: Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback().
+HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=10000)  # DEBUG
+#: Length of time for which the vibration motor should vibrate. Used in handle_cushion_feedback().
 CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=1000)
-""" Length of time for which the vibration motor should vibrate. Used in handle_cushion_feedback(). """
+#: Threshold for vibration cushion feedback. If the proportion of "good" sitting posture is below this, the cushion will vibrate.
+#: FIXME: Fine-tune this value later.
 CUSHION_PROPORTION_GOOD_THRESHOLD = 0.5
-"""
-Threshold for vibration cushion feedback. If the proportion of "good" sitting posture is below this, the cushion will vibrate. 
-FIXME: Fine-tune this value later.
-"""
 
-HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=2000) # DEBUG: used to be 10000
-""" Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback(). """
+#: Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback().
+HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=2000)  # DEBUG: used to be 10000
+#: Threshold for I. Jensen Plant Mover 10000 feedback. If the proportion of "good" sitting posture is below this,
+#: the plant will move down.
+#: FIXME: Fine-tune this value later.
 PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
 """
 Threshold for I. Jensen Plant Mover 10000 feedback. If the proportion of "good" sitting posture is below this,
@@ -76,12 +71,10 @@ the plant will move down.
 FIXME: Fine-tune this value later.
 """
 
+#: DEBUG Number of milliseconds between each loop iteration in do_everything().
 DEBUG_DO_EVERYTHING_INTERVAL = 1000
-""" DEBUG Number of milliseconds between each loop iteration in do_everything(). """
 
 logger = logging.getLogger(__name__)
-
-## SECTION: main()
 
 
 def main():
@@ -89,7 +82,11 @@ def main():
     Entry point for the control program.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--no-posture-model", action="store_true")
+    parser.add_argument(
+        "--no-posture-model",
+        action="store_true",
+        help="Whether to run the posture model. Useful for debugging.",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG)
@@ -98,37 +95,45 @@ def main():
     logger.debug("Initialising database")
     init_database()
 
+    # Spin up the posture tracking process
     if not args.no_posture_model:
         from models.pose_detection.routines import PostureProcess
 
         logger.debug("Initialising posture tracking process")
         posture_process = PostureProcess(frame_capturer=RaspCapturer)
 
+    # Handle user login/registration, posture tracking, and running the user session
+    # Under normal circumstances, this loop shouldn't exit
     while True:
+        # Attempt to login an existing user or register a new user
         user_id = handle_authentication(hardware)
 
-        # Handle reset
+        # Handle a "hard" reset, which resets the database, all registered faces,
+        # and the hardware
         if user_id == RESET:
             _reset_garden()
             continue
 
         # Create user session data
         user = ControlledData.make_empty(user_id)
+
+        # Let the posture tracking process know about the current user's id'
         if not args.no_posture_model:
             posture_process.track_user(user_id)
+
         logger.debug("Login successful")
 
         # Run user session
         do_everything(user)
 
+        # Let the posture tracking process if the user has logged out
         if not args.no_posture_model:
             posture_process.untrack_user()
 
 
-## SECTION: Hardware initialisation
+# SECTION: Hardware initialisation
 
 
-# 2024-09-01_15-29 Gabe: TESTED. for buttons and OLED display.
 def initialise_hardware() -> HardwareComponents:
     """
     Set up hardware for use throughout the project. We have:
@@ -138,10 +143,10 @@ def initialise_hardware() -> HardwareComponents:
         Vibration motor attached to GPIO pin BUZZER_GPIO_PIN
 
     Returns:
-        (HardwareComponents): Object consisting of all hardware components connected to the Raspberry Pi.
+        Object consisting of all hardware components connected to the Raspberry Pi.
 
-    TODO: Complete the function with all of the hardware peripherals (incrementally, as they get integrated).
     """
+    print("<!> initialise_hardware()")
     return_me = HardwareComponents.make_fresh()
     # Clear button queues
     return_me.button0.was_pressed
@@ -152,21 +157,20 @@ def initialise_hardware() -> HardwareComponents:
     # Write low to stop buzzer from mistakenly buzzing, if necessary
     GPIO.output(CUSHION_GPIO_PIN, GPIO.LOW)
 
+    print("<!> initialise_hardware() FINISHED")
     return return_me
 
 
-## SECTION: Control for the logged-in user
+# SECTION: Control for the logged-in user
 
 
-# 2024-09-02 07-03 Gabe: Currently working the following here:
-#   top-level control flow
-#   interaction with buttons and display
 def do_everything(auspost: ControlledData) -> None:
     """
     Main control flow once a user is logged in.
 
     Args:
-        (auspost : ControlledData): Data encapsulating the current state of the program.
+        auspost: data encapsulating the current state of the program.
+
     Requires:
         ! auspost.is_failed()
     """
@@ -212,21 +216,23 @@ def do_everything(auspost: ControlledData) -> None:
         sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
 
 
-# 2024-09-13 11-32 Gabe: TESTED.
 def update_display_screen(auspost: ControlledData) -> bool:
     """
     Update the display screen with whatever needs to be on there.
+
     We will display:
         As per HardwareComponents.get_control_messages(), and
         Current-session posture graph
 
     Args:
-        (auspost : ControlledData):
-            Data encapsulating the current state of the program.
+        auspost: data encapsulating the current state of the program.
+
     Returns:
-        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+        True, always. If you get a False return value, then something has gone VERY wrong.
+
     Requires:
         ! auspost.is_failed()
+
     Ensures:
         ! auspost.is_failed()
     """
@@ -295,8 +301,10 @@ def handle_posture_graph(auspost: ControlledData) -> bool:
 
         # Calculate total time span
         start_time = recent_posture_data[0].period_start
-        end_time = recent_posture_data[-1].period_end    # DEBUG: Used to be period_start
-        total_time = end_time - start_time # BUG: This calculation sometimes results in `0`, which gets divided by later...
+        end_time = recent_posture_data[-1].period_end  # DEBUG: Used to be period_start
+        total_time = (
+            end_time - start_time
+        )  # BUG: This calculation sometimes results in `0`, which gets divided by later...
 
         # Calculate the interval length
         interval = total_time / POSTURE_GRAPH_DATUM_WIDTH
@@ -335,11 +343,13 @@ def handle_feedback(auspost: ControlledData) -> bool:
     Provide feedback to the user if necessary.
 
     Args:
-        (auspost : ControlledData): Data encapsulating the current state of the program.
+        auspost: Data encapsulating the current state of the program.
     Returns:
         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+
     Requires:
         ! auspost.is_failed()
+
     Ensures:
         ! auspost.is_failed()
     """
@@ -356,26 +366,23 @@ def handle_feedback(auspost: ControlledData) -> bool:
     return True
 
 
-## SECTION: Feedback handling
-
-
-# 2024-09-15_20-18 Gabe: TESTED.
 def handle_cushion_feedback(auspost: ControlledData) -> bool:
     """
     Vibrate cushion (if necessary), and update the timestamp of when cushion feedback was last given.
 
     Args:
-        (auspost : ControlledData): Data encapsulating the current state of the program.
+        auspost: Data encapsulating the current state of the program.
+
     Returns:
-        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+        True, always. If you get a False return value, then something has gone VERY wrong.
+
     Requires:
         ! auspost.is_failed()
+
     Ensures:
         ! auspost.is_failed()
     """
-    # DEBUG:
     print("<!> handle_cushion_feedback()")
-    # :DEBUG
 
     # Load posture records within the last HANDLE_CUSHION_FEEDBACK_TIMEOUT
     now = datetime.now()
@@ -387,12 +394,10 @@ def handle_cushion_feedback(auspost: ControlledData) -> bool:
     )
 
     # Conditions for exiting early
-    # 2024-09-15_19-47 Gabe: TESTED.
     if len(recent_posture_data) == 0:
         print("<!> Exiting handle_cushion_feedback() early: No data")
         auspost.set_last_cushion_time(datetime.now())
         return True
-    # 2024-09-15_20-18 Gabe: TESTED.
     average_prop_in_frame = sum(
         [posture.prop_in_frame for posture in recent_posture_data]
     ) / len(recent_posture_data)
@@ -402,7 +407,6 @@ def handle_cushion_feedback(auspost: ControlledData) -> bool:
         )
         auspost.set_last_cushion_time(datetime.now())
         return True
-    # 2024-09-15_20-18 Gabe: TESTED.
     average_prop_good = sum(
         [posture.prop_good for posture in recent_posture_data]
     ) / len(recent_posture_data)
@@ -411,7 +415,6 @@ def handle_cushion_feedback(auspost: ControlledData) -> bool:
         auspost.set_last_cushion_time(datetime.now())
         return True
 
-    # 2024-09-15_19-40 Gabe: TESTED.
     buzzer_start_time = datetime.now()
     GPIO.output(CUSHION_GPIO_PIN, GPIO.HIGH)
     print("<!> buzzer on")
@@ -431,19 +434,17 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
     of when plant feedback was last given.
 
     Args:
-        (auspost : ControlledData): Data encapsulating the current state of the program.
+        auspost: Data encapsulating the current state of the program.
+
     Returns:
         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
+
     Requires:
         ! auspost.is_failed()
     Ensures:
         ! auspost.is_failed()
-
-    TODO: Implement this method. Currently prints a debug statement and updates the time.
     """
-    # DEBUG:
     print("<!> handle_plant_feedback()")
-    # :DEBUG
 
     now = datetime.now()
 
@@ -461,7 +462,7 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
             print("<!> Exiting handle_plant_feedback() early: No data")
             auspost.set_last_plant_time(datetime.now())
             return True
-        
+
         average_prop_in_frame = sum(
             [posture.prop_in_frame for posture in recent_posture_data]
         ) / len(recent_posture_data)
@@ -471,43 +472,20 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
             )
             auspost.set_last_plant_time(datetime.now())
             return True
-        
+
         # Calculate average proportion
         average_prop_good = sum(
             [posture.prop_good for posture in recent_posture_data]
         ) / len(recent_posture_data)
-        
+
         # Judge.
         if average_prop_good >= PLANT_PROPORTION_GOOD_THRESHOLD:
             hardware.set_plant_height(hardware.plant_height + 1)
         else:
             hardware.set_plant_height(hardware.plant_height - 1)
-        
+
         auspost.set_last_plant_time(datetime.now())
-        
-    return True
 
-
-def handle_sniff_feedback(auspost: ControlledData) -> bool:
-    """
-    Dispense olfactory reward (if necessary), and update the timestamp of when olfactory feedback
-    was last given.
-
-    Args:
-        (auspost : ControlledData): Data encapsulating the current state of the program.
-    Returns:
-        (bool): True, always. If you get a False return value, then something has gone VERY wrong.
-    Requires:
-        ! auspost.is_failed()
-    Ensures:
-        ! auspost.is_failed()
-
-    TODO: Implement this method. Currently prints a debug statement and updates the time.
-    """
-    # DEBUG:
-    print("<!> handle_sniff_feedback()")
-    # :DEBUG
-    auspost.set_last_sniff_time(datetime.now())
     return True
 
 
@@ -524,10 +502,10 @@ def _reset_garden() -> None:
     reset_registered_face_embeddings()
     print("\t<!> initialising hardware...")
     hardware = initialise_hardware()
-    print("\t<!> Like a phoenex, the Sitting Desktop Garden rises anew")
+    print("\t<!> Like a phoenix, the Sitting Desktop Garden rises anew")
 
 
-## LAUNCH
+# LAUNCH
 
 if __name__ == "__main__":
     hardware = initialise_hardware()
