@@ -4,6 +4,8 @@
 
 ERROR="[\033[1;31mERROR\033[0m]"
 
+cd build/
+
 if ! type -P python3.10 >/dev/null 2>&1; then
     echo -e "$ERROR python3.10 not found"
     exit 2

@@ -1,9 +1,9 @@
 #!/bin/bash
 
 
-WARN="[\033[1;33mWARN\033[0m]"
-INFO="[\033[1;32mINFO\033[0m]"
-ERROR="[\033[1;31mERROR\033[0m]"
+WARN="deploy[\033[1;33mWARN\033[0m]"
+INFO="deploy[\033[1;32mINFO\033[0m]"
+ERROR="deploy[\033[1;31mERROR\033[0m]"
 
 PATHFILE=$1
 TEMPDIRPATH='package_temp'
@@ -101,8 +101,10 @@ fi
 echo -e "$INFO Downloading Models"
 $SSH_GO "mkdir build/client/models/resources &&
 curl -o build/client/models/resources/pose_landmarker_lite.task \
-https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task
-"
+https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
+
+echo -e $INFO Installing the package
+$SSH_GO "cd build && pip install -e . && cd .."
 
 echo -e "$INFO Deployed Successfully"
 cleanup
