@@ -1,8 +1,8 @@
 #!/bin/bash
 
-WARN="[\033[1;33mWARN\033[0m]"
-INFO="[\033[1;32mINFO\033[0m]"
-ERROR="[\033[1;31mERROR\033[0m]"
+WARN="bootstrap[\033[1;33mWARN\033[0m]"
+INFO="bootstrap[\033[1;32mINFO\033[0m]"
+ERROR="bootstrap[\033[1;31mERROR\033[0m]"
 
 SSHTARGET=$1
 SSHUSER=$2
@@ -29,6 +29,12 @@ fi
 
 SSH_GO="$SSH_PREFIX ssh $SSHUSER@$SSHTARGET"
 
+echo -e $INFO Increasing Swapfile Size
+if ! $SSH_GO 'bash -s' < increase_swap.sh; then
+    echo -e $ERROR Something went wrong... please check above.
+    exit 1
+fi
+
 echo -e $INFO Installing and Compiling Python
 if $SSH_GO 'command -v python3.10 > /dev/null'; then
     echo -e "$INFO It appears Python3.10 already exists on target. I won't compile it again."
@@ -38,6 +44,12 @@ else
         exit 1
     fi
     echo -e $INFO Python3.10 installed
+fi
+
+echo -e $INFO Installing dlib
+if ! $SSH_GO 'bash -s' < face_rec_install.sh; then
+    echo -e $ERROR dlib installation failed.
+    exit 1
 fi
 
 echo -e $INFO Installing uv
@@ -52,9 +64,9 @@ else
 fi
 
 echo -e $INFO Copying Dependency Data
-$SSH_PREFIX scp ../{pyproject.toml,README.md} ./apt_packages.txt $SSHUSER@$SSHTARGET:~/
+$SSH_PREFIX scp ../{pyproject.toml,README.md} $SSHUSER@$SSHTARGET:~/
 echo -e $INFO Installing apt packages
 echo -e $INFO Compiling dependencies
 $SSH_GO "~/.cargo/bin/uv pip compile pyproject.toml -o requirements.txt"
-echo -e $INFO Installing dependencies
+echo -e "$INFO Installing dependencies"
 $SSH_GO "sudo ~/.cargo/bin/uv pip install --system --python 3.10 -r requirements.txt"

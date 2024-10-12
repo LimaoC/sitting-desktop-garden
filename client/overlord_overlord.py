@@ -14,11 +14,11 @@ PYTHON_CAMERA = "python3.11"
 
 
 def spawn_camera_overlord():
-    subprocess.run([PYTHON_CAMERA, "drivers/camera_overlord.py"])
+    subprocess.run([PYTHON_CAMERA, "client/drivers/camera_overlord.py"])
 
 
 def spawn_pi_overlord(no_posture_model):
-    cmd = [PYTHON_DEFAULT, "drivers/main.py"]
+    cmd = [PYTHON_DEFAULT, "client/drivers/main.py"]
     if no_posture_model:
         cmd.append("--no-posture-model")
     subprocess.run(cmd)
@@ -29,6 +29,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-posture-model", action="store_true")
     args = parser.parse_args()
+    logger.info(args)
 
     # Spawn a new process to run the camera indefinitely
     camera_overlord = multiprocessing.Process(target=spawn_camera_overlord, args=())
