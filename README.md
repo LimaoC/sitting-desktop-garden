@@ -10,11 +10,13 @@
     - [Testing](#testing)
     - [Code Styling](#code-styling)
     - [Documentation](#documentation)
-  - [Raspberry Pi Setup](#raspberry-pi-setup)
-    - [Environment](#environment)
-    - [Deployment](#deployment)
+  - [Deployment](#deployment)
+    - [Single command all-in-one](#single-command-all-in-one)
+    - [Pi Environment Set-up](#pi-environment-set-up)
+    - [Deploy codebase](#deploy-codebase)
+    - [Run Program](#run-program)
 
-**Go straight to [Raspberry Pi Setup](#raspberry-pi-setup) for instructions on setting up the Raspberry Pi if you are a user!**
+**Go straight to [the single command instructions](#single-command-all-in-one) if you want to run the project on your own Pi!**
 
 ## Library Overview
 ```
@@ -124,25 +126,32 @@ This spins up a local server which serves the documentation pages, and also hot-
 You can build the documentation (without spinning up a server) with `make docs`, and clean the documentation output with `make docs-clean`.
 
 
-## Raspberry Pi Setup
-### Environment
-Flash up your Raspberry Pi Model 3 B with a fresh install of Raspberry Pi OS (64-bit). Turn on the Raspberry Pi and record its IP address `[Target IP]`.
-On your personal machine, clone into this Git repository. From the base directory, run the following command. 
+## Deployment
+### Single command all-in-one
+To set up the Pi's environment, deploy the code base, and start the program follow the following steps.
+1. Flash an SD card with a fresh installation of the 64bit Raspberry Pi OS using the [official imager](https://www.raspberrypi.com/software/). When imaging the SD card you must turn on the SSH connections in the edit OS settings menu.
+2. Plug the SD card into the Pi and turn it on. Wait for the green light to stop flashing before going to step 3.
+3. Clone this git directory to your computer.
+4. From the base directory of the project run,
+`
+./run.sh [Pi Hostname/IP] [Pi Username]
+`. If you do not have sshpass installed this may prompt for the Pi's password many times.
+5. The above command will take a while.
+### Pi Environment Set-up
+You can set up the Pi's environment by following steps 1,2, and 3 of the above instructions. and then running.
 ```bash
-cd bootstrap && ./bootstrap.sh [Target IP] [Username]
+scripts/bootstrap.sh [Pi Hostname/IP] [Pi Username]
 ```
-This will install python3.10 to the Pi and the dependencies for the project.
-### Deployment
-To deploy a build to the Raspberry Pi, turn it on and run the `deploy.sh` script from your personal machine. This script will create a tarball of file listed in a text file, transfer it to
-a specified hostname and untar it there.
+### Deploy codebase
+You can deploy the codebase by running 
+```bash
+cd scripts
+./deploy.sh ../deploypaths.txt [Pi Hostname/IP] [Pi Username]
+```
 
-To use the script execute it in the project's root directory with,
+### Run Program
+You can start up the program by running
 ```bash
-./deploy.sh [pathfile] [hostname] [username]
+cd scripts
+./ssh [Pi Username]@[Pi Hostname/IP] 'bash -s' < run_garden.sh
 ```
-For example, to deploy the files listed in `deploypaths.txt` to the target IP `testpi` (using username raspberry) the command would be
-```bash
-./deploy.sh deploypaths.txt testpi raspberry
-```
-The pathname file should contain a path to a file or directory on each line. If a directory is listed `deploy.sh` will copy the entire contents over.
-You can use the `#` character at the start of a line to leave comments.
