@@ -25,17 +25,17 @@ For developers, see [Project Overview](#project-overview). For users setting up 
   - [Project Overview](#project-overview)
     - [Directory Structure](#directory-structure)
     - [Dependencies](#dependencies)
+  - [Deployment](#deployment)
+    - [Single command all-in-one](#single-command-all-in-one)
+    - [Pi Environment Set-up](#pi-environment-set-up)
+    - [Deploy codebase](#deploy-codebase)
+    - [Run Program](#run-program)
   - [Development](#development)
     - [Installation](#installation)
     - [Dependencies](#dependencies-1)
     - [Testing](#testing)
     - [Code Styling](#code-styling)
     - [Documentation](#documentation)
-  - [Deployment](#deployment)
-    - [Single command all-in-one](#single-command-all-in-one)
-    - [Pi Environment Set-up](#pi-environment-set-up)
-    - [Deploy codebase](#deploy-codebase)
-    - [Run Program](#run-program)
 
 
 ## Project Overview
@@ -55,6 +55,36 @@ The main project dependencies are specified in [pyproject.toml](./pyproject.toml
 - [mediapipe](https://ai.google.dev/edge/mediapipe/solutions/guide) provides the body landmark detection model.
 - [piicodev](https://pypi.org/project/piicodev/) provides modules for interfacing with Raspberry Pi peripherals.
 - [face-recognition](https://pypi.org/project/face-recognition/) provides the face rceognition model.
+
+## Deployment
+### Single command all-in-one
+To set up the Pi's environment, deploy the code base, and start the program follow the following steps.
+1. Flash an SD card with a fresh installation of the 64bit Raspberry Pi OS using the [official imager](https://www.raspberrypi.com/software/). When imaging the SD card you must turn on the SSH connections in the edit OS settings menu.
+2. Plug the SD card into the Pi and turn it on. Wait for the green light to stop flashing before going to step 3.
+3. Clone this git directory to your computer.
+4. From the base directory of the project run,
+`
+./run.sh [Pi Hostname/IP] [Pi Username]
+`. If you do not have sshpass installed this may prompt for the Pi's password many times.
+5. The above command will take a while.
+### Pi Environment Set-up
+You can set up the Pi's environment by following steps 1,2, and 3 of the above instructions. and then running.
+```bash
+scripts/bootstrap.sh [Pi Hostname/IP] [Pi Username]
+```
+### Deploy codebase
+You can deploy the codebase by running 
+```bash
+cd scripts
+./deploy.sh ../deploypaths.txt [Pi Hostname/IP] [Pi Username]
+```
+
+### Run Program
+You can start up the program by running
+```bash
+cd scripts
+./ssh [Pi Username]@[Pi Hostname/IP] 'bash -s' < run_garden.sh
+```
 
 ## Development
 
@@ -153,32 +183,3 @@ This spins up a local server which serves the documentation pages, and also hot-
 You can build the documentation (without spinning up a server) with `make docs`, and clean the documentation output with `make docs-clean`.
 
 
-## Deployment
-### Single command all-in-one
-To set up the Pi's environment, deploy the code base, and start the program follow the following steps.
-1. Flash an SD card with a fresh installation of the 64bit Raspberry Pi OS using the [official imager](https://www.raspberrypi.com/software/). When imaging the SD card you must turn on the SSH connections in the edit OS settings menu.
-2. Plug the SD card into the Pi and turn it on. Wait for the green light to stop flashing before going to step 3.
-3. Clone this git directory to your computer.
-4. From the base directory of the project run,
-`
-./run.sh [Pi Hostname/IP] [Pi Username]
-`. If you do not have sshpass installed this may prompt for the Pi's password many times.
-5. The above command will take a while.
-### Pi Environment Set-up
-You can set up the Pi's environment by following steps 1,2, and 3 of the above instructions. and then running.
-```bash
-scripts/bootstrap.sh [Pi Hostname/IP] [Pi Username]
-```
-### Deploy codebase
-You can deploy the codebase by running 
-```bash
-cd scripts
-./deploy.sh ../deploypaths.txt [Pi Hostname/IP] [Pi Username]
-```
-
-### Run Program
-You can start up the program by running
-```bash
-cd scripts
-./ssh [Pi Username]@[Pi Hostname/IP] 'bash -s' < run_garden.sh
-```
