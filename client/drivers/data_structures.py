@@ -99,18 +99,6 @@ class ControlledData:
 
     # SECTION: Getters/Setters
 
-    def DEBUG_get_next_posture_graph_value(self) -> int:
-        """
-        Returns next thing to put on the DEBUG graph.
-
-        TODO: Remove this method
-        """
-        return_me = self._DEBUG_current_graph_function(
-            self._DEBUG_current_graph_list_index
-        )
-        self._DEBUG_current_graph_list_index += 1
-        return return_me
-
     def is_failed(self) -> bool:
         """
         Returns True iff this ControlledData is failed.
@@ -182,31 +170,6 @@ class ControlledData:
         print("<!> accept_new_posture_data()")
         for datum in posture_data:
             self._posture_data.put_nowait(datum)
-
-    # SECTION: Posture data mapping
-
-    def get_cushion_posture_data(
-        self,
-    ) -> "CUSHION_POSTURE_DATA":  # TODO: Decide what this type looks like
-        """
-        Returns posture data necessary for cushion feedback.
-
-        TODO: Implement this.
-        """
-        print("<!> WARNING: get_cushion_posture_data() not implemented!")
-        return None
-
-    def get_plant_posture_data(
-        self,
-    ) -> "PLANT_POSTURE_DATA":  # TODO: Decide what this type looks like
-        """
-        Returns posture data necessary for plant feedback.
-
-        TODO: Implement this.
-        """
-        print("<!> WARNING: get_plant_posture_data() not implemented!")
-        return None
-
 
 class HardwareComponents:
     """
@@ -467,7 +430,7 @@ class HardwareComponents:
             )
         return display_height_offset
 
-    def send_message(self, message: str, message_time: int = 1) -> None:
+    def send_message(self, messages: List[str], message_time: int = 1) -> None:
         """Clear the screen and display message
 
         Args:
@@ -475,7 +438,11 @@ class HardwareComponents:
             message_time: Time (seconds) to sleep for after displaying message.
         """
         self.display.fill(0)
-        self.oled_display_text(message, 0, 0, 1)
+        display_height_offset = 0
+        for text in messages:
+            display_height_offset = self.oled_display_text(
+                text, 0, 0 + display_height_offset, 1
+            )
         self.display.show()
         time.sleep(message_time)
 
