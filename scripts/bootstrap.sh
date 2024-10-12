@@ -32,6 +32,7 @@ SSH_GO="$SSH_PREFIX ssh $SSHUSER@$SSHTARGET"
 echo -e $INFO Increasing Swapfile Size
 if ! $SSH_GO 'bash -s' < increase_swap.sh; then
     echo -e $ERROR Something went wrong... please check above.
+    exit 1
 fi
 
 echo -e $INFO Installing and Compiling Python
