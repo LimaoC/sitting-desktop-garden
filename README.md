@@ -43,18 +43,20 @@ For developers, see [Project Overview](#project-overview). For users setting up 
 ```
 .
 ├── client
-│   ├── data: Data handling for sitting-desktop-garden. Includes user, posture and face id data.
-│   ├── drivers: Control flow software for sitting-desktop-garden. Includes basic control flow and appropriate data structures.
+│   ├── data: Data handling. Includes user, posture and face id data.
+│   ├── drivers: Control flow software. Includes basic control flow and appropriate data structures.
 │   └── models: Machine learning models (pose detection and face recognition).
+├── demos: Demo Python scripts for showcasing key functionality.
 ├── docs: Project documentation.
 ├── notebooks: Demos for module use.
+└── scripts: Bash scripts to run on the Pi for bootstrapping and running the SDG.
 ```
 
 ### Dependencies
 The main project dependencies are specified in [pyproject.toml](./pyproject.toml). Notably:
 - [mediapipe](https://ai.google.dev/edge/mediapipe/solutions/guide) provides the body landmark detection model.
 - [piicodev](https://pypi.org/project/piicodev/) provides modules for interfacing with Raspberry Pi peripherals.
-- [face-recognition](https://pypi.org/project/face-recognition/) provides the face rceognition model.
+- [face-recognition](https://pypi.org/project/face-recognition/) provides the face recognition model.
 
 ## Deployment
 ### Single command all-in-one
@@ -89,7 +91,7 @@ cd scripts
 ## Development
 
 ### Installation
-**Important**: Make sure you have Python 3.10 installed.
+**Important**: Make sure you have Python 3.10 or 3.11 installed. Importantly, the code for interfacing with the camera (`client/drivers/camera_overlord.py`) **MUST** be run on Python 3.11.
 
 We use [Poetry](https://python-poetry.org/) for dependency management. The installation instructions can be found [here](https://python-poetry.org/docs/).  Once you have Poetry installed, you can install the project dependencies (and the `sitting-desktop-garden` package) with
 
