@@ -1,12 +1,33 @@
 # Sitting Desktop Garden
 
+<center>
+</center>
+
+<p align="center" width="100%">
+<img src="assets/logo.png" width="200">
+</p>
+
+The **Sitting Desktop Garden** (SDG) is a cute and customisable artificial potted plant for the home office desk. It monitors the user's posture, providing gentle reminders and gamified incentives to maintain a healthy sitting position as you work. Reminders are delivered through haptic feedback in a vibrating mousepad, which is non-intrusive to the user's workflow, and demonstrating consistently good posture unlocks more beautiful plant growth.
+
+The SDG is controlled with a Raspberry Pi, which runs all machine learning models and stores all user data locally. No internet connection is required once the Raspberry Pi is set up.
+
+We use a facial recognition system to facilitate user logins and registrations to allow for multiple users to share one SDG. This can be useful in shared workspaces and offices (hot desking). Once the user is logged in, the camera monitors user posture by tracking their body landmarks and determining their neck and hip angles.
+
+Real-time feedback is delivered via a vibrating mousepad, which reminds the user to sit up straight if they are not sitting correctly. Current-session feedback can be viewed via the SDG's monitor to show the user how their posture has progressed over the current session, as well as via the physical growth of the potted plant.
+
+For developers, see [Project Overview](#project-overview). For users setting up a Raspberry Pi for use in the SDG, see [Raspberry Pi Setup](#raspberry-pi-setup).
+
+---
+
 **Table of Contents**
 
 - [Sitting Desktop Garden](#sitting-desktop-garden)
-  - [Library Overview](#library-overview)
+  - [Project Overview](#project-overview)
+    - [Directory Structure](#directory-structure)
+    - [Dependencies](#dependencies)
   - [Development](#development)
     - [Installation](#installation)
-    - [Dependencies](#dependencies)
+    - [Dependencies](#dependencies-1)
     - [Testing](#testing)
     - [Code Styling](#code-styling)
     - [Documentation](#documentation)
@@ -14,7 +35,8 @@
     - [Environment](#environment)
     - [Deployment](#deployment)
 
-## Library Overview
+## Project Overview
+### Directory Structure
 ```
 .
 ├── client
@@ -24,6 +46,12 @@
 ├── docs: Project documentation.
 ├── notebooks: Demos for module use.
 ```
+
+### Dependencies
+The main project dependencies are specified in [pyproject.toml](./pyproject.toml). Notably:
+- [mediapipe](https://ai.google.dev/edge/mediapipe/solutions/guide) provides the body landmark detection model.
+- [piicodev](https://pypi.org/project/piicodev/) provides modules for interfacing with Raspberry Pi peripherals.
+- [face-recognition](https://pypi.org/project/face-recognition/) provides the face rceognition model.
 
 ## Development
 
