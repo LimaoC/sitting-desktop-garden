@@ -15,7 +15,7 @@ We use a facial recognition system to facilitate user logins and registrations t
 
 Real-time feedback is delivered via a vibrating mousepad, which reminds the user to sit up straight if they are not sitting correctly. Current-session feedback can be viewed via the SDG's monitor to show the user how their posture has progressed over the current session, as well as via the physical growth of the potted plant.
 
-For developers, see [Project Overview](#project-overview). For users setting up a Raspberry Pi for use in the SDG, see [Raspberry Pi Setup](#raspberry-pi-setup).
+For developers, see [Project Overview](#project-overview). For users setting up a Raspberry Pi for use in the SDG, see [Deployment](#deployment).
 
 ---
 
@@ -37,7 +37,6 @@ For developers, see [Project Overview](#project-overview). For users setting up 
     - [Deploy codebase](#deploy-codebase)
     - [Run Program](#run-program)
 
-**Go straight to [the single command instructions](#single-command-all-in-one) if you want to run the project on your own Pi!**
 
 ## Project Overview
 ### Directory Structure
