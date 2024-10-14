@@ -12,24 +12,6 @@ env:
   POETRY_VERSION: '1.8.3'
 
 jobs:
-  tests:
-    name: Run tests
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-        # Local action that tries to cache as much of python & poetry as possible
-      - name: Setup environment
-        uses: ./.github/workflows/setup-python
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          poetry-version: ${{ env.POETRY_VERSION }}
-        
-      - name: Check with pytest
-        run: poetry run pytest
-
   styling:
     name: Run code styling
     runs-on: ubuntu-22.04

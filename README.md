@@ -33,7 +33,6 @@ For developers, see [Project Overview](#project-overview). For users setting up 
   - [Development](#development)
     - [Installation](#installation)
     - [Dependencies](#dependencies-1)
-    - [Testing](#testing)
     - [Code Styling](#code-styling)
     - [Documentation](#documentation)
 
@@ -144,21 +143,6 @@ poetry install --without dev
 ```
 
 To see a list of installed packages, use `poetry show`, or `poetry show --tree` for a graphical view. You can also see a list of non-dev dependencies with `poetry show --only main` or `poetry show --without dev`.
-
-### Testing
-
-We use [pytest](https://docs.pytest.org/en/stable/index.html) for testing. Tests are stored in `tests/`, and the tests for each file are prefixed with `test_`.
-
-To run all tests, use
-
-```bash
-poetry run pytest
-```
-
-To run a specific test, say `test_dummy.py`, use
-```bash
-poetry run pytest tests/test_dummy.py
-```
 
 ### Code Styling
 
