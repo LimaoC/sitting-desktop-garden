@@ -28,31 +28,23 @@ from PiicoDev_Unified import sleep_ms
 #: Pin to which the vibration motor is attached. This is D8 on the PiicoDev header.
 CUSHION_GPIO_PIN = 8
 
-#: Number of milliseconds between each time the button is polled during wait_for_login_attempt().
-WAIT_FOR_LOGIN_POLLING_INTERVAL = 100
-#: Number of milliseconds between pictures taken for login attempts.
-LOGIN_TAKE_PICTURE_INTERVAL = 1000
-#: Number of milliseconds between starting to attempt_login() and taking the first picture.
-START_LOGIN_ATTEMPTS_DELAY = 3000
-#: Number of milliseconds between each time the button is polled during ask_create_new_user().
-ASK_CREATE_NEW_USER_POLLING_INTERVAL = 100
-#: Number of milliseconds between telling the user that login has completely failed and returning from attempt_login().
-FAIL_LOGIN_DELAY = 3000
 #: Number of milliseconds between telling the user that login has succeeded and beginning real functionality.
-LOGIN_SUCCESS_DELAY = 3000
-
-#: Width (in pixels) of each individual entry on the posture graph. (One pixel is hard to read.)
-POSTURE_GRAPH_DATUM_WIDTH = 5
-
+LOGIN_SUCCESS_DELAY = 1000
 #: Number of milliseconds between the user successfully logging out and returning to main().
-LOGOUT_SUCCESS_DELAY = 3000
+LOGOUT_SUCCESS_DELAY = 1000
+
+#: Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later.
+PROPORTION_IN_FRAME_THRESHOLD = 0.4
+
 #: Minimum delay between reading posture data from the SQLite database, in run_user_session().
 GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds=10000)
-#: Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later.
-PROPORTION_IN_FRAME_THRESHOLD = 0.3
+#: Width (in pixels) of each individual entry on the posture graph. (One pixel is hard to read.)
+POSTURE_GRAPH_DATUM_WIDTH = 5
+#: The number of data points to split the total data into, collected each time we read from the SQLite database.
+NUM_DATA_POINTS_PER_TIMEOUT = 3
 
 #: Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback().
-HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=10000)  # DEBUG
+HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=60000)  # DEBUG
 #: Length of time for which the vibration motor should vibrate. Used in handle_cushion_feedback().
 CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=1000)
 #: Threshold for vibration cushion feedback. If the proportion of "good" sitting posture is below this, the cushion will vibrate.
@@ -60,17 +52,16 @@ CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=1000)
 CUSHION_PROPORTION_GOOD_THRESHOLD = 0.5
 
 #: Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback().
-HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=2000)  # DEBUG: used to be 10000
+HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=20000)  # DEBUG: used to be 10000
 #: Threshold for I. Jensen Plant Mover 10000 feedback. If the proportion of "good" sitting posture is below this,
 #: the plant will move down.
 #: FIXME: Fine-tune this value later.
 PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
 
-#: DEBUG Number of milliseconds between each loop iteration in run_user_session().
-DEBUG_DO_EVERYTHING_INTERVAL = 1000
+#: Number of milliseconds between each loop iteration in run_user_session().
+USER_SESSION_INTERVAL = 100
 
 logger = logging.getLogger(__name__)
-
 
 def main():
     """
@@ -203,11 +194,12 @@ def run_user_session(user: ControlledData) -> None:
             print("<!> END run_user_session()")
             return
 
+        # Run core functionality
         update_display_screen(user)
         handle_posture_graph(user)
         handle_feedback(user)
 
-        sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
+        sleep_ms(USER_SESSION_INTERVAL)
 
 
 def update_display_screen(user: ControlledData) -> bool:
@@ -234,9 +226,11 @@ def update_display_screen(user: ControlledData) -> bool:
         not user.get_posture_data().empty()
     ):  # NOTE: This is much more robust than getting a fixed number of things out of the queue
         hardware.display.fill(0)
+        # Display user messages
         hardware.oled_display_texts(
             hardware.get_control_messages(user.get_user_id()), 0, 0, 1
         )
+        # Display posture graph data
         hardware.display.updateGraph2D(
             hardware.posture_graph, user.get_posture_data().get_nowait()
         )
@@ -258,8 +252,6 @@ def handle_posture_graph(user: ControlledData) -> bool:
         ! user.is_failed()
     Ensures:
         ! user.is_failed()
-
-    TODO: Check this
     """
     now = datetime.now()
 
@@ -295,29 +287,27 @@ def handle_posture_graph(user: ControlledData) -> bool:
 
         # Calculate total time span
         start_time = recent_posture_data[0].period_start
-        end_time = recent_posture_data[-1].period_end  # DEBUG: Used to be period_start
-        total_time = (
-            end_time - start_time
-        )  # BUG: This calculation sometimes results in `0`, which gets divided by later...
+        end_time = recent_posture_data[-1].period_end  
+        total_time = end_time - start_time  
 
         # Calculate the interval length
-        interval = total_time / POSTURE_GRAPH_DATUM_WIDTH
+        interval = total_time / NUM_DATA_POINTS_PER_TIMEOUT
 
         # Setup sublists, where each sublist is a portion of the overall data
         split_posture_lists: list[list[Posture]]
-        split_posture_lists = [[] for _ in range(POSTURE_GRAPH_DATUM_WIDTH)]
+        split_posture_lists = [[] for _ in range(NUM_DATA_POINTS_PER_TIMEOUT)]
 
         # What is in each sublist is determined by period_start
         # We want an approximately equal amount of data in each sublist
         for posture in recent_posture_data:
             index = min(
-                POSTURE_GRAPH_DATUM_WIDTH - 1,
+                NUM_DATA_POINTS_PER_TIMEOUT - 1,
                 int((posture.period_start - start_time) // interval),
             )
             split_posture_lists[index].append(posture)
 
         new_prop_good_data = []
-        # Enqueue the average good posture for the graph to use
+        # Enqueue the average good posture for each data point for the graph to use
         for posture_list in split_posture_lists:
             if len(posture_list) == 0:
                 continue
@@ -385,11 +375,12 @@ def handle_cushion_feedback(user: ControlledData) -> bool:
         period_end=now,
     )
 
-    # Conditions for exiting early
+    # Exit if no data
     if len(recent_posture_data) == 0:
         print("<!> Exiting handle_cushion_feedback() early: No data")
         user.set_last_cushion_time(datetime.now())
         return True
+    # Exit if person not in frame enough
     average_prop_in_frame = sum(
         [posture.prop_in_frame for posture in recent_posture_data]
     ) / len(recent_posture_data)
@@ -399,6 +390,8 @@ def handle_cushion_feedback(user: ControlledData) -> bool:
         )
         user.set_last_cushion_time(datetime.now())
         return True
+    
+    # Get average proportion of good posture
     average_prop_good = sum(
         [posture.prop_good for posture in recent_posture_data]
     ) / len(recent_posture_data)
@@ -407,12 +400,13 @@ def handle_cushion_feedback(user: ControlledData) -> bool:
         user.set_last_cushion_time(datetime.now())
         return True
 
+    # If posture not good enough, turn buzzer on
     buzzer_start_time = datetime.now()
     GPIO.output(CUSHION_GPIO_PIN, GPIO.HIGH)
     print("<!> buzzer on")
     while datetime.now() < buzzer_start_time + CUSHION_ACTIVE_INTERVAL:
-        # Can add extra code here if necessary. This WILL halt execution of this thread.
         sleep_ms(100)
+    # Turn buzzer off
     GPIO.output(CUSHION_GPIO_PIN, GPIO.LOW)
     print("<!> buzzer off")
 
@@ -449,12 +443,13 @@ def handle_plant_feedback(user: ControlledData) -> bool:
             period_end=now,
         )
 
-        # Conditions for exiting early
+        # Exit if no data
         if len(recent_posture_data) == 0:
             print("<!> Exiting handle_plant_feedback() early: No data")
             user.set_last_plant_time(datetime.now())
             return True
 
+        # Exit if person not in frame enough
         average_prop_in_frame = sum(
             [posture.prop_in_frame for posture in recent_posture_data]
         ) / len(recent_posture_data)
@@ -465,12 +460,12 @@ def handle_plant_feedback(user: ControlledData) -> bool:
             user.set_last_plant_time(datetime.now())
             return True
 
-        # Calculate average proportion
+        # Calculate average proportion of good posture
         average_prop_good = sum(
             [posture.prop_good for posture in recent_posture_data]
         ) / len(recent_posture_data)
 
-        # Judge.
+        # Raise plant 1 'level' if posture is good, otherwise lower it 1.
         if average_prop_good >= PLANT_PROPORTION_GOOD_THRESHOLD:
             hardware.set_plant_height(hardware.plant_height + 1)
         else:

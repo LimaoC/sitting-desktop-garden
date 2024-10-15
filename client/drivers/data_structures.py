@@ -158,14 +158,13 @@ class ControlledData:
 
     def accept_new_posture_data(
         self, posture_data: List[float]
-    ) -> None:  # TODO: Refine type signature
+    ) -> None: 
         """
         Update the internal store of posture data for the OLED display.
 
         Args:
             posture_data: new posture data to accept and merge with the current state of this object.
 
-        TODO: Implement me!
         """
         print("<!> accept_new_posture_data()")
         for datum in posture_data:
