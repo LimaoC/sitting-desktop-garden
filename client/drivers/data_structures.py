@@ -25,7 +25,7 @@ DOUBLE_RIGHT_BUTTON = 2
 
 class ControlledData:
     """
-    Data for passing around in client/drivers/main.do_everything().
+    Data for passing around in client/drivers/main.run_user_session().
 
     There should only ever be one object of this class at a time.
 
@@ -170,6 +170,7 @@ class ControlledData:
         print("<!> accept_new_posture_data()")
         for datum in posture_data:
             self._posture_data.put_nowait(datum)
+
 
 class HardwareComponents:
     """

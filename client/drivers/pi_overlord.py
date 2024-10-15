@@ -46,7 +46,7 @@ POSTURE_GRAPH_DATUM_WIDTH = 5
 
 #: Number of milliseconds between the user successfully logging out and returning to main().
 LOGOUT_SUCCESS_DELAY = 3000
-#: Minimum delay between reading posture data from the SQLite database, in do_everything().
+#: Minimum delay between reading posture data from the SQLite database, in run_user_session().
 GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds=10000)
 #: Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later.
 PROPORTION_IN_FRAME_THRESHOLD = 0.3
@@ -65,13 +65,8 @@ HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=2000)  # DEBUG: used to b
 #: the plant will move down.
 #: FIXME: Fine-tune this value later.
 PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
-"""
-Threshold for I. Jensen Plant Mover 10000 feedback. If the proportion of "good" sitting posture is below this,
-the plant will move down.
-FIXME: Fine-tune this value later.
-"""
 
-#: DEBUG Number of milliseconds between each loop iteration in do_everything().
+#: DEBUG Number of milliseconds between each loop iteration in run_user_session().
 DEBUG_DO_EVERYTHING_INTERVAL = 1000
 
 logger = logging.getLogger(__name__)
@@ -123,8 +118,7 @@ def main():
 
         logger.debug("Login successful")
 
-        # Run user session
-        do_everything(user)
+        run_user_session(user)
 
         # Let the posture tracking process if the user has logged out
         if not args.no_posture_model:
@@ -164,21 +158,21 @@ def initialise_hardware() -> HardwareComponents:
 # SECTION: Control for the logged-in user
 
 
-def do_everything(auspost: ControlledData) -> None:
+def run_user_session(user: ControlledData) -> None:
     """
     Main control flow once a user is logged in.
 
     Args:
-        auspost: data encapsulating the current state of the program.
+        user: data encapsulating the current state of the program.
 
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
     """
-    LOGIN_MESSAGE = "Logged in with user id: " + str(auspost.get_user_id())
-    LOGOUT_MESSAGE = "Logged out user id " + str(auspost.get_user_id())
+    LOGIN_MESSAGE = "Logged in with user id: " + str(user.get_user_id())
+    LOGOUT_MESSAGE = "Logged out user id " + str(user.get_user_id())
 
     # Initialise posture graph for the current session
-    hardware.initialise_posture_graph(auspost.get_user_id())
+    hardware.initialise_posture_graph(user.get_user_id())
 
     # Wind plant down all the way
     hardware.wind_plant_safe()
@@ -195,7 +189,7 @@ def do_everything(auspost: ControlledData) -> None:
     # Set up initial display
     hardware.display.fill(0)
     hardware.oled_display_texts(
-        hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1
+        hardware.get_control_messages(user.get_user_id()), 0, 0, 1
     )
     hardware.display.show()
 
@@ -206,17 +200,17 @@ def do_everything(auspost: ControlledData) -> None:
             hardware.oled_display_text(LOGOUT_MESSAGE, 0, 0, 1)
             hardware.display.show()
             sleep_ms(LOGOUT_SUCCESS_DELAY)
-            print("<!> END do_everything()")
+            print("<!> END run_user_session()")
             return
 
-        update_display_screen(auspost)
-        handle_posture_graph(auspost)
-        handle_feedback(auspost)
+        update_display_screen(user)
+        handle_posture_graph(user)
+        handle_feedback(user)
 
         sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
 
 
-def update_display_screen(auspost: ControlledData) -> bool:
+def update_display_screen(user: ControlledData) -> bool:
     """
     Update the display screen with whatever needs to be on there.
 
@@ -225,54 +219,54 @@ def update_display_screen(auspost: ControlledData) -> bool:
         Current-session posture graph
 
     Args:
-        auspost: data encapsulating the current state of the program.
+        user: data encapsulating the current state of the program.
 
     Returns:
         True, always. If you get a False return value, then something has gone VERY wrong.
 
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
 
     Ensures:
-        ! auspost.is_failed()
+        ! user.is_failed()
     """
     while (
-        not auspost.get_posture_data().empty()
+        not user.get_posture_data().empty()
     ):  # NOTE: This is much more robust than getting a fixed number of things out of the queue
         hardware.display.fill(0)
         hardware.oled_display_texts(
-            hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1
+            hardware.get_control_messages(user.get_user_id()), 0, 0, 1
         )
         hardware.display.updateGraph2D(
-            hardware.posture_graph, auspost.get_posture_data().get_nowait()
+            hardware.posture_graph, user.get_posture_data().get_nowait()
         )
         hardware.display.show()
 
     return True
 
 
-def handle_posture_graph(auspost: ControlledData) -> bool:
+def handle_posture_graph(user: ControlledData) -> bool:
     """
     Get a snapshot of the user's posture data.
     Use this information to update the data for the posture graph.
 
     Args:
-        (auspost : ControlledData): Data encapsulating the current state of the program.
+        (user : ControlledData): Data encapsulating the current state of the program.
     Returns:
         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
     Ensures:
-        ! auspost.is_failed()
+        ! user.is_failed()
 
     TODO: Check this
     """
     now = datetime.now()
 
-    if now > auspost.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT:
+    if now > user.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT:
         # Get the most recent posture data for the user
         recent_posture_data = get_user_postures(
-            auspost.get_user_id(),
+            user.get_user_id(),
             num=-1,
             period_start=now - GET_POSTURE_DATA_TIMEOUT,
             period_end=now,
@@ -291,7 +285,7 @@ def handle_posture_graph(auspost: ControlledData) -> bool:
             print(
                 "<!> Exiting handle_posturing_monitoring_new() early: Not in frame for a high enough proportion of time."
             )
-            auspost.set_last_snapshot_time(datetime.now())
+            user.set_last_snapshot_time(datetime.now())
             return True
 
         # Sort the list by period_start
@@ -309,7 +303,7 @@ def handle_posture_graph(auspost: ControlledData) -> bool:
         # Calculate the interval length
         interval = total_time / POSTURE_GRAPH_DATUM_WIDTH
 
-        # Setup sublists, where each sublist is a portion of the overall data 
+        # Setup sublists, where each sublist is a portion of the overall data
         split_posture_lists: list[list[Posture]]
         split_posture_lists = [[] for _ in range(POSTURE_GRAPH_DATUM_WIDTH)]
 
@@ -332,62 +326,60 @@ def handle_posture_graph(auspost: ControlledData) -> bool:
                 [posture.prop_good for posture in posture_list]
             ) / len(posture_list)
             new_prop_good_data += [average_prop_good] * POSTURE_GRAPH_DATUM_WIDTH
-        auspost.accept_new_posture_data(new_prop_good_data)
+        user.accept_new_posture_data(new_prop_good_data)
 
-        auspost.set_last_snapshot_time(now)
+        user.set_last_snapshot_time(now)
 
     return True
 
-def handle_feedback(auspost: ControlledData) -> bool:
+
+def handle_feedback(user: ControlledData) -> bool:
     """
     Provide feedback to the user if necessary.
 
     Args:
-        auspost: Data encapsulating the current state of the program.
+        user: Data encapsulating the current state of the program.
     Returns:
         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
 
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
 
     Ensures:
-        ! auspost.is_failed()
+        ! user.is_failed()
     """
-    if (
-        datetime.now()
-        > auspost.get_last_cushion_time() + HANDLE_CUSHION_FEEDBACK_TIMEOUT
-    ):
-        if not handle_cushion_feedback(auspost):
+    if datetime.now() > user.get_last_cushion_time() + HANDLE_CUSHION_FEEDBACK_TIMEOUT:
+        if not handle_cushion_feedback(user):
             return False
-    if datetime.now() > auspost.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
-        if not handle_plant_feedback(auspost):
+    if datetime.now() > user.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
+        if not handle_plant_feedback(user):
             return False
 
     return True
 
 
-def handle_cushion_feedback(auspost: ControlledData) -> bool:
+def handle_cushion_feedback(user: ControlledData) -> bool:
     """
     Vibrate cushion (if necessary), and update the timestamp of when cushion feedback was last given.
 
     Args:
-        auspost: Data encapsulating the current state of the program.
+        user: Data encapsulating the current state of the program.
 
     Returns:
         True, always. If you get a False return value, then something has gone VERY wrong.
 
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
 
     Ensures:
-        ! auspost.is_failed()
+        ! user.is_failed()
     """
     print("<!> handle_cushion_feedback()")
 
     # Load posture records within the last HANDLE_CUSHION_FEEDBACK_TIMEOUT
     now = datetime.now()
     recent_posture_data = get_user_postures(
-        auspost.get_user_id(),
+        user.get_user_id(),
         num=-1,
         period_start=now - HANDLE_CUSHION_FEEDBACK_TIMEOUT,
         period_end=now,
@@ -396,7 +388,7 @@ def handle_cushion_feedback(auspost: ControlledData) -> bool:
     # Conditions for exiting early
     if len(recent_posture_data) == 0:
         print("<!> Exiting handle_cushion_feedback() early: No data")
-        auspost.set_last_cushion_time(datetime.now())
+        user.set_last_cushion_time(datetime.now())
         return True
     average_prop_in_frame = sum(
         [posture.prop_in_frame for posture in recent_posture_data]
@@ -405,14 +397,14 @@ def handle_cushion_feedback(auspost: ControlledData) -> bool:
         print(
             "<!> Exiting handle_cushion_feedback() early: Not in frame for a high enough proportion of time."
         )
-        auspost.set_last_cushion_time(datetime.now())
+        user.set_last_cushion_time(datetime.now())
         return True
     average_prop_good = sum(
         [posture.prop_good for posture in recent_posture_data]
     ) / len(recent_posture_data)
     if average_prop_good >= CUSHION_PROPORTION_GOOD_THRESHOLD:
         print("<!> Exiting handle_cushion_feedback() early: You sat well :)")
-        auspost.set_last_cushion_time(datetime.now())
+        user.set_last_cushion_time(datetime.now())
         return True
 
     buzzer_start_time = datetime.now()
@@ -424,34 +416,34 @@ def handle_cushion_feedback(auspost: ControlledData) -> bool:
     GPIO.output(CUSHION_GPIO_PIN, GPIO.LOW)
     print("<!> buzzer off")
 
-    auspost.set_last_cushion_time(datetime.now())
+    user.set_last_cushion_time(datetime.now())
     return True
 
 
-def handle_plant_feedback(auspost: ControlledData) -> bool:
+def handle_plant_feedback(user: ControlledData) -> bool:
     """
     Set the plant height according to short-term current session data, and update the timestamp
     of when plant feedback was last given.
 
     Args:
-        auspost: Data encapsulating the current state of the program.
+        user: Data encapsulating the current state of the program.
 
     Returns:
         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
 
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
     Ensures:
-        ! auspost.is_failed()
+        ! user.is_failed()
     """
     print("<!> handle_plant_feedback()")
 
     now = datetime.now()
 
-    if now > auspost.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
+    if now > user.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
         # Get the most recent posture data for the user
         recent_posture_data = get_user_postures(
-            auspost.get_user_id(),
+            user.get_user_id(),
             num=-1,
             period_start=now - GET_POSTURE_DATA_TIMEOUT,
             period_end=now,
@@ -460,7 +452,7 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
         # Conditions for exiting early
         if len(recent_posture_data) == 0:
             print("<!> Exiting handle_plant_feedback() early: No data")
-            auspost.set_last_plant_time(datetime.now())
+            user.set_last_plant_time(datetime.now())
             return True
 
         average_prop_in_frame = sum(
@@ -470,7 +462,7 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
             print(
                 "<!> Exiting handle_plant_feedback() early: Not in frame for a high enough proportion of time."
             )
-            auspost.set_last_plant_time(datetime.now())
+            user.set_last_plant_time(datetime.now())
             return True
 
         # Calculate average proportion
@@ -484,7 +476,7 @@ def handle_plant_feedback(auspost: ControlledData) -> bool:
         else:
             hardware.set_plant_height(hardware.plant_height - 1)
 
-        auspost.set_last_plant_time(datetime.now())
+        user.set_last_plant_time(datetime.now())
 
     return True
 
