@@ -33,7 +33,7 @@ LOGIN_SUCCESS_DELAY = 1000
 #: Number of milliseconds between the user successfully logging out and returning to main().
 LOGOUT_SUCCESS_DELAY = 1000
 
-#: Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later.
+#: Proportion of the time the user must be in frame for any feedback to be given.
 PROPORTION_IN_FRAME_THRESHOLD = 0.4
 
 #: Minimum delay between reading posture data from the SQLite database, in run_user_session().
@@ -44,18 +44,16 @@ POSTURE_GRAPH_DATUM_WIDTH = 5
 NUM_DATA_POINTS_PER_TIMEOUT = 3
 
 #: Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback().
-HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=60000)  # DEBUG
+HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=30000)  
 #: Length of time for which the vibration motor should vibrate. Used in handle_cushion_feedback().
 CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=1000)
 #: Threshold for vibration cushion feedback. If the proportion of "good" sitting posture is below this, the cushion will vibrate.
-#: FIXME: Fine-tune this value later.
 CUSHION_PROPORTION_GOOD_THRESHOLD = 0.5
 
 #: Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback().
-HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=20000)  # DEBUG: used to be 10000
+HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=15000) 
 #: Threshold for I. Jensen Plant Mover 10000 feedback. If the proportion of "good" sitting posture is below this,
 #: the plant will move down.
-#: FIXME: Fine-tune this value later.
 PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
 
 #: Number of milliseconds between each loop iteration in run_user_session().
