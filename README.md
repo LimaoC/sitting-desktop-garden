@@ -73,7 +73,7 @@ The following materials are required to construct this project.
 - 1x PiicoDev Servo Driver, 1x PiicoDev OLED Display, 2x PiicoDev Button
 - 1x FS90R Servo.
 
-The above wiring diagram shows how to connect these components.
+The above wiring diagram shows how to connect these components. The components must be connected before turning on the Pi for the first time.
 
 ## Deployment
 ### Single command all-in-one
