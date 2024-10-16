@@ -46,7 +46,7 @@ NUM_DATA_POINTS_PER_TIMEOUT = 3
 #: Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback().
 HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=30000)  
 #: Length of time for which the vibration motor should vibrate. Used in handle_cushion_feedback().
-CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=1000)
+CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=3000)
 #: Threshold for vibration cushion feedback. If the proportion of "good" sitting posture is below this, the cushion will vibrate.
 CUSHION_PROPORTION_GOOD_THRESHOLD = 0.5
 
