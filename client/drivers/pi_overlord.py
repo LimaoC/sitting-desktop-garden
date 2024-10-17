@@ -44,14 +44,14 @@ POSTURE_GRAPH_DATUM_WIDTH = 5
 NUM_DATA_POINTS_PER_TIMEOUT = 3
 
 #: Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback().
-HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=30000)  
+HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=30000)
 #: Length of time for which the vibration motor should vibrate. Used in handle_cushion_feedback().
 CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=3000)
 #: Threshold for vibration cushion feedback. If the proportion of "good" sitting posture is below this, the cushion will vibrate.
 CUSHION_PROPORTION_GOOD_THRESHOLD = 0.5
 
 #: Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback().
-HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=15000) 
+HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=15000)
 #: Threshold for I. Jensen Plant Mover 10000 feedback. If the proportion of "good" sitting posture is below this,
 #: the plant will move down.
 PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
@@ -60,6 +60,7 @@ PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
 USER_SESSION_INTERVAL = 100
 
 logger = logging.getLogger(__name__)
+
 
 def main():
     """
@@ -129,7 +130,7 @@ def initialise_hardware() -> HardwareComponents:
         Object consisting of all hardware components connected to the Raspberry Pi.
 
     """
-    print("<!> initialise_hardware()")
+    logger.debug("<!> initialise_hardware()")
     return_me = HardwareComponents.make_fresh()
     # Clear button queues
     return_me.button0.was_pressed
@@ -140,7 +141,7 @@ def initialise_hardware() -> HardwareComponents:
     # Write low to stop buzzer from mistakenly buzzing, if necessary
     GPIO.output(CUSHION_GPIO_PIN, GPIO.LOW)
 
-    print("<!> initialise_hardware() FINISHED")
+    logger.debug("<!> initialise_hardware() FINISHED")
     return return_me
 
 
@@ -189,7 +190,7 @@ def run_user_session(user: ControlledData) -> None:
             hardware.oled_display_text(LOGOUT_MESSAGE, 0, 0, 1)
             hardware.display.show()
             sleep_ms(LOGOUT_SUCCESS_DELAY)
-            print("<!> END run_user_session()")
+            logger.debug("<!> END run_user_session()")
             return
 
         # Run core functionality
@@ -264,7 +265,9 @@ def handle_posture_graph(user: ControlledData) -> bool:
 
         # Exit if no data
         if len(recent_posture_data) == 0:
-            print("<!> Exiting handle_posture_monitoring_new() early: Not enough data")
+            logger.debug(
+                "<!> Exiting handle_posture_monitoring_new() early: Not enough data"
+            )
             return True
 
         # Exit if person not in frame enough
@@ -272,7 +275,7 @@ def handle_posture_graph(user: ControlledData) -> bool:
             [posture.prop_in_frame for posture in recent_posture_data]
         ) / len(recent_posture_data)
         if average_prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD:
-            print(
+            logger.debug(
                 "<!> Exiting handle_posturing_monitoring_new() early: Not in frame for a high enough proportion of time."
             )
             user.set_last_snapshot_time(datetime.now())
@@ -285,8 +288,8 @@ def handle_posture_graph(user: ControlledData) -> bool:
 
         # Calculate total time span
         start_time = recent_posture_data[0].period_start
-        end_time = recent_posture_data[-1].period_end  
-        total_time = end_time - start_time  
+        end_time = recent_posture_data[-1].period_end
+        total_time = end_time - start_time
 
         # Calculate the interval length
         interval = total_time / NUM_DATA_POINTS_PER_TIMEOUT
@@ -309,7 +312,7 @@ def handle_posture_graph(user: ControlledData) -> bool:
         for posture_list in split_posture_lists:
             if len(posture_list) == 0:
                 continue
-            print(f"<!> {posture_list=}")
+            logger.debug(f"<!> {posture_list=}")
             average_prop_good = sum(
                 [posture.prop_good for posture in posture_list]
             ) / len(posture_list)
@@ -362,7 +365,7 @@ def handle_cushion_feedback(user: ControlledData) -> bool:
     Ensures:
         ! user.is_failed()
     """
-    print("<!> handle_cushion_feedback()")
+    logger.debug("<!> handle_cushion_feedback()")
 
     # Load posture records within the last HANDLE_CUSHION_FEEDBACK_TIMEOUT
     now = datetime.now()
@@ -375,7 +378,7 @@ def handle_cushion_feedback(user: ControlledData) -> bool:
 
     # Exit if no data
     if len(recent_posture_data) == 0:
-        print("<!> Exiting handle_cushion_feedback() early: No data")
+        logger.debug("<!> Exiting handle_cushion_feedback() early: No data")
         user.set_last_cushion_time(datetime.now())
         return True
     # Exit if person not in frame enough
@@ -383,30 +386,30 @@ def handle_cushion_feedback(user: ControlledData) -> bool:
         [posture.prop_in_frame for posture in recent_posture_data]
     ) / len(recent_posture_data)
     if average_prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD:
-        print(
+        logger.debug(
             "<!> Exiting handle_cushion_feedback() early: Not in frame for a high enough proportion of time."
         )
         user.set_last_cushion_time(datetime.now())
         return True
-    
+
     # Get average proportion of good posture
     average_prop_good = sum(
         [posture.prop_good for posture in recent_posture_data]
     ) / len(recent_posture_data)
     if average_prop_good >= CUSHION_PROPORTION_GOOD_THRESHOLD:
-        print("<!> Exiting handle_cushion_feedback() early: You sat well :)")
+        logger.debug("<!> Exiting handle_cushion_feedback() early: You sat well :)")
         user.set_last_cushion_time(datetime.now())
         return True
 
     # If posture not good enough, turn buzzer on
     buzzer_start_time = datetime.now()
     GPIO.output(CUSHION_GPIO_PIN, GPIO.HIGH)
-    print("<!> buzzer on")
+    logger.debug("<!> buzzer on")
     while datetime.now() < buzzer_start_time + CUSHION_ACTIVE_INTERVAL:
         sleep_ms(100)
     # Turn buzzer off
     GPIO.output(CUSHION_GPIO_PIN, GPIO.LOW)
-    print("<!> buzzer off")
+    logger.debug("<!> buzzer off")
 
     user.set_last_cushion_time(datetime.now())
     return True
@@ -428,7 +431,7 @@ def handle_plant_feedback(user: ControlledData) -> bool:
     Ensures:
         ! user.is_failed()
     """
-    print("<!> handle_plant_feedback()")
+    logger.debug("<!> handle_plant_feedback()")
 
     now = datetime.now()
 
@@ -443,7 +446,7 @@ def handle_plant_feedback(user: ControlledData) -> bool:
 
         # Exit if no data
         if len(recent_posture_data) == 0:
-            print("<!> Exiting handle_plant_feedback() early: No data")
+            logger.debug("<!> Exiting handle_plant_feedback() early: No data")
             user.set_last_plant_time(datetime.now())
             return True
 
@@ -452,7 +455,7 @@ def handle_plant_feedback(user: ControlledData) -> bool:
             [posture.prop_in_frame for posture in recent_posture_data]
         ) / len(recent_posture_data)
         if average_prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD:
-            print(
+            logger.debug(
                 "<!> Exiting handle_plant_feedback() early: Not in frame for a high enough proportion of time."
             )
             user.set_last_plant_time(datetime.now())
@@ -476,18 +479,18 @@ def handle_plant_feedback(user: ControlledData) -> bool:
 
 def _reset_garden() -> None:
     """Reset data, faces and hardware."""
-    print("<!> Burning the garden to the ground...")
+    logger.debug("<!> Burning the garden to the ground...")
 
     global hardware
 
     destroy_database()
-    print("\t<!> initialising database anew...")
+    logger.debug("\t<!> initialising database anew...")
     init_database()
-    print("\t<!> resetting face embeddings...")
+    logger.debug("\t<!> resetting face embeddings...")
     reset_registered_face_embeddings()
-    print("\t<!> initialising hardware...")
+    logger.debug("\t<!> initialising hardware...")
     hardware = initialise_hardware()
-    print("\t<!> Like a phoenix, the Sitting Desktop Garden rises anew")
+    logger.debug("\t<!> Like a phoenix, the Sitting Desktop Garden rises anew")
 
 
 # LAUNCH
