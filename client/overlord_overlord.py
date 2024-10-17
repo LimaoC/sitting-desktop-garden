@@ -18,7 +18,7 @@ def spawn_camera_overlord():
 
 
 def spawn_pi_overlord(no_posture_model):
-    cmd = [PYTHON_DEFAULT, "client/drivers/main.py"]
+    cmd = [PYTHON_DEFAULT, "client/drivers/pi_overlord.py"]
     if no_posture_model:
         cmd.append("--no-posture-model")
     subprocess.run(cmd)

@@ -40,13 +40,13 @@ if __name__ == "__main__":
         f = open("/tmp/snapshot.jpg", "x")
         f.close()
     except FileExistsError:
-        print("Snapshot already exists")
+        logger.debug("Snapshot already exists")
 
     try:
         f = open("/tmp/big_brother.jpg", "x")
         f.close()
     except FileExistsError:
-        print("Big Brother already exists")
+        logger.debug("Big Brother already exists")
 
     while True:
         for _ in range(2 * 3):

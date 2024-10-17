@@ -5,6 +5,7 @@ Author:
     Gabriel Field (47484306), Mitchell Clark
 """
 
+import logging
 import time
 from datetime import datetime
 from math import pi, sin
@@ -22,10 +23,12 @@ LEFT_BUTTON = 0
 RIGHT_BUTTON = 1
 DOUBLE_RIGHT_BUTTON = 2
 
+logger = logging.getLogger(__name__)
+
 
 class ControlledData:
     """
-    Data for passing around in client/drivers/main.do_everything().
+    Data for passing around in client/drivers/main.run_user_session().
 
     There should only ever be one object of this class at a time.
 
@@ -80,7 +83,9 @@ class ControlledData:
         return_me._last_snapshot_time = datetime.now()
         return_me._last_cushion_time = datetime.now()
         return_me._last_plant_time = datetime.now()
-        print("<!> Made a new empty ControlledData() with user_id", return_me._user_id)
+        logger.debug(
+            "<!> Made a new empty ControlledData() with user_id %d", return_me._user_id
+        )
         return return_me
 
     @classmethod
@@ -156,20 +161,18 @@ class ControlledData:
         """
         self._last_plant_time = time
 
-    def accept_new_posture_data(
-        self, posture_data: List[float]
-    ) -> None:  # TODO: Refine type signature
+    def accept_new_posture_data(self, posture_data: List[float]) -> None:
         """
         Update the internal store of posture data for the OLED display.
 
         Args:
             posture_data: new posture data to accept and merge with the current state of this object.
 
-        TODO: Implement me!
         """
-        print("<!> accept_new_posture_data()")
+        logger.debug("<!> accept_new_posture_data()")
         for datum in posture_data:
             self._posture_data.put_nowait(datum)
+
 
 class HardwareComponents:
     """
@@ -231,7 +234,7 @@ class HardwareComponents:
     _PLANT_MOVER_PERIOD: float = 1000 * 60 / 55
     _BASE_FULL_SPEED = 0.1
     _FULL_SPEED_UPWARDS = _BASE_FULL_SPEED * (4 / 7) * (8 / 9) * 2
-    _FULL_SPEED_DOWNWARDS = (-1) * _BASE_FULL_SPEED * (4 / 5) * 2
+    _FULL_SPEED_DOWNWARDS = (-1) * _BASE_FULL_SPEED * (6 / 10) * 2
 
     # SECTION: Constructors
 
@@ -277,7 +280,7 @@ class HardwareComponents:
         Returns:
             The messages to display to the user during the main application loop.
         """
-        return ["b0: logout", "id: " + str(user_id)]
+        return ["Left: logout", "ID: " + str(user_id)]
 
     def initialise_posture_graph(self, user_id: int) -> None:
         """
@@ -326,6 +329,9 @@ class HardwareComponents:
         """
         self.plant_mover.speed = self._FULL_SPEED_UPWARDS
         time.sleep(16 * self._PLANT_MOVER_PERIOD * self._PLANT_GEAR_RATIO / 1000)
+        self.plant_height = (
+            self._PLANT_SHAFT_TURNS - self._PLANT_SHAFT_SAFETY_BUFFER_TURNS
+        )
         self.plant_mover.speed = 0
 
     def wind_plant_safe(self) -> None:
@@ -333,15 +339,16 @@ class HardwareComponents:
         Wind the plant down to its minimum (safe) height.
         Will also reset the `plant_height` to `0`.
         """
-        self.plant_mover.speed = self._FULL_SPEED_DOWNWARDS
-        time.sleep(
-            (self._PLANT_SHAFT_TURNS - self._PLANT_SHAFT_SAFETY_BUFFER_TURNS)
-            * self._PLANT_MOVER_PERIOD
-            * self._PLANT_GEAR_RATIO
-            / 1000
-        )
-        self.plant_mover.speed = 0
-        self.plant_height = 0
+        self.set_plant_height(0)
+        # self.plant_mover.speed = self._FULL_SPEED_DOWNWARDS
+        # time.sleep(
+        #     (self._PLANT_SHAFT_TURNS - self._PLANT_SHAFT_SAFETY_BUFFER_TURNS)
+        #     * self._PLANT_MOVER_PERIOD
+        #     * self._PLANT_GEAR_RATIO
+        #     / 1000
+        # )
+        # self.plant_mover.speed = 0
+        # self.plant_height = 0
 
     def set_plant_height(self, new_height: int) -> None:
         """
@@ -351,7 +358,7 @@ class HardwareComponents:
             new_height: height to which to drive the I. Jensen Plant Mover 10000
         """
         self.plant_mover.speed = 0
-        print(f"<!> set_plant_height: {self.plant_height=}, {new_height=}")
+        logger.debug(f"<!> set_plant_height: {self.plant_height=}, {new_height=}")
         distance = new_height - self.plant_height
         distance = distance if distance > 0 else (-1) * distance
         if new_height == self.plant_height:
@@ -361,13 +368,13 @@ class HardwareComponents:
             new_height
             > self._PLANT_SHAFT_TURNS - self._PLANT_SHAFT_SAFETY_BUFFER_TURNS - 1
         ):
-            print(
+            logger.debug(
                 "<!> Plant mover not schmovin': can't get that high mate, that's just unsafe"
             )
             self.plant_mover.speed = 0
             return
         if new_height < 0:
-            print(
+            logger.debug(
                 "<!> Plant mover not schmovin': can't get that low mate, that's just dirty"
             )
             self.plant_mover.speed = 0

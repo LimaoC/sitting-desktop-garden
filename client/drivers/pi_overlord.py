@@ -28,51 +28,36 @@ from PiicoDev_Unified import sleep_ms
 #: Pin to which the vibration motor is attached. This is D8 on the PiicoDev header.
 CUSHION_GPIO_PIN = 8
 
-#: Number of milliseconds between each time the button is polled during wait_for_login_attempt().
-WAIT_FOR_LOGIN_POLLING_INTERVAL = 100
-#: Number of milliseconds between pictures taken for login attempts.
-LOGIN_TAKE_PICTURE_INTERVAL = 1000
-#: Number of milliseconds between starting to attempt_login() and taking the first picture.
-START_LOGIN_ATTEMPTS_DELAY = 3000
-#: Number of milliseconds between each time the button is polled during ask_create_new_user().
-ASK_CREATE_NEW_USER_POLLING_INTERVAL = 100
-#: Number of milliseconds between telling the user that login has completely failed and returning from attempt_login().
-FAIL_LOGIN_DELAY = 3000
 #: Number of milliseconds between telling the user that login has succeeded and beginning real functionality.
-LOGIN_SUCCESS_DELAY = 3000
+LOGIN_SUCCESS_DELAY = 1000
+#: Number of milliseconds between the user successfully logging out and returning to main().
+LOGOUT_SUCCESS_DELAY = 1000
 
+#: Proportion of the time the user must be in frame for any feedback to be given.
+PROPORTION_IN_FRAME_THRESHOLD = 0.4
+
+#: Minimum delay between reading posture data from the SQLite database, in run_user_session().
+GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds=10000)
 #: Width (in pixels) of each individual entry on the posture graph. (One pixel is hard to read.)
 POSTURE_GRAPH_DATUM_WIDTH = 5
-
-#: Number of milliseconds between the user successfully logging out and returning to main().
-LOGOUT_SUCCESS_DELAY = 3000
-#: Minimum delay between reading posture data from the SQLite database, in do_everything().
-GET_POSTURE_DATA_TIMEOUT = timedelta(milliseconds=10000)
-#: Proportion of the time the user must be in frame for any feedback to be given. FIXME: Fine-tune this value later.
-PROPORTION_IN_FRAME_THRESHOLD = 0.3
+#: The number of data points to split the total data into, collected each time we read from the SQLite database.
+NUM_DATA_POINTS_PER_TIMEOUT = 3
 
 #: Minimum delay between consecutive uses of the vibration motor. Used in handle_feedback().
-HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=10000)  # DEBUG
+HANDLE_CUSHION_FEEDBACK_TIMEOUT = timedelta(milliseconds=30000)
 #: Length of time for which the vibration motor should vibrate. Used in handle_cushion_feedback().
-CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=1000)
+CUSHION_ACTIVE_INTERVAL = timedelta(milliseconds=3000)
 #: Threshold for vibration cushion feedback. If the proportion of "good" sitting posture is below this, the cushion will vibrate.
-#: FIXME: Fine-tune this value later.
 CUSHION_PROPORTION_GOOD_THRESHOLD = 0.5
 
 #: Minimum delay between consecutive uses of the plant-controlling servos. Used in handle_feedback().
-HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=2000)  # DEBUG: used to be 10000
+HANDLE_PLANT_FEEDBACK_TIMEOUT = timedelta(milliseconds=15000)
 #: Threshold for I. Jensen Plant Mover 10000 feedback. If the proportion of "good" sitting posture is below this,
 #: the plant will move down.
-#: FIXME: Fine-tune this value later.
 PLANT_PROPORTION_GOOD_THRESHOLD = 0.5
-"""
-Threshold for I. Jensen Plant Mover 10000 feedback. If the proportion of "good" sitting posture is below this,
-the plant will move down.
-FIXME: Fine-tune this value later.
-"""
 
-#: DEBUG Number of milliseconds between each loop iteration in do_everything().
-DEBUG_DO_EVERYTHING_INTERVAL = 1000
+#: Number of milliseconds between each loop iteration in run_user_session().
+USER_SESSION_INTERVAL = 100
 
 logger = logging.getLogger(__name__)
 
@@ -123,8 +108,7 @@ def main():
 
         logger.debug("Login successful")
 
-        # Run user session
-        do_everything(user)
+        run_user_session(user)
 
         # Let the posture tracking process if the user has logged out
         if not args.no_posture_model:
@@ -146,7 +130,7 @@ def initialise_hardware() -> HardwareComponents:
         Object consisting of all hardware components connected to the Raspberry Pi.
 
     """
-    print("<!> initialise_hardware()")
+    logger.debug("<!> initialise_hardware()")
     return_me = HardwareComponents.make_fresh()
     # Clear button queues
     return_me.button0.was_pressed
@@ -157,28 +141,28 @@ def initialise_hardware() -> HardwareComponents:
     # Write low to stop buzzer from mistakenly buzzing, if necessary
     GPIO.output(CUSHION_GPIO_PIN, GPIO.LOW)
 
-    print("<!> initialise_hardware() FINISHED")
+    logger.debug("<!> initialise_hardware() FINISHED")
     return return_me
 
 
 # SECTION: Control for the logged-in user
 
 
-def do_everything(auspost: ControlledData) -> None:
+def run_user_session(user: ControlledData) -> None:
     """
     Main control flow once a user is logged in.
 
     Args:
-        auspost: data encapsulating the current state of the program.
+        user: data encapsulating the current state of the program.
 
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
     """
-    LOGIN_MESSAGE = "Logged in with user id: " + str(auspost.get_user_id())
-    LOGOUT_MESSAGE = "Logged out user id " + str(auspost.get_user_id())
+    LOGIN_MESSAGE = "Logged in with user id: " + str(user.get_user_id())
+    LOGOUT_MESSAGE = "Logged out user id " + str(user.get_user_id())
 
     # Initialise posture graph for the current session
-    hardware.initialise_posture_graph(auspost.get_user_id())
+    hardware.initialise_posture_graph(user.get_user_id())
 
     # Wind plant down all the way
     hardware.wind_plant_safe()
@@ -195,7 +179,7 @@ def do_everything(auspost: ControlledData) -> None:
     # Set up initial display
     hardware.display.fill(0)
     hardware.oled_display_texts(
-        hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1
+        hardware.get_control_messages(user.get_user_id()), 0, 0, 1
     )
     hardware.display.show()
 
@@ -206,17 +190,18 @@ def do_everything(auspost: ControlledData) -> None:
             hardware.oled_display_text(LOGOUT_MESSAGE, 0, 0, 1)
             hardware.display.show()
             sleep_ms(LOGOUT_SUCCESS_DELAY)
-            print("<!> END do_everything()")
+            logger.debug("<!> END run_user_session()")
             return
 
-        update_display_screen(auspost)
-        handle_posture_graph(auspost)
-        handle_feedback(auspost)
+        # Run core functionality
+        update_display_screen(user)
+        handle_posture_graph(user)
+        handle_feedback(user)
 
-        sleep_ms(DEBUG_DO_EVERYTHING_INTERVAL)
+        sleep_ms(USER_SESSION_INTERVAL)
 
 
-def update_display_screen(auspost: ControlledData) -> bool:
+def update_display_screen(user: ControlledData) -> bool:
     """
     Update the display screen with whatever needs to be on there.
 
@@ -225,54 +210,54 @@ def update_display_screen(auspost: ControlledData) -> bool:
         Current-session posture graph
 
     Args:
-        auspost: data encapsulating the current state of the program.
+        user: data encapsulating the current state of the program.
 
     Returns:
         True, always. If you get a False return value, then something has gone VERY wrong.
 
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
 
     Ensures:
-        ! auspost.is_failed()
+        ! user.is_failed()
     """
     while (
-        not auspost.get_posture_data().empty()
+        not user.get_posture_data().empty()
     ):  # NOTE: This is much more robust than getting a fixed number of things out of the queue
         hardware.display.fill(0)
+        # Display user messages
         hardware.oled_display_texts(
-            hardware.get_control_messages(auspost.get_user_id()), 0, 0, 1
+            hardware.get_control_messages(user.get_user_id()), 0, 0, 1
         )
+        # Display posture graph data
         hardware.display.updateGraph2D(
-            hardware.posture_graph, auspost.get_posture_data().get_nowait()
+            hardware.posture_graph, user.get_posture_data().get_nowait()
         )
         hardware.display.show()
 
     return True
 
 
-def handle_posture_graph(auspost: ControlledData) -> bool:
+def handle_posture_graph(user: ControlledData) -> bool:
     """
     Get a snapshot of the user's posture data.
     Use this information to update the data for the posture graph.
 
     Args:
-        (auspost : ControlledData): Data encapsulating the current state of the program.
+        (user : ControlledData): Data encapsulating the current state of the program.
     Returns:
         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
     Ensures:
-        ! auspost.is_failed()
-
-    TODO: Check this
+        ! user.is_failed()
     """
     now = datetime.now()
 
-    if now > auspost.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT:
+    if now > user.get_last_snapshot_time() + GET_POSTURE_DATA_TIMEOUT:
         # Get the most recent posture data for the user
         recent_posture_data = get_user_postures(
-            auspost.get_user_id(),
+            user.get_user_id(),
             num=-1,
             period_start=now - GET_POSTURE_DATA_TIMEOUT,
             period_end=now,
@@ -280,7 +265,9 @@ def handle_posture_graph(auspost: ControlledData) -> bool:
 
         # Exit if no data
         if len(recent_posture_data) == 0:
-            print("<!> Exiting handle_posture_monitoring_new() early: Not enough data")
+            logger.debug(
+                "<!> Exiting handle_posture_monitoring_new() early: Not enough data"
+            )
             return True
 
         # Exit if person not in frame enough
@@ -288,10 +275,10 @@ def handle_posture_graph(auspost: ControlledData) -> bool:
             [posture.prop_in_frame for posture in recent_posture_data]
         ) / len(recent_posture_data)
         if average_prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD:
-            print(
+            logger.debug(
                 "<!> Exiting handle_posturing_monitoring_new() early: Not in frame for a high enough proportion of time."
             )
-            auspost.set_last_snapshot_time(datetime.now())
+            user.set_last_snapshot_time(datetime.now())
             return True
 
         # Sort the list by period_start
@@ -301,208 +288,209 @@ def handle_posture_graph(auspost: ControlledData) -> bool:
 
         # Calculate total time span
         start_time = recent_posture_data[0].period_start
-        end_time = recent_posture_data[-1].period_end  # DEBUG: Used to be period_start
-        total_time = (
-            end_time - start_time
-        )  # BUG: This calculation sometimes results in `0`, which gets divided by later...
+        end_time = recent_posture_data[-1].period_end
+        total_time = end_time - start_time
 
         # Calculate the interval length
-        interval = total_time / POSTURE_GRAPH_DATUM_WIDTH
+        interval = total_time / NUM_DATA_POINTS_PER_TIMEOUT
 
-        # Setup sublists, where each sublist is a portion of the overall data 
+        # Setup sublists, where each sublist is a portion of the overall data
         split_posture_lists: list[list[Posture]]
-        split_posture_lists = [[] for _ in range(POSTURE_GRAPH_DATUM_WIDTH)]
+        split_posture_lists = [[] for _ in range(NUM_DATA_POINTS_PER_TIMEOUT)]
 
         # What is in each sublist is determined by period_start
         # We want an approximately equal amount of data in each sublist
         for posture in recent_posture_data:
             index = min(
-                POSTURE_GRAPH_DATUM_WIDTH - 1,
+                NUM_DATA_POINTS_PER_TIMEOUT - 1,
                 int((posture.period_start - start_time) // interval),
             )
             split_posture_lists[index].append(posture)
 
         new_prop_good_data = []
-        # Enqueue the average good posture for the graph to use
+        # Enqueue the average good posture for each data point for the graph to use
         for posture_list in split_posture_lists:
             if len(posture_list) == 0:
                 continue
-            print(f"<!> {posture_list=}")
+            logger.debug(f"<!> {posture_list=}")
             average_prop_good = sum(
                 [posture.prop_good for posture in posture_list]
             ) / len(posture_list)
             new_prop_good_data += [average_prop_good] * POSTURE_GRAPH_DATUM_WIDTH
-        auspost.accept_new_posture_data(new_prop_good_data)
+        user.accept_new_posture_data(new_prop_good_data)
 
-        auspost.set_last_snapshot_time(now)
+        user.set_last_snapshot_time(now)
 
     return True
 
-def handle_feedback(auspost: ControlledData) -> bool:
+
+def handle_feedback(user: ControlledData) -> bool:
     """
     Provide feedback to the user if necessary.
 
     Args:
-        auspost: Data encapsulating the current state of the program.
+        user: Data encapsulating the current state of the program.
     Returns:
         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
 
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
 
     Ensures:
-        ! auspost.is_failed()
+        ! user.is_failed()
     """
-    if (
-        datetime.now()
-        > auspost.get_last_cushion_time() + HANDLE_CUSHION_FEEDBACK_TIMEOUT
-    ):
-        if not handle_cushion_feedback(auspost):
+    if datetime.now() > user.get_last_cushion_time() + HANDLE_CUSHION_FEEDBACK_TIMEOUT:
+        if not handle_cushion_feedback(user):
             return False
-    if datetime.now() > auspost.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
-        if not handle_plant_feedback(auspost):
+    if datetime.now() > user.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
+        if not handle_plant_feedback(user):
             return False
 
     return True
 
 
-def handle_cushion_feedback(auspost: ControlledData) -> bool:
+def handle_cushion_feedback(user: ControlledData) -> bool:
     """
     Vibrate cushion (if necessary), and update the timestamp of when cushion feedback was last given.
 
     Args:
-        auspost: Data encapsulating the current state of the program.
+        user: Data encapsulating the current state of the program.
 
     Returns:
         True, always. If you get a False return value, then something has gone VERY wrong.
 
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
 
     Ensures:
-        ! auspost.is_failed()
+        ! user.is_failed()
     """
-    print("<!> handle_cushion_feedback()")
+    logger.debug("<!> handle_cushion_feedback()")
 
     # Load posture records within the last HANDLE_CUSHION_FEEDBACK_TIMEOUT
     now = datetime.now()
     recent_posture_data = get_user_postures(
-        auspost.get_user_id(),
+        user.get_user_id(),
         num=-1,
         period_start=now - HANDLE_CUSHION_FEEDBACK_TIMEOUT,
         period_end=now,
     )
 
-    # Conditions for exiting early
+    # Exit if no data
     if len(recent_posture_data) == 0:
-        print("<!> Exiting handle_cushion_feedback() early: No data")
-        auspost.set_last_cushion_time(datetime.now())
+        logger.debug("<!> Exiting handle_cushion_feedback() early: No data")
+        user.set_last_cushion_time(datetime.now())
         return True
+    # Exit if person not in frame enough
     average_prop_in_frame = sum(
         [posture.prop_in_frame for posture in recent_posture_data]
     ) / len(recent_posture_data)
     if average_prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD:
-        print(
+        logger.debug(
             "<!> Exiting handle_cushion_feedback() early: Not in frame for a high enough proportion of time."
         )
-        auspost.set_last_cushion_time(datetime.now())
+        user.set_last_cushion_time(datetime.now())
         return True
+
+    # Get average proportion of good posture
     average_prop_good = sum(
         [posture.prop_good for posture in recent_posture_data]
     ) / len(recent_posture_data)
     if average_prop_good >= CUSHION_PROPORTION_GOOD_THRESHOLD:
-        print("<!> Exiting handle_cushion_feedback() early: You sat well :)")
-        auspost.set_last_cushion_time(datetime.now())
+        logger.debug("<!> Exiting handle_cushion_feedback() early: You sat well :)")
+        user.set_last_cushion_time(datetime.now())
         return True
 
+    # If posture not good enough, turn buzzer on
     buzzer_start_time = datetime.now()
     GPIO.output(CUSHION_GPIO_PIN, GPIO.HIGH)
-    print("<!> buzzer on")
+    logger.debug("<!> buzzer on")
     while datetime.now() < buzzer_start_time + CUSHION_ACTIVE_INTERVAL:
-        # Can add extra code here if necessary. This WILL halt execution of this thread.
         sleep_ms(100)
+    # Turn buzzer off
     GPIO.output(CUSHION_GPIO_PIN, GPIO.LOW)
-    print("<!> buzzer off")
+    logger.debug("<!> buzzer off")
 
-    auspost.set_last_cushion_time(datetime.now())
+    user.set_last_cushion_time(datetime.now())
     return True
 
 
-def handle_plant_feedback(auspost: ControlledData) -> bool:
+def handle_plant_feedback(user: ControlledData) -> bool:
     """
     Set the plant height according to short-term current session data, and update the timestamp
     of when plant feedback was last given.
 
     Args:
-        auspost: Data encapsulating the current state of the program.
+        user: Data encapsulating the current state of the program.
 
     Returns:
         (bool): True, always. If you get a False return value, then something has gone VERY wrong.
 
     Requires:
-        ! auspost.is_failed()
+        ! user.is_failed()
     Ensures:
-        ! auspost.is_failed()
+        ! user.is_failed()
     """
-    print("<!> handle_plant_feedback()")
+    logger.debug("<!> handle_plant_feedback()")
 
     now = datetime.now()
 
-    if now > auspost.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
+    if now > user.get_last_plant_time() + HANDLE_PLANT_FEEDBACK_TIMEOUT:
         # Get the most recent posture data for the user
         recent_posture_data = get_user_postures(
-            auspost.get_user_id(),
+            user.get_user_id(),
             num=-1,
             period_start=now - GET_POSTURE_DATA_TIMEOUT,
             period_end=now,
         )
 
-        # Conditions for exiting early
+        # Exit if no data
         if len(recent_posture_data) == 0:
-            print("<!> Exiting handle_plant_feedback() early: No data")
-            auspost.set_last_plant_time(datetime.now())
+            logger.debug("<!> Exiting handle_plant_feedback() early: No data")
+            user.set_last_plant_time(datetime.now())
             return True
 
+        # Exit if person not in frame enough
         average_prop_in_frame = sum(
             [posture.prop_in_frame for posture in recent_posture_data]
         ) / len(recent_posture_data)
         if average_prop_in_frame < PROPORTION_IN_FRAME_THRESHOLD:
-            print(
+            logger.debug(
                 "<!> Exiting handle_plant_feedback() early: Not in frame for a high enough proportion of time."
             )
-            auspost.set_last_plant_time(datetime.now())
+            user.set_last_plant_time(datetime.now())
             return True
 
-        # Calculate average proportion
+        # Calculate average proportion of good posture
         average_prop_good = sum(
             [posture.prop_good for posture in recent_posture_data]
         ) / len(recent_posture_data)
 
-        # Judge.
+        # Raise plant 1 'level' if posture is good, otherwise lower it 1.
         if average_prop_good >= PLANT_PROPORTION_GOOD_THRESHOLD:
             hardware.set_plant_height(hardware.plant_height + 1)
         else:
             hardware.set_plant_height(hardware.plant_height - 1)
 
-        auspost.set_last_plant_time(datetime.now())
+        user.set_last_plant_time(datetime.now())
 
     return True
 
 
 def _reset_garden() -> None:
     """Reset data, faces and hardware."""
-    print("<!> Burning the garden to the ground...")
+    logger.debug("<!> Burning the garden to the ground...")
 
     global hardware
 
     destroy_database()
-    print("\t<!> initialising database anew...")
+    logger.debug("\t<!> initialising database anew...")
     init_database()
-    print("\t<!> resetting face embeddings...")
+    logger.debug("\t<!> resetting face embeddings...")
     reset_registered_face_embeddings()
-    print("\t<!> initialising hardware...")
+    logger.debug("\t<!> initialising hardware...")
     hardware = initialise_hardware()
-    print("\t<!> Like a phoenix, the Sitting Desktop Garden rises anew")
+    logger.debug("\t<!> Like a phoenix, the Sitting Desktop Garden rises anew")
 
 
 # LAUNCH
