@@ -25,6 +25,7 @@ For developers, see [Project Overview](#project-overview). For users setting up 
   - [Project Overview](#project-overview)
     - [Directory Structure](#directory-structure)
     - [Dependencies](#dependencies)
+  - [Hardware Set-up](#hardware-set-up)
   - [Deployment](#deployment)
     - [Single command all-in-one](#single-command-all-in-one)
     - [Pi Environment Set-up](#pi-environment-set-up)
@@ -56,6 +57,23 @@ The main project dependencies are specified in [pyproject.toml](./pyproject.toml
 - [mediapipe](https://ai.google.dev/edge/mediapipe/solutions/guide) provides the body landmark detection model.
 - [piicodev](https://pypi.org/project/piicodev/) provides modules for interfacing with Raspberry Pi peripherals.
 - [face-recognition](https://pypi.org/project/face-recognition/) provides the face recognition model.
+
+## Hardware Set-up
+<p align="center" width="100%">
+<img src="assets/wiring.png" width="600">
+</p>
+The following materials are required to construct this project.
+
+- 1x Raspberry Pi 3B
+- 1x PiicoDev Adapter for Raspberry Pi
+- 2x PiicoDev Connector 100mm, 1x PiicoDev Connector 200mm, 1x PiicoDev Connector 50mm
+- 1x Raspberry Pi Camera Module
+- 1x Vibrating Motor Disk
+- 2x USB-C Power Supplis
+- 1x PiicoDev Servo Driver, 1x PiicoDev OLED Display, 2x PiicoDev Button
+- 1x FS90R Servo.
+
+The above wiring diagram shows how to connect these components. The components must be connected before turning on the Pi for the first time.
 
 ## Deployment
 ### Single command all-in-one

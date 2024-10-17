@@ -21,4 +21,4 @@ if ! ./deploy.sh ../deploypaths.txt $SSHTARGET $SSHUSER; then
 fi
 
 echo -e $INFO 
-ssh $SSHUSER@$SSHTARGET 'bash -s' < run-garden.sh
+ssh $SSHUSER@$SSHTARGET 'bash -s' < run_garden.sh
