@@ -1,4 +1,5 @@
 # Sitting Desktop Garden
+**THIS README SHOULD NOT BE MARKED PLEASE SEE README.pdf**
 
 <center>
 </center>
@@ -186,4 +187,9 @@ This spins up a local server which serves the documentation pages, and also hot-
 
 You can build the documentation (without spinning up a server) with `make docs`, and clean the documentation output with `make docs-clean`.
 
+The single page readme source code is located in `FREADME.md` and can be built with,
+
+```
+pandoc FREADME.md --pdf-engine=xelatex -o README.pdf
+```
 
