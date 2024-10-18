@@ -1,5 +1,5 @@
 ---
-geometry: margin=1cm
+geometry: margin=1.5cm
 classoption:
 - twocolumn
 fontsize: 10
