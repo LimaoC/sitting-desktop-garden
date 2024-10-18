@@ -233,7 +233,7 @@ class HardwareComponents:
     _PLANT_GEAR_RATIO: float = 2
     _PLANT_MOVER_PERIOD: float = 1000 * 60 / 55
     _BASE_FULL_SPEED = 0.1
-    _FULL_SPEED_UPWARDS = _BASE_FULL_SPEED * (4 / 7) * (7 / 9) * 2
+    _FULL_SPEED_UPWARDS = _BASE_FULL_SPEED * (4 / 7) * (17 / 20) * 2
     _FULL_SPEED_DOWNWARDS = (-1) * _BASE_FULL_SPEED * (6 / 10) * 2
 
     # SECTION: Constructors
