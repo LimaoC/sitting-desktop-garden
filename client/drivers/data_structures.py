@@ -233,7 +233,7 @@ class HardwareComponents:
     _PLANT_GEAR_RATIO: float = 2
     _PLANT_MOVER_PERIOD: float = 1000 * 60 / 55
     _BASE_FULL_SPEED = 0.1
-    _FULL_SPEED_UPWARDS = _BASE_FULL_SPEED * (4 / 7) * (8 / 9) * 2
+    _FULL_SPEED_UPWARDS = _BASE_FULL_SPEED * (4 / 7) * (7 / 9) * 2
     _FULL_SPEED_DOWNWARDS = (-1) * _BASE_FULL_SPEED * (6 / 10) * 2
 
     # SECTION: Constructors
@@ -325,10 +325,10 @@ class HardwareComponents:
 
     def unwind_plant(self) -> None:
         """
-        Unwind the plant to its maximum height, by making 16 full turns (we have 13 turns total).
+        Unwind the plant to its maximum height, by making 15 full turns (we have 13 turns total).
         """
         self.plant_mover.speed = self._FULL_SPEED_UPWARDS
-        time.sleep(16 * self._PLANT_MOVER_PERIOD * self._PLANT_GEAR_RATIO / 1000)
+        time.sleep(15 * self._PLANT_MOVER_PERIOD * self._PLANT_GEAR_RATIO / 1000)
         self.plant_height = (
             self._PLANT_SHAFT_TURNS - self._PLANT_SHAFT_SAFETY_BUFFER_TURNS
         )
@@ -340,15 +340,6 @@ class HardwareComponents:
         Will also reset the `plant_height` to `0`.
         """
         self.set_plant_height(0)
-        # self.plant_mover.speed = self._FULL_SPEED_DOWNWARDS
-        # time.sleep(
-        #     (self._PLANT_SHAFT_TURNS - self._PLANT_SHAFT_SAFETY_BUFFER_TURNS)
-        #     * self._PLANT_MOVER_PERIOD
-        #     * self._PLANT_GEAR_RATIO
-        #     / 1000
-        # )
-        # self.plant_mover.speed = 0
-        # self.plant_height = 0
 
     def set_plant_height(self, new_height: int) -> None:
         """
