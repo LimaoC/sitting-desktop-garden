@@ -21,6 +21,7 @@ For users setting up a Raspberry Pi for use in the SDG, see [Deployment](#deploy
 ---
 ## Dependencies
 The main project dependencies are specified in [pyproject.toml](./pyproject.toml). Notably:
+
 - [mediapipe](https://ai.google.dev/edge/mediapipe/solutions/guide) provides the body landmark detection model.
 - [piicodev](https://pypi.org/project/piicodev/) provides modules for interfacing with Raspberry Pi peripherals.
 - [face-recognition](https://pypi.org/project/face-recognition/) provides the face recognition model.
@@ -46,10 +47,8 @@ The above wiring diagram shows how to connect these components. The components m
 To set up the Pi's environment, deploy the code base, and start the program follow the following steps.
 
 1. Flash an SD card with a fresh installation of the 64bit Raspberry Pi OS using the [official imager](https://www.raspberrypi.com/software/). When imaging the SD card you must turn on the SSH connections in the edit OS settings menu.
-
 2. Plug the SD card into the Pi and turn it on. Wait for the green light to stop flashing before going to step 3.
 3. Clone this git directory to your computer.
-
 4. From the base directory of the project run,
 ```
 ./run.sh [Pi Hostname/IP] [Pi Username]
