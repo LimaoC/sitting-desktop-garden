@@ -6,6 +6,7 @@ import face_recognition
 from data.routines import register_face_embeddings, iter_face_embeddings
 
 MODEL_NAME = "small"
+TOLERANCE = 0.3
 
 
 class Status(Enum):
@@ -37,7 +38,9 @@ def get_face_match(login_face: np.ndarray) -> int:
     login_embedding = login_embeddings[0]
 
     for user_id, user_embeddings in iter_face_embeddings():
-        matches = face_recognition.compare_faces(user_embeddings, login_embedding)
+        matches = face_recognition.compare_faces(
+            user_embeddings, login_embedding, tolerance=TOLERANCE
+        )
 
         if any(matches):
             return user_id
@@ -69,14 +72,18 @@ def register_faces(user_id: int, faces: list[np.ndarray]) -> int:
         face_embeddings.append(face_embedding)
 
     # Ensure that all images contain the same face
-    matches = face_recognition.compare_faces(face_embeddings[1:], face_embeddings[0])
+    matches = face_recognition.compare_faces(
+        face_embeddings[1:], face_embeddings[0], tolerance=TOLERANCE
+    )
     if not all(matches):
         return Status.TOO_MANY_FACES.value
 
     # Ensure user is not already registered
     for _, other_user_embeddings in iter_face_embeddings():
         for embedding in face_embeddings:
-            matches = face_recognition.compare_faces(other_user_embeddings, embedding)
+            matches = face_recognition.compare_faces(
+                other_user_embeddings, embedding, tolerance=TOLERANCE
+            )
 
             if any(matches):
                 return Status.ALREADY_REGISTERED.value
