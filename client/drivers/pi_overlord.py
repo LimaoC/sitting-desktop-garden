@@ -13,10 +13,10 @@ from datetime import datetime, timedelta
 import RPi.GPIO as GPIO
 from data.routines import (
     init_database,
-    destroy_database,
     reset_registered_face_embeddings,
     get_user_postures,
     Posture,
+    clear_database,
 )
 from drivers.data_structures import ControlledData, HardwareComponents
 from drivers.login_system import RESET, handle_authentication
@@ -484,9 +484,8 @@ def _reset_garden() -> None:
 
     global hardware
 
-    destroy_database()
     logger.debug("\t<!> initialising database anew...")
-    init_database()
+    clear_database()
     logger.debug("\t<!> resetting face embeddings...")
     reset_registered_face_embeddings()
     logger.debug("\t<!> initialising hardware...")
