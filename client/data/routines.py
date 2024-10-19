@@ -68,6 +68,17 @@ def init_database() -> None:
         connection.commit()
 
 
+def clear_database() -> None:
+    """Clear all rows from the database"""
+    with _connect() as connection:
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM user;")
+        cursor.execute("DELETE FROM posture;")
+        cursor.execute("DELETE FROM SQLITE_SEQUENCE WHERE name='user'")
+        cursor.execute("DELETE FROM SQLITE_SEQUENCE WHERE name='posture'")
+        connection.commit()
+
+
 def destroy_database() -> None:
     """Delete the current database if it exists."""
     with resources.as_file(DATABASE_RESOURCE) as database_file:
