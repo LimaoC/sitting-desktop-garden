@@ -1,5 +1,5 @@
 # Sitting Desktop Garden
-**THIS README SHOULD NOT BE MARKED PLEASE SEE README.pdf**
+***2024 Semester 2 DECO3801 Project by Limao Chang, Mitchell Clark, Gabriel Field, Ben Varley, David Ramsay***
 
 <center>
 </center>
